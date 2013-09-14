@@ -13,13 +13,17 @@ SOURCES=main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXE = our_game
 
-all: $(SOURCES) $(EXE)
+all: $(SOURCES) $(BUILD) $(EXE)
 		
-$(EXE): $(OBJECTS) 
+$(EXE): $(OBJECTS)
 		$(CXX) $(LDFLAGS) $(BUILD)/$(OBJECTS) -o $@
 
 .cpp.o:
 		$(CXX) $(CXXFLAGS) $< -o $(BUILD)/$@
+
+# Make sure the build directory exists
+$(BUILD):
+	mkdir -p $(BUILD)
 
 clean:
 	rm $(BUILD)/*.o; rm $(EXE)
