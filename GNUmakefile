@@ -1,7 +1,7 @@
 CXX = g++
 #CXX = clang++
-SDL_LIB = -L./lib/mac -lSDL2
-SDL_INCLUDE = -I./include/mac
+SDL_LIB = -L./lib/linux -lSDL2 -Wl,-rpath=./lib/linux
+SDL_INCLUDE = -I./include/linux
 #CXXFLAGS = -Wall -c -std=c++11 $(SDL_INCLUDE)
 CXXFLAGS = -Wall -c -std=c++0x $(SDL_INCLUDE)
 LDFLAGS = $(SDL_LIB)

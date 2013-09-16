@@ -8,3 +8,5 @@ then quit.
 
 If typing make doesn't work, email me at dhakimian@westmont.edu with the error message
 and  what system you're using and I will see if I can make it work for you.
+
+It should work for both linux and mac now, but I haven't tested windows.
