@@ -1,25 +1,26 @@
 CXX = g++
 #CXX = clang++
-SDL_LIB = -L/usr/local/lib/ -lSDL2 -Wl,-rpath=/usr/local/lib/
-SDL_INCLUDE = -I/usr/local/include/
+PREFIX = /usr/local
+SDL_LIB = -L$(PREFIX)/lib/ -lSDL2 -Wl,-rpath=$(PREFIX)/lib/
+SDL_INCLUDE = -I$(PREFIX)/include/
 CXXFLAGS = -Wall -c -std=c++11 $(SDL_INCLUDE)
-#CXXFLAGS = -Wall -c -std=c++0x $(SDL_INCLUDE) # uncomment if the above doesn't work (and comment the above)
+#if make fails then change the above from c++11 to c++0x
 LDFLAGS = $(SDL_LIB)
 
 SRC = src
 BUILD = build
 VPATH = $(SRC):$(BUILD)
-SOURCES=main.cpp
+SOURCES=$(notdir $(wildcard $(SRC)/*.cpp))
 OBJECTS=$(SOURCES:.cpp=.o)
 EXE = our_game
 
 all: $(SOURCES) $(BUILD) $(EXE)
 		
 $(EXE): $(OBJECTS)
-		$(CXX) $(LDFLAGS) $(addprefix $(BUILD)/,$(OBJECTS)) -o $@
+		$(CXX) $(addprefix $(BUILD)/,$^) $(LDFLAGS) -o $@
 
 .cpp.o:
-		$(CXX) $(CXXFLAGS) $< -o $(BUILD)/$@
+		$(CXX) $< $(CXXFLAGS) -o $(BUILD)/$@
 
 # Make sure the build directory exists
 $(BUILD):
