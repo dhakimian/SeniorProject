@@ -23,7 +23,7 @@ class Player// : public Ship
         static const int SHIP_HEIGHT = 46;
 
         // acceleration rate
-        static constexpr float SHIP_ACCEL = 0.08;
+        static constexpr float SHIP_ACCEL = 0.07;
         static constexpr float SHIP_REV_ACCEL = 0.05;
         static constexpr float SHIP_ROT_ACCEL = 0.03;
 
@@ -36,20 +36,11 @@ class Player// : public Ship
         //bool checkCollision( 
         void move();
 
-        void render(SDL_Renderer* ren);
-
-        bool loadMedia(SDL_Renderer* ren);
-
-        void freeMedia();
+        //functions for sending private values to other functions in bulk
+        void get_values(float& xPos_out, float& yPos_out, float& xVel_out, float& yVel_out, float& Angle_out, float& rotVel_out);
+        void get_values(float& xPos_out, float& yPos_out, float& Angle_out);
 
     private:
-        //the textures that will be used
-        //LTexture shipTex;
-        //LTexture thr_bTex;
-        //LTexture thr_lTex;
-        //LTexture thr_rTex;
-        //LTexture thr_fTex;
-
         //ship's position
         float xPos, yPos;
 

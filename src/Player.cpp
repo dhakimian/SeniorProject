@@ -1,12 +1,5 @@
 #include "Player.h"
 
-//the textures that will be used
-LTexture shipTex;
-LTexture thr_bTex;
-LTexture thr_lTex;
-LTexture thr_rTex;
-LTexture thr_fTex;
-
 Player::Player()
 {
     xPos = (float) SCREEN_WIDTH / 2;
@@ -90,64 +83,19 @@ void Player::move()
     Angle += rotVel;
 }
 
-void Player::render(SDL_Renderer* ren)
+void Player::get_values(float& xPos_out, float& yPos_out, float& xVel_out, float& yVel_out, float& Angle_out, float& rotVel_out)
 {
-    //Render the the ship
-    shipTex.render( ren, (int)xPos, (int)yPos, NULL, Angle );
-
-    SDL_Point center;
-    center.x = (shipTex.getWidth() / 2);
-    center.y = (shipTex.getHeight() / 2);
-
-    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-    if( currentKeyStates[ SDL_SCANCODE_UP ] )
-        thr_bTex.render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
-    if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
-        thr_lTex.render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
-    if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
-        thr_rTex.render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
-    //if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
-    //thr_fTex.render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
+    xPos_out = xPos;
+    yPos_out = yPos;
+    xVel_out = xVel;
+    yVel_out = yVel;
+    Angle_out = Angle;
+    rotVel_out = rotVel;
 }
 
-bool Player::loadMedia(SDL_Renderer* ren)
+void Player::get_values(float& xPos_out, float& yPos_out, float& Angle_out)
 {
-    //Loading success flag
-    bool success = true;
-
-    //Load ship texture
-    if( !shipTex.loadFromFile( ren, "media/ship.png" ) ) {
-        printf( "Failed to load ship texture!\n" );
-        success = false;
-    }
-    //Load thrust textures
-    if( !thr_bTex.loadFromFile( ren, "media/ship_thr_b.png" ) ) {
-        printf( "Failed to load rear thrust texture!\n" );
-        success = false;
-    }
-    if( !thr_lTex.loadFromFile( ren, "media/ship_thr_l.png" ) ) {
-        printf( "Failed to load port thrust texture!\n" );
-        success = false;
-    }
-    if( !thr_rTex.loadFromFile( ren, "media/ship_thr_r.png" ) ) {
-        printf( "Failed to load starboard thrust texture!\n" );
-        success = false;
-    }
-    /*
-       if( !thr_fTex.loadFromFile( ren, "media/ship_thr_f.png" ) ) {
-       printf( "Failed to load front thrust texture!\n" );
-       success = false;
-       }
-       */
-
-    return success;
-}
-
-void Player::freeMedia()
-{
-    shipTex.free();
-    thr_bTex.free();
-    thr_lTex.free();
-    thr_rTex.free();
-    //thr_fTex.free();
+    xPos_out = xPos;
+    yPos_out = yPos;
+    Angle_out = Angle;
 }

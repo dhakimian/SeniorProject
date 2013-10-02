@@ -15,7 +15,7 @@ EXE = our_game
 all: $(SOURCES) $(BUILD) $(EXE)
 		
 $(EXE): $(OBJECTS)
-		$(CXX) $(addprefix $(BUILD)/,$^) $(LDFLAGS) -o $@
+		$(CXX) $(addprefix $(BUILD)/,$(notdir $^)) $(LDFLAGS) -o $@
 
 .cpp.o:
 		$(CXX) $< $(CXXFLAGS) -o $(BUILD)/$@
