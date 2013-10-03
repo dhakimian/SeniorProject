@@ -58,9 +58,9 @@ void Player::move()
         xVel = 0.0;
     }
     //If the ship went too far to the right
-    if ( xPos + SHIP_WIDTH > SCREEN_WIDTH )
+    if ( xPos + SHIP_WIDTH > LEVEL_WIDTH )
     {
-        xPos = (float) SCREEN_WIDTH - SHIP_WIDTH;
+        xPos = (float) LEVEL_WIDTH - SHIP_WIDTH;
         xVel = 0.0;
     }
 
@@ -74,9 +74,9 @@ void Player::move()
         yVel = 0.0;
     }
     //If the ship went too far down
-    if( yPos + SHIP_HEIGHT > SCREEN_HEIGHT )
+    if( yPos + SHIP_HEIGHT > LEVEL_HEIGHT )
     {
-        yPos = (float) SCREEN_HEIGHT - SHIP_HEIGHT;
+        yPos = (float) LEVEL_HEIGHT - SHIP_HEIGHT;
         yVel = 0.0;
     }
 

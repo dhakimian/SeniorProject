@@ -159,19 +159,33 @@ void render(SDL_Renderer* ren, Player* player)
     //int yPosRel = (int)yPos - camY; //position relative to the camera
     //Render the the ship
     //textures[SHIP].render( ren, xPosRel, yPosRel, NULL, Angle );
-    textures[SHIP].render( ren, (int)xPos, (int)yPos, NULL, Angle );
+
+    int xScreenPos = SCREEN_WIDTH/2;    //The position on the screen where the ship resides..
+    int yScreenPos = SCREEN_HEIGHT-150; //..as the world moves relative to it
 
     SDL_Point center;
-    center.x = (textures[SHIP].getWidth() / 2);
-    center.y = (textures[SHIP].getHeight() / 2);
+    float center_x = xPos + (textures[SHIP].getWidth() / 2);
+    float center_y = yPos + (textures[SHIP].getHeight() / 2);
+
+    int tile_w = textures[BACKGROUND].getWidth();
+    int tile_h = textures[BACKGROUND].getHeight();
+    for( int i=0; i<LEVEL_WIDTH; i+= tile_w )
+        for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
+        {
+            center.x = center_x - i;
+            center.y = center_y - j;
+            textures[BACKGROUND].render( ren, i+xScreenPos-xPos, j+yScreenPos-yPos, NULL, -Angle, &center);
+        }
+    //textures[BACKGROUND].render( ren, xScreenPos-xPos, yScreenPos-yPos, NULL, -Angle, &center);
+    textures[SHIP].render( ren, xScreenPos, yScreenPos );
 
     const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
     if( currentKeyStates[ SDL_SCANCODE_UP ] )
-        textures[THR_B].render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
+        textures[THR_B].render( ren, xScreenPos, yScreenPos );
     if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
-        textures[THR_L].render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
+        textures[THR_L].render( ren, xScreenPos, yScreenPos );
     if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
-        textures[THR_R].render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
+        textures[THR_R].render( ren, xScreenPos, yScreenPos );
     //if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
         //textures[THR_F].render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
 }
