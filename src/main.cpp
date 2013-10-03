@@ -33,7 +33,7 @@ SDL_Window* gWindow = NULL;
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
-std::vector<std::string> images = {
+static const std::string imgarr[] = {
     "media/bg_image.gif",
     "media/ship.png",
     "media/ship_thr_b.png",
@@ -41,6 +41,7 @@ std::vector<std::string> images = {
     "media/ship_thr_r.png",
     //"media/ship_thr_f.png",
 };
+std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
 std::vector<LTexture> textures (images.size());
 
