@@ -39,7 +39,7 @@ static const std::string imgarr[] = {
     "media/ship_thr_b.png",
     "media/ship_thr_l.png",
     "media/ship_thr_r.png",
-    //"media/ship_thr_f.png",
+    "media/ship_thr_f.png",
 };
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
@@ -187,8 +187,8 @@ void render(SDL_Renderer* ren, Player* player)
         textures[THR_L].render( ren, xScreenPos, yScreenPos );
     if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
         textures[THR_R].render( ren, xScreenPos, yScreenPos );
-    //if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
-        //textures[THR_F].render( ren, (int)xPos, (int)yPos, NULL, Angle, &center );
+    if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
+        textures[THR_F].render( ren, xScreenPos, yScreenPos );
 }
 
 

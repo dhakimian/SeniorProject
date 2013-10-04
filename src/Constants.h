@@ -14,7 +14,7 @@ enum TextureIndex {
     THR_B,
     THR_L,
     THR_R,
-    //THR_F,
+    THR_F,
 };
  
 struct Circle
