@@ -35,11 +35,11 @@ SDL_Renderer* gRenderer = NULL;
 
 static const std::string imgarr[] = {
     "media/bg_image.gif",
-    "media/ship.png",
-    "media/ship_thr_b.png",
-    "media/ship_thr_l.png",
-    "media/ship_thr_r.png",
-    "media/ship_thr_f.png",
+    "media/player/ship.png",
+    "media/player/thr_b.png",
+    "media/player/thr_f.png",
+    "media/player/thr_l.png",
+    "media/player/thr_r.png",
 };
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
@@ -119,35 +119,6 @@ bool loadMedia(SDL_Renderer* ren)
         }
     }
 
-    /*
-    if( !background.loadFromFile( ren, "media/bg_image.gif" ) ) {
-        printf( "Failed to load background image!\n" );
-        success = false;
-    }
-    if( !shipTex.loadFromFile( ren, "media/ship.png" ) ) {
-        printf( "Failed to load ship texture!\n" );
-        success = false;
-    }
-    if( !thr_bTex.loadFromFile( ren, "media/ship_thr_b.png" ) ) {
-        printf( "Failed to load rear thrust texture!\n" );
-        success = false;
-    }
-    if( !thr_lTex.loadFromFile( ren, "media/ship_thr_l.png" ) ) {
-        printf( "Failed to load port thrust texture!\n" );
-        success = false;
-    }
-    if( !thr_rTex.loadFromFile( ren, "media/ship_thr_r.png" ) ) {
-        printf( "Failed to load starboard thrust texture!\n" );
-        success = false;
-    }
-    */
-    /*
-       if( !thr_fTex.loadFromFile( ren, "media/ship_thr_f.png" ) ) {
-       printf( "Failed to load front thrust texture!\n" );
-       success = false;
-       }
-       */
-
     return success;
 }
 
@@ -155,40 +126,41 @@ bool loadMedia(SDL_Renderer* ren)
 void render(SDL_Renderer* ren, Player* player)
 {
     float xPos, yPos, Angle; 
-    player->get_values(xPos, yPos, Angle);
+    player->get_values(&xPos, &yPos, &Angle);
     //int xPosRel = (int)xPos - camX; //position relative to the camera
     //int yPosRel = (int)yPos - camY; //position relative to the camera
     //Render the the ship
     //textures[SHIP].render( ren, xPosRel, yPosRel, NULL, Angle );
 
     int xScreenPos = SCREEN_WIDTH/2;    //The position on the screen where the ship resides..
-    int yScreenPos = SCREEN_HEIGHT-150; //..as the world moves relative to it
+    int yScreenPos = SCREEN_HEIGHT*3/4; //..as the world moves relative to it
 
     SDL_Point center;
-    float center_x = xPos + (textures[SHIP].getWidth() / 2);
-    float center_y = yPos + (textures[SHIP].getHeight() / 2);
 
     int tile_w = textures[BACKGROUND].getWidth();
     int tile_h = textures[BACKGROUND].getHeight();
     for( int i=0; i<LEVEL_WIDTH; i+= tile_w )
         for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
         {
-            center.x = center_x - i;
-            center.y = center_y - j;
+            center.x = xPos - i;
+            center.y = yPos - j;
             textures[BACKGROUND].render( ren, i+xScreenPos-xPos, j+yScreenPos-yPos, NULL, -Angle, &center);
         }
-    //textures[BACKGROUND].render( ren, xScreenPos-xPos, yScreenPos-yPos, NULL, -Angle, &center);
-    textures[SHIP].render( ren, xScreenPos, yScreenPos );
+
+    xScreenPos -= textures[PLAYER].getWidth()/2;  //shift the coords so that the center of the image..
+    yScreenPos -= textures[PLAYER].getHeight()/2; //..will be on the point instead of the top left corner
+
+    textures[PLAYER].render( ren, xScreenPos, yScreenPos );
 
     const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
     if( currentKeyStates[ SDL_SCANCODE_UP ] )
-        textures[THR_B].render( ren, xScreenPos, yScreenPos );
-    if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
-        textures[THR_L].render( ren, xScreenPos, yScreenPos );
-    if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
-        textures[THR_R].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
     if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
-        textures[THR_F].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
+    if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
+        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
+    if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
+        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
 }
 
 
@@ -261,10 +233,18 @@ int main( int argc, char* args[] )
                 }
 
                 //Handle input for the dot
-                player.handleEvent( e );
+                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+                if( currentKeyStates[ SDL_SCANCODE_UP ] )
+                    player.thrust_b();
+                if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
+                    player.thrust_f();
+                if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
+                    player.thrust_l();
+                if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
+                    player.thrust_r();
 
                 //Move the dot
-                player.move();
+                player.update_pos();
 
                 //Clear screen
                 //SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );

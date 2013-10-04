@@ -10,11 +10,11 @@ const int LEVEL_HEIGHT = 1600;
 
 enum TextureIndex {
     BACKGROUND,
-    SHIP,
-    THR_B,
-    THR_L,
-    THR_R,
-    THR_F,
+    PLAYER,
+    PLAYER_THR_B,
+    PLAYER_THR_F,
+    PLAYER_THR_L,
+    PLAYER_THR_R,
 };
  
 struct Circle

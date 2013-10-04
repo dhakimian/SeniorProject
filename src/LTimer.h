@@ -1,3 +1,8 @@
+/*This source code was extracted from a tutorial source file from lazyfoo.net which had the following 
+ * copyright notice at the top:*/
+/*This source code copyrighted by Lazy Foo' Productions (2004-2013)
+ * and may not be redistributed without written permission.*/
+
 #ifndef _LTIMER_H
 #define _LTIMER_H
 

@@ -1,9 +1,22 @@
+/*This source code was based off part of a tutorial source file from lazyfoo.net which had the following 
+ * copyright notice at the top:*/
+/*This source code copyrighted by Lazy Foo' Productions (2004-2013)
+ * and may not be redistributed without written permission.*/
 #include "Player.h"
 
 Player::Player()
 {
+    // acceleration rate
+    SHIP_ACCEL = 0.07;
+    SHIP_REV_ACCEL = 0.04;
+    SHIP_ROT_ACCEL = 0.03;
+
     xPos = (float) SCREEN_WIDTH / 2;
     yPos = (float) SCREEN_HEIGHT / 2;
+
+    Collider.x = xPos;
+    Collider.y = yPos;
+    Collider.r = 20;
 
     xVel = 0.0;
     yVel = 0.0;
@@ -11,91 +24,22 @@ Player::Player()
     Angle = 0.0;
 
     rotVel = 0.0;
+
+    MAX_HP = 100;
+    cur_hp = 100;
 }
 
 /*
-   Player::~Player()
-   {
-
-   }
-   */
-
 void Player::handleEvent( SDL_Event& e )
 {
-    double ang = M_PI * Angle;
-    ang = ang / 180;
-
     const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
     if( currentKeyStates[ SDL_SCANCODE_UP ] )
-    {
-        xVel += SHIP_ACCEL * sin(ang);
-        yVel -= SHIP_ACCEL * cos(ang);
-    }
+        thrust_b();
     if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
-    {
-        xVel -= SHIP_REV_ACCEL * sin(ang);
-        yVel += SHIP_REV_ACCEL * cos(ang);
-    }
+        thrust_f();
     if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
-    {
-        rotVel -= SHIP_ROT_ACCEL;
-    }
+        thrust_l();
     if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
-    {
-        rotVel += SHIP_ROT_ACCEL;
-    }
+        thrust_r();
 }
-
-void Player::move()
-{
-    //Move the ship left or right
-    xPos += xVel;
-
-    //If the ship went too far to the left
-    if( xPos < 0 )
-    {
-        xPos = 0.0;
-        xVel = 0.0;
-    }
-    //If the ship went too far to the right
-    if ( xPos + SHIP_WIDTH > LEVEL_WIDTH )
-    {
-        xPos = (float) LEVEL_WIDTH - SHIP_WIDTH;
-        xVel = 0.0;
-    }
-
-    //Move the ship up or down
-    yPos += yVel;
-
-    //If the ship went too far up
-    if( yPos < 0 )
-    {
-        yPos = 0.0;
-        yVel = 0.0;
-    }
-    //If the ship went too far down
-    if( yPos + SHIP_HEIGHT > LEVEL_HEIGHT )
-    {
-        yPos = (float) LEVEL_HEIGHT - SHIP_HEIGHT;
-        yVel = 0.0;
-    }
-
-    Angle += rotVel;
-}
-
-void Player::get_values(float& xPos_out, float& yPos_out, float& xVel_out, float& yVel_out, float& Angle_out, float& rotVel_out)
-{
-    xPos_out = xPos;
-    yPos_out = yPos;
-    xVel_out = xVel;
-    yVel_out = yVel;
-    Angle_out = Angle;
-    rotVel_out = rotVel;
-}
-
-void Player::get_values(float& xPos_out, float& yPos_out, float& Angle_out)
-{
-    xPos_out = xPos;
-    yPos_out = yPos;
-    Angle_out = Angle;
-}
+*/
