@@ -15,6 +15,13 @@ enum TextureIndex {
     PLAYER_THR_F,
     PLAYER_THR_L,
     PLAYER_THR_R,
+    PLAYER_WNG_B,
+    PLAYER_WNG_NORM,
+    PLAYER_WNG_F,
+    PLAYER_WNG_L,
+    PLAYER_WNG_R,
+    PLAYER_Tlt_R,
+    PLAYER_Tlt_L,
 };
  
 struct Circle

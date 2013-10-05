@@ -35,11 +35,18 @@ SDL_Renderer* gRenderer = NULL;
 
 static const std::string imgarr[] = {
     "media/bg_image.gif",
-    "media/player/ship.png",
-    "media/player/thr_b.png",
-    "media/player/thr_f.png",
-    "media/player/thr_l.png",
-    "media/player/thr_r.png",
+    "media/player/SF_Ship/ship_body.png",
+    "media/player/SF_Ship/jet_forward.png",
+    "media/player/SF_Ship/jet_reverse.png",
+    "media/player/SF_Ship/jet_leftTurn.png",
+    "media/player/SF_Ship/jet_rightTurn.png",
+    "media/player/SF_Ship/wings_reverse.png",
+    "media/player/SF_Ship/wings_normal.png",
+    "media/player/SF_Ship/wings_forward.png",
+    "media/player/SF_Ship/wings_leftTurn.png",
+    "media/player/SF_Ship/wings_rightTurn.png",
+    "media/player/SF_Ship/ship_body_Rtilt.png",
+    "media/player/SF_Ship/ship_body_Ltilt.png"
 };
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
@@ -132,7 +139,7 @@ void render(SDL_Renderer* ren, Player* player)
     //Render the the ship
     //textures[SHIP].render( ren, xPosRel, yPosRel, NULL, Angle );
 
-    int xScreenPos = SCREEN_WIDTH/2;    //The position on the screen where the ship resides..
+    int xScreenPos = SCREEN_WIDTH/2 ;    //The position on the screen where the ship resides..
     int yScreenPos = SCREEN_HEIGHT*3/4; //..as the world moves relative to it
 
     SDL_Point center;
@@ -153,7 +160,8 @@ void render(SDL_Renderer* ren, Player* player)
     textures[PLAYER].render( ren, xScreenPos, yScreenPos );
 
     const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-    if( currentKeyStates[ SDL_SCANCODE_UP ] )
+    // uncomment this if you want to use the older ship instead
+    /*if( currentKeyStates[ SDL_SCANCODE_UP ] )
         textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
     if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
         textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
@@ -161,6 +169,46 @@ void render(SDL_Renderer* ren, Player* player)
         textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
     if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
         textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
+    */
+    // here is my(robs) added code that implements a cool ship that has some more moving parts.
+    //local variables resembling if movement keys are pushed. also wincludes both wasd and updownleftright
+    //makes it the player able to use wasd and arrow keys
+    //also makes less to type in each iff function
+    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
+    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
+    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
+    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
+
+    //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
+    //
+    if(upKey)
+        textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
+    if(leftKey)
+        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
+    if(rightKey)
+        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
+    if(downKey)
+        textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
+    //these functions draw different wing orentations depending on which direction the ship is turning.
+    if(downKey && !upKey){
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}
+    if(leftKey && !rightKey && !downKey){
+        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_WNG_L].render(ren, xScreenPos, yScreenPos);}
+    if(rightKey && !leftKey && !downKey){
+        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos );    
+        textures[PLAYER_WNG_R].render(ren, xScreenPos, yScreenPos);}
+    if(upKey && !downKey && !leftKey && !rightKey){
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos );    
+        textures[PLAYER_WNG_F].render(ren, xScreenPos, yScreenPos);}
+    if((downKey && upKey) || (leftKey && rightKey)){ 
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos );   
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
+    if(!downKey && !upKey && !leftKey && !rightKey){
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
+
 }
 
 
@@ -226,6 +274,9 @@ int main( int argc, char* args[] )
                                 toggle_fullscreen(gWindow);
                                 break;
                             case SDLK_q:
+                                quit = true;
+                                break;
+                            case SDLK_ESCAPE:
                                 quit = true;
                                 break;
                         }
