@@ -170,6 +170,8 @@ void render(SDL_Renderer* ren, Player* player)
     if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
         textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
     */
+
+
     // here is my(robs) added code that implements a cool ship that has some more moving parts.
     //local variables resembling if movement keys are pushed. also wincludes both wasd and updownleftright
     //makes it the player able to use wasd and arrow keys
@@ -285,13 +287,19 @@ int main( int argc, char* args[] )
 
                 //Handle input for the dot
                 const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-                if( currentKeyStates[ SDL_SCANCODE_UP ] )
+
+                bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
+                bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
+                bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
+                bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
+                
+                if(upKey)
                     player.thrust_b();
-                if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
+                if(downKey)
                     player.thrust_f();
-                if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
+                if(leftKey)
                     player.thrust_l();
-                if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
+                if(rightKey)
                     player.thrust_r();
 
                 //Move the dot
