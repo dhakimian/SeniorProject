@@ -16,7 +16,7 @@ Player::Player()
 
     Collider.x = xPos;
     Collider.y = yPos;
-    Collider.r = 20;
+    Collider.r = 30;
 
     xVel = 0.0;
     yVel = 0.0;
@@ -26,20 +26,5 @@ Player::Player()
     rotVel = 0.0;
 
     MAX_HP = 100;
-    cur_hp = 100;
+    hitpoints = 100;
 }
-
-/*
-void Player::handleEvent( SDL_Event& e )
-{
-    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-    if( currentKeyStates[ SDL_SCANCODE_UP ] )
-        thrust_b();
-    if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
-        thrust_f();
-    if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
-        thrust_l();
-    if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
-        thrust_r();
-}
-*/

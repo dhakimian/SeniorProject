@@ -58,8 +58,12 @@ void Ship::thrust_r()
 void Ship::update_pos()
 {
     //Move the ship left or right
-    xPos += xVel;
+    xPos = fmod( (xPos + xVel + LEVEL_WIDTH), LEVEL_WIDTH);
+    // apparently fmod (float modulo) doesn't do negative numbers (I think it takes the abs val)
+    // so to get around this I just shift the number line to avoid passing negatives to fmod, 
+    // hence the added LEVEL_WIDTH in the first arg
 
+    /*
     //If the ship went too far to the left
     if( xPos - Collider.r < 0 )
     {
@@ -72,10 +76,12 @@ void Ship::update_pos()
         xPos = (float) LEVEL_WIDTH - Collider.r;
         xVel = 0.0;
     }
+    */
 
     //Move the ship up or down
-    yPos += yVel;
+    yPos = fmod( (yPos + yVel + LEVEL_HEIGHT), LEVEL_HEIGHT);
 
+    /*
     //If the ship went too far up
     if( yPos - Collider.r < 0 )
     {
@@ -88,6 +94,7 @@ void Ship::update_pos()
         yPos = (float) LEVEL_HEIGHT - Collider.r;
         yVel = 0.0;
     }
+    */
 
     Angle += rotVel;
 }

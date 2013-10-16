@@ -8,11 +8,11 @@ const int SCREEN_HEIGHT = 480;
 const int LEVEL_WIDTH = 2400;
 const int LEVEL_HEIGHT = 1600;
 
-enum TextureIndex {
-    BACKGROUND,
-    PLAYER,
-    PLAYER_THR_B,
-    PLAYER_THR_F,
+enum TextureIndex { // Constants containing the index numbers of the vector of images used by the program
+    BACKGROUND,    // 0
+    PLAYER,        // 1
+    PLAYER_THR_B,  // 2
+    PLAYER_THR_F,  // etc...   // a hash would probably work instead, but this works too.
     PLAYER_THR_L,
     PLAYER_THR_R,
     PLAYER_WNG_B,
@@ -28,6 +28,13 @@ struct Circle
 {
     int x, y;
     int r;
+};
+
+struct ImgInstance
+{
+    int index; // TextureIndex
+    float x, y;
+    float angle;
 };
 
 #endif

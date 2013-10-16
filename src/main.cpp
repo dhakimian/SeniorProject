@@ -35,6 +35,7 @@ SDL_Renderer* gRenderer = NULL;
 
 static const std::string imgarr[] = {
     "media/bg_image.gif",
+    //"media/solid_bg.png",
     "media/player/SF_Ship/ship_body.png",
     "media/player/SF_Ship/jet_forward.png",
     "media/player/SF_Ship/jet_reverse.png",
@@ -51,6 +52,10 @@ static const std::string imgarr[] = {
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
 std::vector<LTexture> textures (images.size());
+
+//std::vector<something> objects; // list of all the objects currently in the level
+
+std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
 
 bool init()
 {
@@ -134,10 +139,6 @@ void render(SDL_Renderer* ren, Player* player)
 {
     float xPos, yPos, Angle; 
     player->get_values(&xPos, &yPos, &Angle);
-    //int xPosRel = (int)xPos - camX; //position relative to the camera
-    //int yPosRel = (int)yPos - camY; //position relative to the camera
-    //Render the the ship
-    //textures[SHIP].render( ren, xPosRel, yPosRel, NULL, Angle );
 
     int xScreenPos = SCREEN_WIDTH/2 ;    //The position on the screen where the ship resides..
     int yScreenPos = SCREEN_HEIGHT*3/4; //..as the world moves relative to it
@@ -160,22 +161,11 @@ void render(SDL_Renderer* ren, Player* player)
     textures[PLAYER].render( ren, xScreenPos, yScreenPos );
 
     const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-    // uncomment this if you want to use the older ship instead
-    /*if( currentKeyStates[ SDL_SCANCODE_UP ] )
-        textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
-    if( currentKeyStates[ SDL_SCANCODE_DOWN ] )
-        textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
-    if( currentKeyStates[ SDL_SCANCODE_LEFT ] )
-        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
-    if( currentKeyStates[ SDL_SCANCODE_RIGHT ] )
-        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
-    */
 
+    // here is my(robs) added code that implements a cool ship that has some moving parts.
 
-    // here is my(robs) added code that implements a cool ship that has some more moving parts.
-    //local variables resembling if movement keys are pushed. also wincludes both wasd and updownleftright
-    //makes it the player able to use wasd and arrow keys
-    //also makes less to type in each iff function
+    //local variables resembling if movement keys are pushed. Includes both wasd and updownleftright.
+    //makes less to type in each if statement
     bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
     bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
     bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
@@ -210,6 +200,27 @@ void render(SDL_Renderer* ren, Player* player)
     if(!downKey && !upKey && !leftKey && !rightKey){
         textures[PLAYER].render( ren, xScreenPos, yScreenPos );
         textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
+
+}
+
+//handle actions based on current key state
+void handle_keystate(Player* player)
+{
+    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
+    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
+    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
+    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
+    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
+
+    if(upKey)
+        player->thrust_b();
+    if(downKey)
+        player->thrust_f();
+    if(leftKey)
+        player->thrust_l();
+    if(rightKey)
+        player->thrust_r();
 
 }
 
@@ -281,28 +292,19 @@ int main( int argc, char* args[] )
                             case SDLK_ESCAPE:
                                 quit = true;
                                 break;
+                            case SDLK_c:
+                                float xPos, yPos, Angle; 
+                                player.get_values(&xPos, &yPos, &Angle);
+                                std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
+                                break;
                         }
                     }
                 }
 
-                //Handle input for the dot
-                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+                //handle actions based on current key state
+                handle_keystate( &player );
 
-                bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
-                bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
-                bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
-                bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
-                
-                if(upKey)
-                    player.thrust_b();
-                if(downKey)
-                    player.thrust_f();
-                if(leftKey)
-                    player.thrust_l();
-                if(rightKey)
-                    player.thrust_r();
-
-                //Move the dot
+                //Move the ship
                 player.update_pos();
 
                 //Clear screen
@@ -324,51 +326,3 @@ int main( int argc, char* args[] )
 
     return 0;
 }
-
-/*
-int main(int argc, char **argv){
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
-        std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
-    if (win == nullptr){
-        std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Renderer *ren = SDL_CreateRenderer(win, -1, 
-            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (ren == nullptr){
-        std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Surface *bmp = SDL_LoadBMP("hello_world.bmp");
-    if (bmp == nullptr){
-        std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, bmp);
-    SDL_FreeSurface(bmp);
-    if (tex == nullptr){
-        std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_RenderClear(ren);
-    SDL_RenderCopy(ren, tex, NULL, NULL);
-    SDL_RenderPresent(ren);
-
-    SDL_Delay(2000);
-
-    SDL_DestroyTexture(tex);
-    SDL_DestroyRenderer(ren);
-    SDL_DestroyWindow(win);
-    SDL_Quit();
-
-    return 0;
-}
-*/

@@ -33,6 +33,7 @@ class Ship // : public MovingObject
         void update_pos();
 
         //functions for sending private values to other functions in bulk
+        //(to avoid making a bunch of separate public 'get' methods)
         void get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out);
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
 
@@ -42,7 +43,6 @@ class Ship // : public MovingObject
 
         // Unenforced Constants
         //----------------------//
-        //int SHIP_RADIUS;
 
         // acceleration rate
         float SHIP_ACCEL;
@@ -70,7 +70,7 @@ class Ship // : public MovingObject
         float rotVel;
 
         //ship's current hitpoints
-        int cur_hp;
+        int hitpoints;
         
 };
 #endif

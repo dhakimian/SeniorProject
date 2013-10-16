@@ -1,7 +1,7 @@
 CXX = g++
 #CXX = clang++
 PREFIX = /opt/local
-SDL_LIB = -L$(PREFIX)/lib/ -lSDL2 -lSDL2_image
+SDL_LIB = -L$(PREFIX)/lib/ -lSDL2 -lSDL2_image -lSDL2_mixer
 SDL_INCLUDE = -I$(PREFIX)/include/SDL2
 # You may need to change -std=c++11 to -std=c++0x if your compiler is a bit older
 CXXFLAGS = -Wall -c -std=c++11 $(SDL_INCLUDE)
