@@ -53,7 +53,7 @@ std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr
 
 std::vector<LTexture> textures (images.size());
 
-//std::vector<something> objects; // list of all the objects currently in the level
+//std::vector<Object> objects; // list of all the objects currently in the level
 
 std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
 
@@ -305,7 +305,7 @@ int main( int argc, char* args[] )
                 handle_keystate( &player );
 
                 //Move the ship
-                player.update_pos();
+                player.update();
 
                 //Clear screen
                 //SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );

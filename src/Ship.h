@@ -14,9 +14,9 @@
 #include "Constants.h"
 #include "Util.h"
 #include "LTexture.h"
-//#include "MovingObject.h"
+#include "MovingObject.h"
 
-class Ship // : public MovingObject
+class Ship : public MovingObject
 {
     public:
 
@@ -28,16 +28,6 @@ class Ship // : public MovingObject
         void thrust_l();
         void thrust_r();
         void thrust_f();
-
-        // update the position based on current velocity
-        void update_pos();
-
-        //functions for sending private values to other functions in bulk
-        //(to avoid making a bunch of separate public 'get' methods)
-        void get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out);
-        void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
-
-        //SDL_Point getCenter();
 
     protected:
 
@@ -55,19 +45,19 @@ class Ship // : public MovingObject
         //----------------------//
 
         //ship's collider
-        Circle Collider;
+        //Circle Collider;
 
         //ship's current position (represents the center of the ship, not the topleft corner)
-        float xPos, yPos;
+        //float xPos, yPos;
 
         //ship's current velocity
-        float xVel, yVel;
+        //float xVel, yVel;
 
         //ship's current angle
-        float Angle;
+        //float Angle;
 
         //ship's current rotational velocity
-        float rotVel;
+        //float rotVel;
 
         //ship's current hitpoints
         int hitpoints;

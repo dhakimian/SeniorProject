@@ -22,13 +22,6 @@ Ship::Ship()
     Collider.r = Collider.r;
 }
 
-/*
-   Ship::~Ship()
-   {
-
-   }
-   */
-
 void Ship::thrust_b()
 {
     double ang = M_PI * Angle;
@@ -55,47 +48,20 @@ void Ship::thrust_r()
     rotVel += SHIP_ROT_ACCEL;
 }
 
-void Ship::update_pos()
+/*
+void Ship::update()
 {
     //Move the ship left or right
     xPos = fmod( (xPos + xVel + LEVEL_WIDTH), LEVEL_WIDTH);
-    // apparently fmod (float modulo) doesn't do negative numbers (I think it takes the abs val)
-    // so to get around this I just shift the number line to avoid passing negatives to fmod, 
-    // hence the added LEVEL_WIDTH in the first arg
-
-    /*
-    //If the ship went too far to the left
-    if( xPos - Collider.r < 0 )
-    {
-        xPos = (float) Collider.r;
-        xVel = 0.0;
-    }
-    //If the ship went too far to the right
-    if ( xPos + Collider.r > LEVEL_WIDTH )
-    {
-        xPos = (float) LEVEL_WIDTH - Collider.r;
-        xVel = 0.0;
-    }
-    */
 
     //Move the ship up or down
     yPos = fmod( (yPos + yVel + LEVEL_HEIGHT), LEVEL_HEIGHT);
 
-    /*
-    //If the ship went too far up
-    if( yPos - Collider.r < 0 )
-    {
-        yPos = (float) Collider.r;
-        yVel = 0.0;
-    }
-    //If the ship went too far down
-    if( yPos + Collider.r > LEVEL_HEIGHT )
-    {
-        yPos = (float) LEVEL_HEIGHT - Collider.r;
-        yVel = 0.0;
-    }
-    */
+    // apparently fmod (float modulo) doesn't do negative numbers (I think it takes the abs val)
+    // so to get around this I just shift the number line to avoid passing negatives to fmod, 
+    // hence the added LEVEL_WIDTH/LEVEL_HEIGHT in the first args
 
+    //Rotate the ship clockwise or counter-clockwise
     Angle += rotVel;
 }
 
@@ -114,13 +80,5 @@ void Ship::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
     *xPos_out = xPos;
     *yPos_out = yPos;
     *Angle_out = Angle;
-}
-
-/*SDL_Point getCenter();
-{
-    SDL_Point center;
-    center.x = (SHIP_WIDTH / 2);
-    center.y = (SHIP_HEIGHT / 2);
-    return center;
 }
 */
