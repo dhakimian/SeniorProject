@@ -31,10 +31,13 @@ class Object
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
 
     protected:
+        //object's current position (represents the center of the ship, not the topleft corner)
         float xPos, yPos;
 
+        //object's current angle
         float Angle;
 
+        //object's collider
         Circle Collider;
 
 

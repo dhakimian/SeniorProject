@@ -44,21 +44,6 @@ class Ship : public MovingObject
 
         //----------------------//
 
-        //ship's collider
-        //Circle Collider;
-
-        //ship's current position (represents the center of the ship, not the topleft corner)
-        //float xPos, yPos;
-
-        //ship's current velocity
-        //float xVel, yVel;
-
-        //ship's current angle
-        //float Angle;
-
-        //ship's current rotational velocity
-        //float rotVel;
-
         //ship's current hitpoints
         int hitpoints;
         

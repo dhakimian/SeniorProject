@@ -34,8 +34,10 @@ class MovingObject : public Object
         void get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out);
 
     protected:
+        //object's current velocity
         float xVel, yVel;
 
+        //ship's current rotational velocity
         float rotVel;
 
 };
