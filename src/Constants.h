@@ -22,6 +22,22 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     PLAYER_WNG_R,
     PLAYER_Tlt_R,
     PLAYER_Tlt_L,
+    HEALTH_15,
+    HEALTH_14,
+    HEALTH_13,
+    HEALTH_12,
+    HEALTH_11,
+    HEALTH_10,
+    HEALTH_9,
+    HEALTH_8,
+    HEALTH_7,
+    HEALTH_6,
+    HEALTH_5,
+    HEALTH_4,
+    HEALTH_3,
+    HEALTH_2,
+    HEALTH_1,
+    HEALTH_0
 };
  
 struct Circle
