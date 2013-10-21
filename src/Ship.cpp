@@ -47,3 +47,17 @@ void Ship::thrust_r()
 {
     rotVel += SHIP_ROT_ACCEL;
 }
+void Ship::strafe_r()
+{
+    double ang = M_PI * Angle;
+    ang = ang / 180;
+    xVel += SHIP_ACCEL *cos(ang);
+    yVel += SHIP_ACCEL *sin(ang);
+}
+void Ship::strafe_l()
+{
+    double ang = M_PI * Angle;
+    ang = ang / 180;
+    xVel -= SHIP_ACCEL *cos(ang);
+    yVel -= SHIP_ACCEL *sin(ang);
+}

@@ -28,7 +28,10 @@ class Ship : public MovingObject
         void thrust_l();
         void thrust_r();
         void thrust_f();
-
+        void strafe_l();
+        void strafe_r();
+        //ship's current hitpoints
+        int hitpoints;
     protected:
 
         // Unenforced Constants
@@ -44,8 +47,7 @@ class Ship : public MovingObject
 
         //----------------------//
 
-        //ship's current hitpoints
-        int hitpoints;
+        
         
 };
 #endif

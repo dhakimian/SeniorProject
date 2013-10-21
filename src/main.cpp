@@ -13,9 +13,11 @@
 #ifdef __APPLE__
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <SDL2_mixer/SDL_mixer.h>
 #else
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #endif
 #include <iostream>
 #include <string>
@@ -47,15 +49,42 @@ static const std::string imgarr[] = {
     "media/player/SF_Ship/wings_leftTurn.png",
     "media/player/SF_Ship/wings_rightTurn.png",
     "media/player/SF_Ship/ship_body_Rtilt.png",
-    "media/player/SF_Ship/ship_body_Ltilt.png"
+    "media/player/SF_Ship/ship_body_Ltilt.png",
+    "media/player/Health/health15.png",
+    "media/player/Health/health14.png",
+    "media/player/Health/health13.png",
+    "media/player/Health/health12.png",
+    "media/player/Health/health11.png",
+    "media/player/Health/health10.png",
+    "media/player/Health/health9.png",
+    "media/player/Health/health8.png",
+    "media/player/Health/health7.png",
+    "media/player/Health/health6.png",
+    "media/player/Health/health5.png",
+    "media/player/Health/health4.png",
+    "media/player/Health/health3.png",
+    "media/player/Health/health2.png",
+    "media/player/Health/health1.png",
+    "media/player/Health/health0.png",
+    "media/Laser1.png"
 };
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
 std::vector<LTexture> textures (images.size());
 
 //std::vector<Object> objects; // list of all the objects currently in the level
-
+//std::vector<Laser*> bullets; // list of bullets that are flying around the map.?
 std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
+
+//The music that will be played
+Mix_Music *music = NULL;
+//The sound effects that will be used
+Mix_Chunk *thrust = NULL;
+Mix_Chunk *hit = NULL;
+Mix_Chunk *hyperLaser = NULL;
+Mix_Chunk *singleLaser = NULL;
+Mix_Chunk *doubleLaser = NULL;
+
 
 bool init()
 {
@@ -63,7 +92,7 @@ bool init()
     bool success = true;
 
     //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+    if( SDL_Init( SDL_INIT_VIDEO  | SDL_INIT_AUDIO ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         success = false;
@@ -113,6 +142,11 @@ bool init()
             }
         }
     }
+    //Initialize SDL_mixer
+    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ){
+        printf( "SDL could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
 
     return success;
 }
@@ -129,6 +163,45 @@ bool loadMedia(SDL_Renderer* ren)
             std::cout << "Failed to load '" << images[i] << "'!" << std::endl;
             success = false;
         }
+    }
+    //Load music
+    music = Mix_LoadMUS( "media/sounds/Crosses.wav" );
+    if( music == NULL )
+    {
+        printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+    thrust = Mix_LoadWAV( "media/sounds/thrust.wav" );
+    if( thrust == NULL )
+    {
+        printf( "Failed to load thruster sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+    
+    //Load sound effects
+    hit = Mix_LoadWAV( "media/sounds/Hit.wav" );
+    if( hit == NULL )
+    {
+        printf( "Failed to load hit effect! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+    hyperLaser = Mix_LoadWAV( "media/sounds/hyperLaser.wav" );
+    if( hyperLaser == NULL )
+    {
+        printf( "Failed to load hyperLaser effect! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+    doubleLaser = Mix_LoadWAV( "media/sounds/DoubleLaser.wav" );
+    if( doubleLaser == NULL )
+    {
+        printf( "Failed to load doubleLaser sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+    singleLaser = Mix_LoadWAV( "media/sounds/SingleLaser.wav" );
+    if( singleLaser == NULL )
+    {
+        printf( "Failed to load singleLaser sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
     }
 
     return success;
@@ -170,36 +243,128 @@ void render(SDL_Renderer* ren, Player* player)
     bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
     bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
     bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
-
+    bool strafeRight = currentKeyStates[SDL_SCANCODE_E];
+    bool strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
     //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
     //
     if(upKey)
         textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
-    if(leftKey)
+    if(leftKey && !downKey)
         textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
-    if(rightKey)
+    if(rightKey && !downKey)
         textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
     if(downKey)
         textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
+    if(rightKey && downKey)
+        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
+    if(leftKey && downKey)
+        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
     //these functions draw different wing orentations depending on which direction the ship is turning.
     if(downKey && !upKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}else{
     if(leftKey && !rightKey && !downKey){
         textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_L].render(ren, xScreenPos, yScreenPos);}
+        textures[PLAYER_WNG_L].render(ren, xScreenPos, yScreenPos);}else{
     if(rightKey && !leftKey && !downKey){
         textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos );    
-        textures[PLAYER_WNG_R].render(ren, xScreenPos, yScreenPos);}
-    if(upKey && !downKey && !leftKey && !rightKey){
+        textures[PLAYER_WNG_R].render(ren, xScreenPos, yScreenPos);}else{
+    if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight){
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
+    if(downKey && leftKey && rightKey){
         textures[PLAYER].render( ren, xScreenPos, yScreenPos );    
-        textures[PLAYER_WNG_F].render(ren, xScreenPos, yScreenPos);}
+        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}else{
+    if(leftKey && rightKey && downKey){
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos );}else{
     if((downKey && upKey) || (leftKey && rightKey)){ 
         textures[PLAYER].render( ren, xScreenPos, yScreenPos );   
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
+    if(strafeRight && !strafeLeft){
+        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
+    if(strafeLeft && !strafeRight){
+        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
+    if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight){
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos );    
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
     if(!downKey && !upKey && !leftKey && !rightKey){
         textures[PLAYER].render( ren, xScreenPos, yScreenPos );
         textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
+    }}}}}}}}}}
+
+     //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
+    if(currentKeyStates[SDL_SCANCODE_K]){
+        player->hitpoints--;
+        //Play the hit effect
+        Mix_PlayChannel( 1, hit, 0 );
+        //SDL_Delay(100);
+    }
+    if(currentKeyStates[SDL_SCANCODE_SPACE]){
+         //Play the shoot effect
+        //Laser* laser = new Laser(player->xPos, player->yPos, player->Angle);
+       // bullets.push_back(laser);
+        Mix_PlayChannel( -1, singleLaser, 0 );
+        //SDL_Delay(100);
+    }
+    //code for thruster sounds
+    if(rightKey || leftKey || upKey || downKey)
+    {
+        if(Mix_Playing(7) == 0 )
+        {
+            Mix_PlayChannel(7, thrust, 0);
+        }else
+        {
+            Mix_Resume(7);
+        }
+    }            
+    if(!(rightKey || leftKey || upKey || downKey))
+    {
+    Mix_Pause(7);
+    }
+
+    //this code is the health bar
+        float xp, yp;
+        xp = (SCREEN_WIDTH / 2) - 151;
+        yp = 1;
+        //empty health bar
+        
+
+        //code for drawing the right ammount of health increments depending on palyers health
+        int player_health = player->hitpoints;
+        if(player_health > 93.5){
+            textures[HEALTH_15].render(ren, xp, yp);}else{
+        if(player_health > 87){
+            textures[HEALTH_14].render(ren, xp, yp);}else{
+        if(player_health > 80.5){
+            textures[HEALTH_13].render(ren, xp, yp);}else{
+        if(player_health > 74){
+            textures[HEALTH_12].render(ren, xp, yp);}else{
+        if(player_health > 67.5){
+            textures[HEALTH_11].render(ren, xp, yp);}else{
+        if(player_health > 61){
+            textures[HEALTH_10].render(ren, xp, yp);}else{
+        if(player_health > 54.5){
+            textures[HEALTH_9].render(ren, xp, yp);}else{
+        if(player_health > 48){
+            textures[HEALTH_8].render(ren, xp, yp);}else{
+        if(player_health > 41.5){
+            textures[HEALTH_7].render(ren, xp, yp);}else{
+        if(player_health > 35){
+            textures[HEALTH_6].render(ren, xp, yp);}else{
+        if(player_health > 28.5){
+            textures[HEALTH_5].render(ren, xp, yp);}else{
+        if(player_health > 22){
+            textures[HEALTH_4].render(ren, xp, yp);}else{
+        if(player_health > 15.5){
+            textures[HEALTH_3].render(ren, xp, yp);}else{
+        if(player_health > 9){
+            textures[HEALTH_2].render(ren, xp, yp);}else{
+        if(player_health > 2.5){
+            textures[HEALTH_1].render(ren, xp, yp);}else{
+            textures[HEALTH_0].render(ren, xp, yp);}}}}}}}}}}}}}}}
 
 }
 
@@ -212,7 +377,8 @@ void handle_keystate(Player* player)
     bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
     bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
     bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
-
+    bool strafeRight = currentKeyStates[SDL_SCANCODE_E];
+    bool strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
     if(upKey)
         player->thrust_b();
     if(downKey)
@@ -221,6 +387,10 @@ void handle_keystate(Player* player)
         player->thrust_l();
     if(rightKey)
         player->thrust_r();
+    if(strafeLeft)
+        player->strafe_l();
+    if(strafeRight)
+        player->strafe_r();
 
 }
 
@@ -232,6 +402,15 @@ void close()
     {
         textures[i].free();
     }
+    //Free the sound effects
+    Mix_FreeChunk( hit );
+    Mix_FreeChunk( thrust );
+    Mix_FreeChunk( hyperLaser );
+    Mix_FreeChunk( singleLaser );
+    Mix_FreeChunk( doubleLaser );
+
+    //Free the music
+    Mix_FreeMusic( music );
 
     //Destroy window    
     SDL_DestroyRenderer( gRenderer );
@@ -286,9 +465,6 @@ int main( int argc, char* args[] )
                             case SDLK_f:
                                 toggle_fullscreen(gWindow);
                                 break;
-                            case SDLK_q:
-                                quit = true;
-                                break;
                             case SDLK_ESCAPE:
                                 quit = true;
                                 break;
@@ -297,6 +473,13 @@ int main( int argc, char* args[] )
                                 player.get_values(&xPos, &yPos, &Angle);
                                 std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
                                 break;
+                            case SDLK_9:
+                                Mix_PlayMusic( music, -1);
+                                break;
+                            case SDLK_0:    
+                                Mix_PauseMusic(); 
+                                break;
+
                         }
                     }
                 }

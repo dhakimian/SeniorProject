@@ -2,8 +2,8 @@
 #define _CONSTANTS_H
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 800;
 
 const int LEVEL_WIDTH = 2400;
 const int LEVEL_HEIGHT = 1600;
@@ -22,6 +22,23 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     PLAYER_WNG_R,
     PLAYER_Tlt_R,
     PLAYER_Tlt_L,
+    HEALTH_15,
+    HEALTH_14,
+    HEALTH_13,
+    HEALTH_12,
+    HEALTH_11,
+    HEALTH_10,
+    HEALTH_9,
+    HEALTH_8,
+    HEALTH_7,
+    HEALTH_6,
+    HEALTH_5,
+    HEALTH_4,
+    HEALTH_3,
+    HEALTH_2,
+    HEALTH_1,
+    HEALTH_0,
+    LASER_1,
 };
  
 struct Circle
