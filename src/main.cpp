@@ -156,7 +156,8 @@ void render(SDL_Renderer* ren, Player* player)
         }
 
     xScreenPos -= textures[PLAYER].getWidth()/2;  //shift the coords so that the center of the image..
-    yScreenPos -= textures[PLAYER].getHeight()/2; //..will be on the point instead of the top left corner
+    yScreenPos -= textures[PLAYER].getHeight()/2; //..(not the top left corner of the image) will be...
+                                                  //..on the point of the ship's position
 
     textures[PLAYER].render( ren, xScreenPos, yScreenPos );
 
@@ -181,7 +182,7 @@ void render(SDL_Renderer* ren, Player* player)
         textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
     if(downKey)
         textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
-    //these functions draw different wing orentations depending on which direction the ship is turning.
+    //these conditionals draw different wing orentations depending on which direction the ship is turning.
     if(downKey && !upKey){
         textures[PLAYER].render( ren, xScreenPos, yScreenPos );
         textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}
