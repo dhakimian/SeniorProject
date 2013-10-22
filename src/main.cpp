@@ -47,7 +47,23 @@ static const std::string imgarr[] = {
     "media/player/SF_Ship/wings_leftTurn.png",
     "media/player/SF_Ship/wings_rightTurn.png",
     "media/player/SF_Ship/ship_body_Rtilt.png",
-    "media/player/SF_Ship/ship_body_Ltilt.png"
+    "media/player/SF_Ship/ship_body_Ltilt.png",
+    "media/player/Health/health15.png",
+    "media/player/Health/health14.png",
+    "media/player/Health/health13.png",
+    "media/player/Health/health12.png",
+    "media/player/Health/health11.png",
+    "media/player/Health/health10.png",
+    "media/player/Health/health9.png",
+    "media/player/Health/health8.png",
+    "media/player/Health/health7.png",
+    "media/player/Health/health6.png",
+    "media/player/Health/health5.png",
+    "media/player/Health/health4.png",
+    "media/player/Health/health3.png",
+    "media/player/Health/health2.png",
+    "media/player/Health/health1.png",
+    "media/player/Health/health0.png"
 };
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
@@ -171,36 +187,106 @@ void render(SDL_Renderer* ren, Player* player)
     bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
     bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
     bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
+    bool strafeRight = false;
+    bool strafeLeft = false;
 
     //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
     //
     if(upKey)
         textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
-    if(leftKey)
+    if(leftKey && !downKey)
         textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
-    if(rightKey)
+    if(rightKey && !downKey)
         textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
     if(downKey)
         textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
+    if(rightKey && downKey)
+        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
+    if(leftKey && downKey)
+        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
+
     //these conditionals draw different wing orentations depending on which direction the ship is turning.
-    if(downKey && !upKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}
-    if(leftKey && !rightKey && !downKey){
-        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_L].render(ren, xScreenPos, yScreenPos);}
-    if(rightKey && !leftKey && !downKey){
-        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos );    
-        textures[PLAYER_WNG_R].render(ren, xScreenPos, yScreenPos);}
-    if(upKey && !downKey && !leftKey && !rightKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );    
-        textures[PLAYER_WNG_F].render(ren, xScreenPos, yScreenPos);}
-    if((downKey && upKey) || (leftKey && rightKey)){ 
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );   
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
-    if(!downKey && !upKey && !leftKey && !rightKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
+    if(downKey && !upKey) {
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);
+    } else if(leftKey && !rightKey && !downKey) {
+        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_L].render(ren, xScreenPos, yScreenPos);
+    } else if(rightKey && !leftKey && !downKey) {
+        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_R].render(ren, xScreenPos, yScreenPos);
+    } else if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight) {
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+    } else if(downKey && leftKey && rightKey) {
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);
+    } else if(leftKey && rightKey && downKey) {
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);
+    } else if((downKey && upKey) || (leftKey && rightKey)) {
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);   
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+    } else if(strafeRight && !strafeLeft) {
+        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+    } else if(strafeLeft && !strafeRight) {
+        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+    } else if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight) {
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+    } else if(!downKey && !upKey && !leftKey && !rightKey) {
+        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+    }
+
+    //this code is the health bar
+        float xp, yp;
+        xp = (SCREEN_WIDTH / 2) - 151;
+        yp = 1;
+        //code for drawing the right ammount of health increments depending on palyers health
+        int player_health = player->hitpoints;
+        if(player_health > 93.5)
+            textures[HEALTH_15].render(ren, xp, yp);
+        else if(player_health > 87)
+            textures[HEALTH_14].render(ren, xp, yp);
+        else if(player_health > 80.5)
+            textures[HEALTH_13].render(ren, xp, yp);
+        else if(player_health > 74)
+            textures[HEALTH_12].render(ren, xp, yp);
+        else if(player_health > 67.5)
+            textures[HEALTH_11].render(ren, xp, yp);
+        else if(player_health > 61)
+            textures[HEALTH_10].render(ren, xp, yp);
+        else if(player_health > 54.5)
+            textures[HEALTH_9].render(ren, xp, yp);
+        else if(player_health > 48)
+            textures[HEALTH_8].render(ren, xp, yp);
+        else if(player_health > 41.5)
+            textures[HEALTH_7].render(ren, xp, yp);
+        else if(player_health > 35)
+            textures[HEALTH_6].render(ren, xp, yp);
+        else if(player_health > 28.5)
+            textures[HEALTH_5].render(ren, xp, yp);
+        else if(player_health > 22)
+            textures[HEALTH_4].render(ren, xp, yp);
+        else if(player_health > 15.5)
+            textures[HEALTH_3].render(ren, xp, yp);
+        else if(player_health > 9)
+            textures[HEALTH_2].render(ren, xp, yp);
+        else if(player_health > 2.5)
+            textures[HEALTH_1].render(ren, xp, yp);
+        else
+            textures[HEALTH_0].render(ren, xp, yp);
+
+        //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
+        if(currentKeyStates[SDL_SCANCODE_K])
+        {
+            player->hitpoints -= 1;
+        }
+
+        
 
 }
 
