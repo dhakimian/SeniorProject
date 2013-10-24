@@ -3,6 +3,7 @@
 /*This source code copyrighted by Lazy Foo' Productions (2004-2013)
  * and may not be redistributed without written permission.*/
 #include "Player.h"
+#include <iostream>
 
 Player::Player()
 {
@@ -27,4 +28,6 @@ Player::Player()
 
     MAX_HP = 100;
     hitpoints = 100;
+    //    std::cout << "Max hp: " << this->MAX_HP << std::endl;
+    
 }

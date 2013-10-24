@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+
 #include "Constants.h"
 #include "Util.h"
 #include "LTexture.h"
@@ -155,7 +156,6 @@ void render(SDL_Renderer* ren, Player* player)
 {
     float xPos, yPos, Angle; 
     player->get_values(&xPos, &yPos, &Angle);
-
     int xScreenPos = SCREEN_WIDTH/2 ;    //The position on the screen where the ship resides..
     int yScreenPos = SCREEN_HEIGHT*3/4; //..as the world moves relative to it
 
@@ -246,41 +246,44 @@ void render(SDL_Renderer* ren, Player* player)
         //code for drawing the right ammount of health increments depending on palyers health
         int player_health = player->hitpoints;
         if(player_health > 93.5){
-            textures[HEALTH_15].render(ren, xp, yp);}else{
-        if(player_health > 87){
-            textures[HEALTH_14].render(ren, xp, yp);}else{
-        if(player_health > 80.5){
-            textures[HEALTH_13].render(ren, xp, yp);}else{
-        if(player_health > 74){
-            textures[HEALTH_12].render(ren, xp, yp);}else{
-        if(player_health > 67.5){
-            textures[HEALTH_11].render(ren, xp, yp);}else{
-        if(player_health > 61){
-            textures[HEALTH_10].render(ren, xp, yp);}else{
-        if(player_health > 54.5){
-            textures[HEALTH_9].render(ren, xp, yp);}else{
-        if(player_health > 48){
-            textures[HEALTH_8].render(ren, xp, yp);}else{
-        if(player_health > 41.5){
-            textures[HEALTH_7].render(ren, xp, yp);}else{
-        if(player_health > 35){
-            textures[HEALTH_6].render(ren, xp, yp);}else{
-        if(player_health > 28.5){
-            textures[HEALTH_5].render(ren, xp, yp);}else{
-        if(player_health > 22){
-            textures[HEALTH_4].render(ren, xp, yp);}else{
-        if(player_health > 15.5){
-            textures[HEALTH_3].render(ren, xp, yp);}else{
-        if(player_health > 9){
-            textures[HEALTH_2].render(ren, xp, yp);}else{
-        if(player_health > 2.5){
-            textures[HEALTH_1].render(ren, xp, yp);}else{
-            textures[HEALTH_0].render(ren, xp, yp);}}}}}}}}}}}}}}}
+            textures[HEALTH_15].render(ren, xp, yp);
+	} else if(player_health > 87) {
+            textures[HEALTH_14].render(ren, xp, yp);
+	}else if(player_health > 80.5){
+            textures[HEALTH_13].render(ren, xp, yp);
+	}else if(player_health > 74){
+            textures[HEALTH_12].render(ren, xp, yp);
+	}else if(player_health > 67.5){
+            textures[HEALTH_11].render(ren, xp, yp);
+	}else if(player_health > 61){
+            textures[HEALTH_10].render(ren, xp, yp);
+	}else if(player_health > 54.5){
+            textures[HEALTH_9].render(ren, xp, yp);
+        }else if(player_health > 48){
+            textures[HEALTH_8].render(ren, xp, yp);
+        }else if(player_health > 41.5){
+            textures[HEALTH_7].render(ren, xp, yp);
+        }else if(player_health > 35){
+            textures[HEALTH_6].render(ren, xp, yp);
+        }else if(player_health > 28.5){
+            textures[HEALTH_5].render(ren, xp, yp);
+        }else if(player_health > 22){
+            textures[HEALTH_4].render(ren, xp, yp);
+        }else if(player_health > 15.5){
+            textures[HEALTH_3].render(ren, xp, yp);
+        }else if(player_health > 9){
+            textures[HEALTH_2].render(ren, xp, yp);
+        }else if(player_health > 2.5){
+            textures[HEALTH_1].render(ren, xp, yp);
+	} else {
+            textures[HEALTH_0].render(ren, xp, yp);
+	}
         //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
         if(currentKeyStates[SDL_SCANCODE_K])
         {
-            player->hitpoints -= 1;
+	  player->hitpoints -= 1;
         }
+	if (player->hitpoints <= 0) player->hitpoints = 0;
 
         
 
@@ -351,6 +354,7 @@ int main( int argc, char* args[] )
             SDL_Event e;
             //The dot that will be moving around on the screen
             Player player;
+	    std::cout << "initial hp:" << player.hitpoints << std::endl;
 
             //While application is running
             while( !quit )
