@@ -67,9 +67,9 @@ static const std::string imgarr[] = {
 };
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
-std::vector<LTexture> textures (images.size());
+std::vector<LTexture> textures (images.size());//, LTexture(gRenderer));
 
-//std::vector<Object> objects; // list of all the objects currently in the level
+std::vector<Object> objects; // list of all the objects currently in the level
 
 std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
 
@@ -133,14 +133,15 @@ bool init()
     return success;
 }
 
-bool loadMedia(SDL_Renderer* ren)
+bool loadMedia()
 {
     //Loading success flag
     bool success = true;
 
     for( unsigned int i=0; i<images.size(); i++ )
     {
-        if( !textures[i].loadFromFile( gRenderer, images[i] ) )
+        textures[i].setRenderer(gRenderer);
+        if( !textures[i].loadFromFile( images[i] ) )
         {
             std::cout << "Failed to load '" << images[i] << "'!" << std::endl;
             success = false;
@@ -150,8 +151,12 @@ bool loadMedia(SDL_Renderer* ren)
     return success;
 }
 
+//bool loadObjects()
+//{
+//}
+
 //void render(SDL_Renderer* ren, int camX, int camY)
-void render(SDL_Renderer* ren, Player* player)
+void render( Player* player )
 {
     float xPos, yPos, Angle; 
     player->get_values(&xPos, &yPos, &Angle);
@@ -168,14 +173,14 @@ void render(SDL_Renderer* ren, Player* player)
         {
             center.x = xPos - i;
             center.y = yPos - j;
-            textures[BACKGROUND].render( ren, i+xScreenPos-xPos, j+yScreenPos-yPos, NULL, -Angle, &center);
+            textures[BACKGROUND].render( i+xScreenPos-xPos, j+yScreenPos-yPos, NULL, -Angle, &center);
         }
 
     xScreenPos -= textures[PLAYER].getWidth()/2;  //shift the coords so that the center of the image..
     yScreenPos -= textures[PLAYER].getHeight()/2; //..(not the top left corner of the image) will be...
                                                   //..on the point of the ship's position
 
-    textures[PLAYER].render( ren, xScreenPos, yScreenPos );
+    textures[PLAYER].render( xScreenPos, yScreenPos );
 
     const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
 
@@ -193,52 +198,52 @@ void render(SDL_Renderer* ren, Player* player)
     //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
     //
     if(upKey)
-        textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_B].render( xScreenPos, yScreenPos );
     if(leftKey && !downKey)
-        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos );
     if(rightKey && !downKey)
-        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos );
     if(downKey)
-        textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_F].render( xScreenPos, yScreenPos );
     if(rightKey && downKey)
-        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos );
     if(leftKey && downKey)
-        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
+        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos );
 
     //these conditionals draw different wing orentations depending on which direction the ship is turning.
     if(downKey && !upKey) {
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_B].render(xScreenPos, yScreenPos);
     } else if(leftKey && !rightKey && !downKey) {
-        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_L].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_L].render( xScreenPos, yScreenPos);
     } else if(rightKey && !leftKey && !downKey) {
-        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_R].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_R].render( xScreenPos, yScreenPos);
     } else if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight) {
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
     } else if(downKey && leftKey && rightKey) {
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos);
     } else if(leftKey && rightKey && downKey) {
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos);
     } else if((downKey && upKey) || (leftKey && rightKey)) {
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);   
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos);   
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
     } else if(strafeRight && !strafeLeft) {
-        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
     } else if(strafeLeft && !strafeRight) {
-        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
     } else if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight) {
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos);    
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
     } else if(!downKey && !upKey && !leftKey && !rightKey) {
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
     }
 
     //this code is the health bar
@@ -248,37 +253,37 @@ void render(SDL_Renderer* ren, Player* player)
         //code for drawing the right ammount of health increments depending on palyers health
         int player_health = player->hitpoints;
         if(player_health > 93.5)
-            textures[HEALTH_15].render(ren, xp, yp);
+            textures[HEALTH_15].render(xp, yp);
         else if(player_health > 87)
-            textures[HEALTH_14].render(ren, xp, yp);
+            textures[HEALTH_14].render(xp, yp);
         else if(player_health > 80.5)
-            textures[HEALTH_13].render(ren, xp, yp);
+            textures[HEALTH_13].render(xp, yp);
         else if(player_health > 74)
-            textures[HEALTH_12].render(ren, xp, yp);
+            textures[HEALTH_12].render(xp, yp);
         else if(player_health > 67.5)
-            textures[HEALTH_11].render(ren, xp, yp);
+            textures[HEALTH_11].render(xp, yp);
         else if(player_health > 61)
-            textures[HEALTH_10].render(ren, xp, yp);
+            textures[HEALTH_10].render(xp, yp);
         else if(player_health > 54.5)
-            textures[HEALTH_9].render(ren, xp, yp);
+            textures[HEALTH_9].render(xp, yp);
         else if(player_health > 48)
-            textures[HEALTH_8].render(ren, xp, yp);
+            textures[HEALTH_8].render(xp, yp);
         else if(player_health > 41.5)
-            textures[HEALTH_7].render(ren, xp, yp);
+            textures[HEALTH_7].render(xp, yp);
         else if(player_health > 35)
-            textures[HEALTH_6].render(ren, xp, yp);
+            textures[HEALTH_6].render(xp, yp);
         else if(player_health > 28.5)
-            textures[HEALTH_5].render(ren, xp, yp);
+            textures[HEALTH_5].render(xp, yp);
         else if(player_health > 22)
-            textures[HEALTH_4].render(ren, xp, yp);
+            textures[HEALTH_4].render(xp, yp);
         else if(player_health > 15.5)
-            textures[HEALTH_3].render(ren, xp, yp);
+            textures[HEALTH_3].render(xp, yp);
         else if(player_health > 9)
-            textures[HEALTH_2].render(ren, xp, yp);
+            textures[HEALTH_2].render(xp, yp);
         else if(player_health > 2.5)
-            textures[HEALTH_1].render(ren, xp, yp);
+            textures[HEALTH_1].render(xp, yp);
         else
-            textures[HEALTH_0].render(ren, xp, yp);
+            textures[HEALTH_0].render(xp, yp);
 
         //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
         if(currentKeyStates[SDL_SCANCODE_K])
@@ -342,7 +347,7 @@ int main( int argc, char* args[] )
     else
     {
         //Load media
-        if( !loadMedia(gRenderer) )
+        if( !loadMedia() )
         {
             printf( "Failed to load media!\n" );
         }
@@ -400,7 +405,7 @@ int main( int argc, char* args[] )
                 SDL_RenderClear( gRenderer );
 
                 //Render objects
-                render( gRenderer, &player );
+                render( &player );
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
