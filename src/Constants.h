@@ -5,6 +5,8 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
+const int Render_Radius = 800;
+
 const int LEVEL_WIDTH = 2400;
 const int LEVEL_HEIGHT = 1600;
 
@@ -44,13 +46,6 @@ struct Circle
 {
     int x, y;
     int r;
-};
-
-struct ImgInstance
-{
-    int index; // TextureIndex
-    float x, y;
-    float angle;
 };
 
 #endif

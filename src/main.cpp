@@ -33,6 +33,9 @@ SDL_Window* gWindow = NULL;
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
+//The texture that everything adjacent will be rendered to before being rotated relative to the ship
+LTexture gTargetTexture;
+
 static const std::string imgarr[] = {
     "media/bg_image.gif",
     //"media/solid_bg.png",
@@ -67,11 +70,12 @@ static const std::string imgarr[] = {
 };
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
-std::vector<LTexture> textures (images.size());//, LTexture(gRenderer));
+std::vector<LTexture> textures (images.size());
 
-std::vector<Object> objects; // list of all the objects currently in the level
+std::vector<Object*> objects; // list of all the objects currently in the level
+Player player;
 
-std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
+//std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
 
 bool init()
 {
@@ -148,6 +152,15 @@ bool loadMedia()
         }
     }
 
+    //Load texture target
+    gTargetTexture.setRenderer(gRenderer);
+    if( !gTargetTexture.createBlank( SCREEN_WIDTH + Render_Radius, SCREEN_HEIGHT + Render_Radius, SDL_TEXTUREACCESS_TARGET ) )
+    {
+        printf( "Failed to create target texture!\n" );
+        success = false;
+    }
+
+    objects.push_back( &player );
     return success;
 }
 
@@ -155,34 +168,94 @@ bool loadMedia()
 //{
 //}
 
-//void render(SDL_Renderer* ren, int camX, int camY)
-void render( Player* player )
+void render()
 {
+    //set the image as the render target
+    gTargetTexture.setAsRenderTarget();
+    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+    SDL_RenderClear( gRenderer );
+
+    int xScreenPos = (SCREEN_WIDTH+Render_Radius)/2 ;    //The position on the screen where the ship resides..
+    int yScreenPos = (SCREEN_HEIGHT+Render_Radius)/2;  //..as the world moves relative to it
+    yScreenPos += SCREEN_HEIGHT/4;
+
+    float xPos_pl, yPos_pl, Angle_pl; // pl -> player
+    player.get_values(&xPos_pl, &yPos_pl, &Angle_pl);
     float xPos, yPos, Angle; 
-    player->get_values(&xPos, &yPos, &Angle);
-
-    int xScreenPos = SCREEN_WIDTH/2 ;    //The position on the screen where the ship resides..
-    int yScreenPos = SCREEN_HEIGHT*3/4; //..as the world moves relative to it
-
-    SDL_Point center;
-
+    player.get_values(&xPos, &yPos, &Angle);
+    
+    //render the background tiles that are within a certain radius of the player, and also...
+    //...render tiles on the other side of a wrap to replace the void
     int tile_w = textures[BACKGROUND].getWidth();
     int tile_h = textures[BACKGROUND].getHeight();
     for( int i=0; i<LEVEL_WIDTH; i+= tile_w )
+    {
         for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
         {
-            center.x = xPos - i;
-            center.y = yPos - j;
-            textures[BACKGROUND].render( i+xScreenPos-xPos, j+yScreenPos-yPos, NULL, -Angle, &center);
+            int close_enough_x = tile_w + SCREEN_WIDTH;  // how close a tile must be to be rendered
+            int close_enough_y = tile_h + SCREEN_HEIGHT; // subject to change
+            if( abs( tile_w + tile_w/2 - xPos_pl ) < close_enough_x &&
+                abs( tile_h + tile_h/2 - yPos_pl ) < close_enough_y )
+            {
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl, j+yScreenPos-yPos_pl);
+            }
+            if( abs( tile_w + LEVEL_WIDTH - xPos_pl ) < close_enough_x ) //r
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl+LEVEL_WIDTH, j+yScreenPos-yPos_pl);
+            if( abs( tile_h + LEVEL_HEIGHT - yPos_pl ) < close_enough_y ) //b
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl, j+yScreenPos-yPos_pl+LEVEL_HEIGHT);
+            if( abs( tile_w + LEVEL_WIDTH - xPos_pl ) < close_enough_x && //br
+                abs( tile_h + LEVEL_HEIGHT - yPos_pl ) < close_enough_y )
+            {
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl+LEVEL_WIDTH, j+yScreenPos-yPos_pl+LEVEL_HEIGHT);
+            }
+            if( abs( tile_w + tile_w - LEVEL_WIDTH - xPos_pl ) < close_enough_x ) //l
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl-LEVEL_WIDTH, j+yScreenPos-yPos_pl);
+            if( abs( tile_h + tile_h - LEVEL_HEIGHT - yPos_pl ) < close_enough_y ) //t
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl, j+yScreenPos-yPos_pl-LEVEL_HEIGHT);
+            if( abs( tile_w + tile_w - LEVEL_WIDTH - xPos_pl ) < close_enough_x && //tl
+                abs( tile_h + tile_h - LEVEL_HEIGHT - yPos_pl ) < close_enough_y )
+            {
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl-LEVEL_WIDTH, j+yScreenPos-yPos_pl-LEVEL_HEIGHT);
+            }
+            if( abs( tile_h + LEVEL_HEIGHT - yPos_pl ) < close_enough_y && //bl
+                abs( tile_w + tile_w - LEVEL_WIDTH - xPos_pl ) < close_enough_x )
+            {
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl-LEVEL_WIDTH, j+yScreenPos-yPos_pl+LEVEL_HEIGHT);
+            }
+            if( abs( tile_w + LEVEL_WIDTH - xPos_pl ) < close_enough_x && //tr
+                abs( tile_h + tile_h - LEVEL_HEIGHT - yPos_pl ) < close_enough_y )
+            {
+                textures[BACKGROUND].render( i+xScreenPos-xPos_pl+LEVEL_WIDTH, j+yScreenPos-yPos_pl-LEVEL_HEIGHT);
+            }
+            //I have a feeling the above code might violate DRY,
+            //but I don't feel like changing it right now
         }
+    }
 
-    xScreenPos -= textures[PLAYER].getWidth()/2;  //shift the coords so that the center of the image..
-    yScreenPos -= textures[PLAYER].getHeight()/2; //..(not the top left corner of the image) will be...
-                                                  //..on the point of the ship's position
+    SDL_Point center;
+    center.x = xScreenPos;
+    center.y = yScreenPos;
+/*
+    for( unsigned int i=0; i<objects.size(); i++ )
+    {
+        float xPos, yPos, Angle; 
+        objects[i]->get_values(&xPos, &yPos, &Angle);
 
-    textures[PLAYER].render( xScreenPos, yScreenPos );
+        //render if within a certain radius of the player
+        //if( abs(xPos - xPos_pl) < Render_Radius && abs(yPos - yPos_pl) < Render_Radius )
+        //{
+        //render it
+        //}else{
+        //do nothing
+        //}
+*/
+        xScreenPos -= textures[PLAYER].getWidth()/2;  //shift the coords so that the center of the image..
+        yScreenPos -= textures[PLAYER].getHeight()/2; //..(not the top left corner of the image) will be...
+        //                                            //..on the point of the ship's position
 
-    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle );
+
+        const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
 
     // here is my(robs) added code that implements a cool ship that has some moving parts.
 
@@ -198,100 +271,106 @@ void render( Player* player )
     //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
     //
     if(upKey)
-        textures[PLAYER_THR_B].render( xScreenPos, yScreenPos );
+        textures[PLAYER_THR_B].render( xScreenPos, yScreenPos, NULL, Angle );
     if(leftKey && !downKey)
-        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos );
+        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos, NULL, Angle );
     if(rightKey && !downKey)
-        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos );
+        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos, NULL, Angle );
     if(downKey)
-        textures[PLAYER_THR_F].render( xScreenPos, yScreenPos );
+        textures[PLAYER_THR_F].render( xScreenPos, yScreenPos, NULL, Angle );
     if(rightKey && downKey)
-        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos );
+        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos, NULL, Angle );
     if(leftKey && downKey)
-        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos );
+        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos, NULL, Angle );
 
     //these conditionals draw different wing orentations depending on which direction the ship is turning.
     if(downKey && !upKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_B].render(xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_B].render(xScreenPos, yScreenPos, NULL, Angle);
     } else if(leftKey && !rightKey && !downKey) {
-        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_L].render( xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_L].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(rightKey && !leftKey && !downKey) {
-        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_R].render( xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_R].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight) {
-        textures[PLAYER].render( xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(downKey && leftKey && rightKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(leftKey && rightKey && downKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if((downKey && upKey) || (leftKey && rightKey)) {
-        textures[PLAYER].render( xScreenPos, yScreenPos);   
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(strafeRight && !strafeLeft) {
-        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(strafeLeft && !strafeRight) {
-        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
+        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight) {
-        textures[PLAYER].render( xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle);
     } else if(!downKey && !upKey && !leftKey && !rightKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos);
+        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle);
+        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle);
     }
 
+    //Reset render target to the window
+    SDL_SetRenderTarget( gRenderer, NULL );
+
+    gTargetTexture.render( -(Render_Radius/2), -(Render_Radius/2), NULL, -Angle, &center );
+
+    //anything rendered past here will be overlayed on top of the screen
+    //everything before gets rotated with the ship
+
     //this code is the health bar
-        float xp, yp;
-        xp = (SCREEN_WIDTH / 2) - 151;
-        yp = 1;
-        //code for drawing the right ammount of health increments depending on palyers health
-        int player_health = player->hitpoints;
-        if(player_health > 93.5)
-            textures[HEALTH_15].render(xp, yp);
-        else if(player_health > 87)
-            textures[HEALTH_14].render(xp, yp);
-        else if(player_health > 80.5)
-            textures[HEALTH_13].render(xp, yp);
-        else if(player_health > 74)
-            textures[HEALTH_12].render(xp, yp);
-        else if(player_health > 67.5)
-            textures[HEALTH_11].render(xp, yp);
-        else if(player_health > 61)
-            textures[HEALTH_10].render(xp, yp);
-        else if(player_health > 54.5)
-            textures[HEALTH_9].render(xp, yp);
-        else if(player_health > 48)
-            textures[HEALTH_8].render(xp, yp);
-        else if(player_health > 41.5)
-            textures[HEALTH_7].render(xp, yp);
-        else if(player_health > 35)
-            textures[HEALTH_6].render(xp, yp);
-        else if(player_health > 28.5)
-            textures[HEALTH_5].render(xp, yp);
-        else if(player_health > 22)
-            textures[HEALTH_4].render(xp, yp);
-        else if(player_health > 15.5)
-            textures[HEALTH_3].render(xp, yp);
-        else if(player_health > 9)
-            textures[HEALTH_2].render(xp, yp);
-        else if(player_health > 2.5)
-            textures[HEALTH_1].render(xp, yp);
-        else
-            textures[HEALTH_0].render(xp, yp);
+    float xp, yp;
+    xp = (SCREEN_WIDTH / 2) - 151;
+    yp = 1;
+    //code for drawing the right ammount of health increments depending on palyers health
+    int player_health = player.hitpoints;
+    if(player_health > 93.5)
+        textures[HEALTH_15].render(xp, yp);
+    else if(player_health > 87)
+        textures[HEALTH_14].render(xp, yp);
+    else if(player_health > 80.5)
+        textures[HEALTH_13].render(xp, yp);
+    else if(player_health > 74)
+        textures[HEALTH_12].render(xp, yp);
+    else if(player_health > 67.5)
+        textures[HEALTH_11].render(xp, yp);
+    else if(player_health > 61)
+        textures[HEALTH_10].render(xp, yp);
+    else if(player_health > 54.5)
+        textures[HEALTH_9].render(xp, yp);
+    else if(player_health > 48)
+        textures[HEALTH_8].render(xp, yp);
+    else if(player_health > 41.5)
+        textures[HEALTH_7].render(xp, yp);
+    else if(player_health > 35)
+        textures[HEALTH_6].render(xp, yp);
+    else if(player_health > 28.5)
+        textures[HEALTH_5].render(xp, yp);
+    else if(player_health > 22)
+        textures[HEALTH_4].render(xp, yp);
+    else if(player_health > 15.5)
+        textures[HEALTH_3].render(xp, yp);
+    else if(player_health > 9)
+        textures[HEALTH_2].render(xp, yp);
+    else if(player_health > 2.5)
+        textures[HEALTH_1].render(xp, yp);
+    else
+        textures[HEALTH_0].render(xp, yp);
 
-        //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
-        if(currentKeyStates[SDL_SCANCODE_K])
-        {
-            player->hitpoints -= 1;
-        }
-
-        
+    //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
+    if(currentKeyStates[SDL_SCANCODE_K])
+    {
+        player.hitpoints -= 1;
+    }
 
 }
 
@@ -358,8 +437,7 @@ int main( int argc, char* args[] )
 
             //Event handler
             SDL_Event e;
-            //The dot that will be moving around on the screen
-            Player player;
+
 
             //While application is running
             while( !quit )
@@ -405,7 +483,8 @@ int main( int argc, char* args[] )
                 SDL_RenderClear( gRenderer );
 
                 //Render objects
-                render( &player );
+                render();
+                //render( objects );
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );

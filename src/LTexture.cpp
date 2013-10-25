@@ -1,11 +1,11 @@
-/*This source code was extracted from a tutorial source file from lazyfoo.net which had the following 
- * copyright notice at the top:*/
+/*This source code was extracted with minor modification from a tutorial source file from
+ * lazyfoo.net (Lesson 43) which had the following copyright notice at the top:*/
 /*This source code copyrighted by Lazy Foo' Productions (2004-2013)
  * and may not be redistributed without written permission.*/
 
 #include "LTexture.h"
 
-LTexture::LTexture()// SDL_Renderer* ren)
+LTexture::LTexture()
 {
     //Initialize
     gRenderer = NULL;
