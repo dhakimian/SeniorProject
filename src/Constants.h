@@ -7,8 +7,8 @@ const int SCREEN_HEIGHT = 480;
 
 const int Render_Radius = 800;
 
-const int LEVEL_WIDTH = 2400;
-const int LEVEL_HEIGHT = 1600;
+const int LEVEL_WIDTH = 3200;
+const int LEVEL_HEIGHT = 3200;
 
 enum TextureIndex { // Constants containing the index numbers of the vector of images used by the program
     BACKGROUND,    // 0
