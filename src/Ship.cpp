@@ -38,12 +38,28 @@ void Ship::thrust_f()
     yVel += SHIP_REV_ACCEL * cos(ang);
 }
 
-void Ship::thrust_l()
+void Ship::rot_l()
 {
     rotVel -= SHIP_ROT_ACCEL;
 }
 
-void Ship::thrust_r()
+void Ship::rot_r()
 {
     rotVel += SHIP_ROT_ACCEL;
+}
+
+void Ship::thrust_l()
+{
+    double ang = M_PI * Angle;
+    ang = ang / 180;
+    xVel -= SHIP_REV_ACCEL * cos(ang);
+    yVel -= SHIP_REV_ACCEL * sin(ang);
+}
+
+void Ship::thrust_r()
+{
+    double ang = M_PI * Angle;
+    ang = ang / 180;
+    xVel += SHIP_REV_ACCEL * cos(ang);
+    yVel += SHIP_REV_ACCEL * sin(ang);
 }

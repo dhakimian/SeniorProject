@@ -25,9 +25,11 @@ class Ship : public MovingObject
 
         //Movement functions
         void thrust_b();
+        void thrust_f();
+        void rot_l();
+        void rot_r();
         void thrust_l();
         void thrust_r();
-        void thrust_f();
         
         //ship's current hitpoints
         int hitpoints;
