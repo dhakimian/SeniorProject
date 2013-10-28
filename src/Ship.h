@@ -21,7 +21,7 @@ class Ship : public MovingObject
     public:
 
         //Constructor: initializes the variables
-        Ship();
+        Ship(float xp = (float) SCREEN_WIDTH / 2, float yp = (float) SCREEN_HEIGHT / 2, float ang=0.0 );
 
         //Movement functions
         void thrust_b();

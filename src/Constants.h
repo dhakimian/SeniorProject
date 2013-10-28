@@ -1,15 +1,52 @@
 #ifndef _CONSTANTS_H
 #define _CONSTANTS_H
 
+#include <vector>
+#include "LTexture.h"
+
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 600;
 
 const int Render_Radius = 800;
 
 const int LEVEL_WIDTH = 3200;
 const int LEVEL_HEIGHT = 3200;
 
+static const std::string imgarr[] = {
+    "media/bg_image.gif",
+    "media/player/SF_Ship/ship_body.png",
+    "media/player/SF_Ship/jet_forward.png",
+    "media/player/SF_Ship/jet_reverse.png",
+    "media/player/SF_Ship/jet_leftTurn.png",
+    "media/player/SF_Ship/jet_rightTurn.png",
+    "media/player/SF_Ship/wings_reverse.png",
+    "media/player/SF_Ship/wings_normal.png",
+    "media/player/SF_Ship/wings_forward.png",
+    "media/player/SF_Ship/wings_leftTurn.png",
+    "media/player/SF_Ship/wings_rightTurn.png",
+    "media/player/SF_Ship/ship_body_Rtilt.png",
+    "media/player/SF_Ship/ship_body_Ltilt.png",
+    "media/aliens/alienship.png",
+    "media/player/Health/health15.png",
+    "media/player/Health/health14.png",
+    "media/player/Health/health13.png",
+    "media/player/Health/health12.png",
+    "media/player/Health/health11.png",
+    "media/player/Health/health10.png",
+    "media/player/Health/health9.png",
+    "media/player/Health/health8.png",
+    "media/player/Health/health7.png",
+    "media/player/Health/health6.png",
+    "media/player/Health/health5.png",
+    "media/player/Health/health4.png",
+    "media/player/Health/health3.png",
+    "media/player/Health/health2.png",
+    "media/player/Health/health1.png",
+    "media/player/Health/health0.png"
+};
+
+// these must be in the same order as the above
 enum TextureIndex { // Constants containing the index numbers of the vector of images used by the program
     BACKGROUND,    // 0
     PLAYER,        // 1
@@ -24,6 +61,7 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     PLAYER_WNG_R,
     PLAYER_Tlt_R,
     PLAYER_Tlt_L,
+    ALIEN,
     HEALTH_15,
     HEALTH_14,
     HEALTH_13,
@@ -41,6 +79,10 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     HEALTH_1,
     HEALTH_0
 };
+
+extern std::vector<std::string> images;// (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
+
+extern std::vector<LTexture> textures;// (images.size());
  
 struct Circle
 {

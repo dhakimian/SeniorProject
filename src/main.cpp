@@ -26,6 +26,7 @@
 #include "LTexture.h"
 //#include "LTimer.h"
 #include "Player.h"
+#include "Alien.h"
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -36,46 +37,12 @@ SDL_Renderer* gRenderer = NULL;
 //The texture that everything adjacent will be rendered to before being rotated relative to the ship
 LTexture gTargetTexture;
 
-static const std::string imgarr[] = {
-    "media/bg_image.gif",
-    //"media/solid_bg.png",
-    "media/player/SF_Ship/ship_body.png",
-    "media/player/SF_Ship/jet_forward.png",
-    "media/player/SF_Ship/jet_reverse.png",
-    "media/player/SF_Ship/jet_leftTurn.png",
-    "media/player/SF_Ship/jet_rightTurn.png",
-    "media/player/SF_Ship/wings_reverse.png",
-    "media/player/SF_Ship/wings_normal.png",
-    "media/player/SF_Ship/wings_forward.png",
-    "media/player/SF_Ship/wings_leftTurn.png",
-    "media/player/SF_Ship/wings_rightTurn.png",
-    "media/player/SF_Ship/ship_body_Rtilt.png",
-    "media/player/SF_Ship/ship_body_Ltilt.png",
-    "media/player/Health/health15.png",
-    "media/player/Health/health14.png",
-    "media/player/Health/health13.png",
-    "media/player/Health/health12.png",
-    "media/player/Health/health11.png",
-    "media/player/Health/health10.png",
-    "media/player/Health/health9.png",
-    "media/player/Health/health8.png",
-    "media/player/Health/health7.png",
-    "media/player/Health/health6.png",
-    "media/player/Health/health5.png",
-    "media/player/Health/health4.png",
-    "media/player/Health/health3.png",
-    "media/player/Health/health2.png",
-    "media/player/Health/health1.png",
-    "media/player/Health/health0.png"
-};
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
 std::vector<LTexture> textures (images.size());
 
 std::vector<Object*> objects; // list of all the objects currently in the level
 Player player;
-
-//std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
 
 bool init()
 {
@@ -160,6 +127,8 @@ bool loadMedia()
         success = false;
     }
 
+    objects.push_back( new Alien(200.0, 0.0, -35.0) );
+    objects.push_back( new Ship(0.0, 0.0, 35.0) );
     objects.push_back( &player );
     return success;
 }
@@ -175,8 +144,8 @@ void render()
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( gRenderer );
 
-    int xScreenPos = (SCREEN_WIDTH+Render_Radius)/2 ;    //The position on the screen where the ship resides..
-    int yScreenPos = (SCREEN_HEIGHT+Render_Radius)/2;  //..as the world moves relative to it
+    int xScreenPos = (SCREEN_WIDTH+Render_Radius)/2 ;   //The position on the screen where the ship...
+    int yScreenPos = (SCREEN_HEIGHT+Render_Radius)/2;   //...resides as the world moves relative to it
     yScreenPos += SCREEN_HEIGHT/4;
 
     float xPos_pl, yPos_pl, Angle_pl; // pl -> player
@@ -194,114 +163,67 @@ void render()
             int xrc = i+xScreenPos-xPos_pl; // X render coordinate
             int yrc = j+yScreenPos-yPos_pl; // Y render coordinate
 
-            int close_enough_x = tile_w;  // how close a tile must be to be rendered
-            int close_enough_y = tile_h; // subject to change
-
-            if( abs( i + tile_w/2 - xPos_pl ) < close_enough_x &&
-                abs( j + tile_h/2 - yPos_pl ) < close_enough_y )
+            // only render if within a certain radius of the player
+            if( abs( i + tile_w/2 - xPos_pl ) < Render_Radius &&
+                abs( j + tile_h/2 - yPos_pl ) < Render_Radius )
             {
                 textures[BACKGROUND].render( i+xScreenPos-xPos_pl, j+yScreenPos-yPos_pl);
             }
-            if( abs( i + LEVEL_WIDTH - xPos_pl ) < close_enough_x ) //r
+
+            // render tiles from the other side of an edge-wrap to eliminate the void
+            if( abs( i + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
                 xrc += LEVEL_WIDTH; render = true;
-            if( abs( j + LEVEL_HEIGHT - yPos_pl ) < close_enough_y ) //b
+            if( abs( j + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
                 yrc += LEVEL_HEIGHT; render = true;
-            if( abs( i + tile_w - LEVEL_WIDTH - xPos_pl ) < close_enough_x ) //l
+            if( abs( i + tile_w - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
                 xrc -= LEVEL_WIDTH; render = true;
-            if( abs( j + tile_h - LEVEL_HEIGHT - yPos_pl ) < close_enough_y ) //t
+            if( abs( j + tile_h - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
                 yrc -= LEVEL_HEIGHT; render = true;
 
             if( render )
                 textures[BACKGROUND].render( xrc, yrc );
+            //else they are not close enough, so don't render them.
         }
     }
 
     SDL_Point center;
     center.x = xScreenPos;
     center.y = yScreenPos;
-/*
+
+    int xScreenPos_ren, yScreenPos_ren;
+
+    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
+    //loop through the list of currently present objects to render them
     for( unsigned int i=0; i<objects.size(); i++ )
     {
         float xPos, yPos, Angle; 
         objects[i]->get_values(&xPos, &yPos, &Angle);
 
-        //render if within a certain radius of the player
-        if( abs(xPos - xPos_pl) < Render_Radius && abs(yPos - yPos_pl) < Render_Radius )
-        {
-        //render it
-        }else{
-        //do nothing
-        }
-*/
-        xScreenPos -= textures[PLAYER].getWidth()/2;  //shift the coords so that the center of the image..
-        yScreenPos -= textures[PLAYER].getHeight()/2; //..(not the top left corner of the image) will be...
-        //                                            //..on the point of the ship's position
+        bool render = false;
+        xScreenPos_ren = xScreenPos - textures[PLAYER].getWidth()/2;
+        yScreenPos_ren = yScreenPos - textures[PLAYER].getWidth()/2;
+        int xrc = xPos+xScreenPos_ren-xPos_pl; // X render coordinate
+        int yrc = yPos+yScreenPos_ren-yPos_pl; // Y render coordinate
 
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl );
+        // only render if within a certain radius of the player
+        if( abs( xPos - xPos_pl ) < Render_Radius && abs( yPos - yPos_pl ) < Render_Radius )
+            render = true;
 
-        const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+        // render objects from the other side of an edge-wrap
+        if( abs( xPos + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
+            xrc += LEVEL_WIDTH; render = true;
+        if( abs( yPos + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
+            yrc += LEVEL_HEIGHT; render = true;
+        if( abs( xPos - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
+            xrc -= LEVEL_WIDTH; render = true;
+        if( abs( yPos - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
+            yrc -= LEVEL_HEIGHT; render = true;
 
-    // here is my(robs) added code that implements a cool ship that has some moving parts.
-
-    //local variables resembling if movement keys are pushed. Includes both wasd and updownleftright.
-    //makes less to type in each if statement
-    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
-    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
-    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
-    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
-    bool strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
-    bool strafeRight = currentKeyStates[SDL_SCANCODE_E];
-
-    //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
-    //
-    if(upKey)
-        textures[PLAYER_THR_B].render( xScreenPos, yScreenPos, NULL, Angle_pl );
-    if(leftKey && !downKey)
-        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos, NULL, Angle_pl );
-    if(rightKey && !downKey)
-        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos, NULL, Angle_pl );
-    if(downKey)
-        textures[PLAYER_THR_F].render( xScreenPos, yScreenPos, NULL, Angle_pl );
-    if(rightKey && downKey)
-        textures[PLAYER_THR_R].render( xScreenPos, yScreenPos, NULL, Angle_pl );
-    if(leftKey && downKey)
-        textures[PLAYER_THR_L].render( xScreenPos, yScreenPos, NULL, Angle_pl );
-
-    //these conditionals draw different wing orentations depending on which direction the ship is turning.
-    if(downKey && !upKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_B].render(xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(leftKey && !rightKey && !downKey) {
-        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_L].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(rightKey && !leftKey && !downKey) {
-        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_R].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight) {
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(downKey && leftKey && rightKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(leftKey && rightKey && downKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_B].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if((downKey && upKey) || (leftKey && rightKey)) {
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(strafeRight && !strafeLeft) {
-        textures[PLAYER_Tlt_R].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(strafeLeft && !strafeRight) {
-        textures[PLAYER_Tlt_L].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight) {
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-    } else if(!downKey && !upKey && !leftKey && !rightKey) {
-        textures[PLAYER].render( xScreenPos, yScreenPos, NULL, Angle_pl);
-        textures[PLAYER_WNG_NORM].render( xScreenPos, yScreenPos, NULL, Angle_pl);
+        if( render )
+            objects[i]->render(xrc, yrc, Angle, currentKeyStates);
     }
+
 
     //Reset render target to the window
     SDL_SetRenderTarget( gRenderer, NULL );

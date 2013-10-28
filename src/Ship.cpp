@@ -5,21 +5,23 @@
 
 #include "Ship.h"
 
-Ship::Ship()
+Ship::Ship(float xp, float yp, float ang )
 {
-    xPos = (float) SCREEN_WIDTH / 2;
-    yPos = (float) SCREEN_HEIGHT / 2;
+    xPos = xp;
+    yPos = yp;
 
     xVel = 0.0;
     yVel = 0.0;
 
-    Angle = 0.0;
+    Angle = ang;
 
     rotVel = 0.0;
 
     Collider.x = xPos;
     Collider.y = yPos;
     Collider.r = Collider.r;
+
+    TEX_INDEX = PLAYER;
 }
 
 void Ship::thrust_b() // fire rear thrusters, moving the ship forward

@@ -18,6 +18,7 @@
 class Object
 {
     public:
+
         //Initializes variables
         Object();
 
@@ -30,7 +31,13 @@ class Object
         //(to avoid making a bunch of separate public 'get' methods)
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
 
+        virtual void render( int x, int y, float ang );
+        virtual void render( int x, int y, float ang, const Uint8* currentKeyStates );
+
     protected:
+        //the index of the default image to render for instances of this object
+        int TEX_INDEX;
+
         //object's current position (represents the center of the ship, not the topleft corner)
         float xPos, yPos;
 
