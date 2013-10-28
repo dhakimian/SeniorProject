@@ -147,9 +147,8 @@ void render()
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( gRenderer );
 
-    int xScreenPos = (SCREEN_WIDTH+Render_Radius)/2 ;   //The position on the screen where the ship...
-    int yScreenPos = (SCREEN_HEIGHT+Render_Radius)/2;   //...resides as the world moves relative to it
-    yScreenPos += SCREEN_HEIGHT/4;
+    int xScreenPos = (SCREEN_WIDTH+Render_Radius)/2 ; //The center of the target image, which is...
+    int yScreenPos = (SCREEN_HEIGHT+Render_Radius)/2; //...also where the player is centered 
 
     float xPos_pl, yPos_pl, Angle_pl; // pl -> player
     player.get_values(&xPos_pl, &yPos_pl, &Angle_pl);
@@ -236,7 +235,7 @@ void render()
     //Reset render target to the window
     SDL_SetRenderTarget( gRenderer, NULL );
 
-    gTargetTexture.render( -(Render_Radius/2), -(Render_Radius/2), NULL, -Angle_pl, &center );
+    gTargetTexture.render( -(Render_Radius/2), -(Render_Radius/3), NULL, -Angle_pl, &center );
 
     //anything rendered past here will be overlayed on top of the screen
     //everything before gets rotated with the ship
