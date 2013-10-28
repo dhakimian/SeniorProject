@@ -27,6 +27,7 @@
 //#include "LTimer.h"
 #include "Player.h"
 #include "Alien.h"
+#include "Planet.h"
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -127,6 +128,8 @@ bool loadMedia()
         success = false;
     }
 
+    //these are only here temporarily -- they should be in loadObjects once that is being used
+    objects.push_back( new Planet(500.0, 500.0) );
     objects.push_back( new Alien(200.0, 0.0, -35.0) );
     objects.push_back( new Ship(0.0, 0.0, 35.0) );
     objects.push_back( &player );
@@ -163,23 +166,25 @@ void render()
             int xrc = i+xScreenPos-xPos_pl; // X render coordinate
             int yrc = j+yScreenPos-yPos_pl; // Y render coordinate
 
+            int tilePos_x = i + tile_w/2;
+            int tilePos_y = j + tile_h/2;
+
             // only render if within a certain radius of the player
-            if( abs( i + tile_w/2 - xPos_pl ) < Render_Radius &&
-                abs( j + tile_h/2 - yPos_pl ) < Render_Radius )
-            {
-                textures[BACKGROUND].render( i+xScreenPos-xPos_pl, j+yScreenPos-yPos_pl);
+            if( abs( tilePos_x - xPos_pl ) < Render_Radius && abs( tilePos_y - yPos_pl ) < Render_Radius )
+                render = true;
+                //textures[BACKGROUND].render( i+xScreenPos-xPos_pl, j+yScreenPos-yPos_pl);
+            else { //image is not close enough, so don't render, but first...
+                //...check if the image would be close enough if the map actually wrapped, so...
+                //...we can render tiles from the other side of an edge-wrap to eliminate the void
+                if( abs( tilePos_x + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
+                    {xrc += LEVEL_WIDTH; render = true;}
+                if( abs( tilePos_y + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
+                    {yrc += LEVEL_HEIGHT; render = true;}
+                if( abs( tilePos_x - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
+                    {xrc -= LEVEL_WIDTH; render = true;}
+                if( abs( tilePos_y - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
+                    {yrc -= LEVEL_HEIGHT; render = true;}
             }
-
-            // render tiles from the other side of an edge-wrap to eliminate the void
-            if( abs( i + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
-                xrc += LEVEL_WIDTH; render = true;
-            if( abs( j + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
-                yrc += LEVEL_HEIGHT; render = true;
-            if( abs( i + tile_w - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
-                xrc -= LEVEL_WIDTH; render = true;
-            if( abs( j + tile_h - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
-                yrc -= LEVEL_HEIGHT; render = true;
-
             if( render )
                 textures[BACKGROUND].render( xrc, yrc );
             //else they are not close enough, so don't render them.
@@ -199,29 +204,32 @@ void render()
     {
         float xPos, yPos, Angle; 
         objects[i]->get_values(&xPos, &yPos, &Angle);
+        int tex_index = objects[i]->get_tex_index();
 
         bool render = false;
-        xScreenPos_ren = xScreenPos - textures[PLAYER].getWidth()/2;
-        yScreenPos_ren = yScreenPos - textures[PLAYER].getWidth()/2;
+        xScreenPos_ren = xScreenPos - textures[tex_index].getWidth()/2;
+        yScreenPos_ren = yScreenPos - textures[tex_index].getWidth()/2;
         int xrc = xPos+xScreenPos_ren-xPos_pl; // X render coordinate
         int yrc = yPos+yScreenPos_ren-yPos_pl; // Y render coordinate
 
         // only render if within a certain radius of the player
         if( abs( xPos - xPos_pl ) < Render_Radius && abs( yPos - yPos_pl ) < Render_Radius )
             render = true;
-
-        // render objects from the other side of an edge-wrap
-        if( abs( xPos + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
-            xrc += LEVEL_WIDTH; render = true;
-        if( abs( yPos + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
-            yrc += LEVEL_HEIGHT; render = true;
-        if( abs( xPos - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
-            xrc -= LEVEL_WIDTH; render = true;
-        if( abs( yPos - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
-            yrc -= LEVEL_HEIGHT; render = true;
-
+        else {//object is not close enough, so don't render, but first...
+            //...check if the object would be close enough if the map actually wrapped, so we can...
+            //...render objects from the other side of an edge-wrap so they don't disapper near edges
+            if( abs( xPos + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
+                {xrc += LEVEL_WIDTH; render = true;}
+            if( abs( yPos + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
+                {yrc += LEVEL_HEIGHT; render = true;}
+            if( abs( xPos - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
+                {xrc -= LEVEL_WIDTH; render = true;}
+            if( abs( yPos - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
+                {yrc -= LEVEL_HEIGHT; render = true;}
+        }
         if( render )
             objects[i]->render(xrc, yrc, Angle, currentKeyStates);
+        //else they are not close enough, so don't render them.
     }
 
 
@@ -384,7 +392,9 @@ int main( int argc, char* args[] )
                 handle_keystate();
 
                 //Move the ship
-                player.update();
+                //player.update();
+                for( unsigned int i = 0; i<objects.size(); i++ )
+                    objects[i]->update();
 
                 //Clear screen
                 //SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );

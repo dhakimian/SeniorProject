@@ -7,6 +7,14 @@
 
 Ship::Ship(float xp, float yp, float ang )
 {
+    // acceleration rates
+    SHIP_ACCEL = 0.07;
+    SHIP_REV_ACCEL = 0.04;
+    //SHIP_STRAFE_ACCEL = 
+    SHIP_ROT_ACCEL = 0.03;
+
+    C_RAD = 30;
+
     xPos = xp;
     yPos = yp;
 
@@ -16,10 +24,6 @@ Ship::Ship(float xp, float yp, float ang )
     Angle = ang;
 
     rotVel = 0.0;
-
-    Collider.x = xPos;
-    Collider.y = yPos;
-    Collider.r = Collider.r;
 
     TEX_INDEX = PLAYER;
 }

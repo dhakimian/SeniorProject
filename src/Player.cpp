@@ -6,17 +6,10 @@
 
 Player::Player(float xp, float yp, float ang )
 {
-    // acceleration rate
-    SHIP_ACCEL = 0.07;
-    SHIP_REV_ACCEL = 0.04;
-    SHIP_ROT_ACCEL = 0.03;
+    //C_RAD = 
 
     xPos = xp;
     yPos = yp;
-
-    Collider.x = xPos;
-    Collider.y = yPos;
-    Collider.r = 30;
 
     Angle = ang;
 

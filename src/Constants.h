@@ -8,10 +8,12 @@
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
-const int Render_Radius = 800;
+const int Render_Radius = 1000;
 
-const int LEVEL_WIDTH = 3200;
-const int LEVEL_HEIGHT = 3200;
+//must be a multiple of bg tile dimensions (currently 800x800)
+//otherwise edge-wrapping will be funky
+const int LEVEL_WIDTH = 32000;
+const int LEVEL_HEIGHT = 32000;
 
 static const std::string imgarr[] = {
     "media/bg_image.gif",
@@ -28,6 +30,7 @@ static const std::string imgarr[] = {
     "media/player/SF_Ship/ship_body_Rtilt.png",
     "media/player/SF_Ship/ship_body_Ltilt.png",
     "media/aliens/alienship.png",
+    "media/Planet_A.png",
     "media/player/Health/health15.png",
     "media/player/Health/health14.png",
     "media/player/Health/health13.png",
@@ -62,6 +65,7 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     PLAYER_Tlt_R,
     PLAYER_Tlt_L,
     ALIEN,
+    PLANET,
     HEALTH_15,
     HEALTH_14,
     HEALTH_13,

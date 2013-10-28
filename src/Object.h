@@ -25,7 +25,7 @@ class Object
         //Deallocates memory
         //~Object();
 
-        void update();
+        virtual void update();
 
         //function for sending private values to other functions in bulk
         //(to avoid making a bunch of separate public 'get' methods)
@@ -34,7 +34,14 @@ class Object
         virtual void render( int x, int y, float ang );
         virtual void render( int x, int y, float ang, const Uint8* currentKeyStates );
 
+        virtual int get_cRad();
+
+        int get_tex_index();
+
     protected:
+        //radius of object's collider, centered on xPos,yPos
+        int C_RAD;
+
         //the index of the default image to render for instances of this object
         int TEX_INDEX;
 
@@ -43,10 +50,6 @@ class Object
 
         //object's current angle
         float Angle;
-
-        //object's collider
-        Circle Collider;
-
 
 };
 

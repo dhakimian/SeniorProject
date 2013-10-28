@@ -1,9 +1,9 @@
 Current OO hierarchy:
 
-         Object
-           |
-     MovingObject
-         /   \
-      Ship  Laser?
-       |
-     Player
+                Object
+              /        \
+      MovingObject    Planet
+           /    \
+        Ship    Laser?
+       /    \
+    Player  Alien

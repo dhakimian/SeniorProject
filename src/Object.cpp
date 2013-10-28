@@ -6,11 +6,11 @@ Object::Object()
     yPos = 1.0;
     Angle = 0;
 
-    Collider.x = xPos;
-    Collider.y = yPos;
-    Collider.r = Collider.r;
-
     TEX_INDEX = 1;
+}
+
+void Object::update()
+{
 }
 
 void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
@@ -18,6 +18,16 @@ void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
     *xPos_out = xPos;
     *yPos_out = yPos;
     *Angle_out = Angle;
+}
+
+int Object::get_cRad()
+{
+    return C_RAD;
+}
+
+int Object::get_tex_index()
+{
+    return TEX_INDEX;
 }
 
 void Object::render( int x, int y, float ang )

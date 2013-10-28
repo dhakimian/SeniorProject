@@ -12,10 +12,10 @@ MovingObject::MovingObject()
 void MovingObject::update()
 {
     //Move the object left or right
-    xPos = fmod( (xPos + xVel + LEVEL_WIDTH), LEVEL_WIDTH);
+    xPos = fmod( (xPos + xVel + LEVEL_WIDTH), LEVEL_WIDTH );
 
     //Move the object up or down
-    yPos = fmod( (yPos + yVel + LEVEL_HEIGHT), LEVEL_HEIGHT);
+    yPos = fmod( (yPos + yVel + LEVEL_HEIGHT), LEVEL_HEIGHT );
 
     // apparently fmod (float modulo) doesn't do negative numbers (I think it takes the abs val)
     // so to get around this I just shift the number line to avoid passing negatives to fmod, 
@@ -24,8 +24,9 @@ void MovingObject::update()
     //Rotate the object clockwise or counter-clockwise
     Angle += rotVel;
 
-    Collider.x = xPos;
-    Collider.y = yPos;
+
+    ////Do collision checks here////
+
 }
 
 void MovingObject::get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out)
