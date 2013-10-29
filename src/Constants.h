@@ -10,6 +10,8 @@ const int SCREEN_HEIGHT = 600;
 
 const int Render_Radius = 1000;
 
+//const float TARG_ROT_ACCEL = 0.02;
+
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
 const int LEVEL_WIDTH = 32000;

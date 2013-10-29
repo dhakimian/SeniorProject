@@ -22,20 +22,20 @@ void MovingObject::update()
     // hence the added LEVEL_WIDTH/LEVEL_HEIGHT in the first args
 
     //Rotate the object clockwise or counter-clockwise
-    Angle += rotVel;
+    Angle = fmod( (Angle + rotVel + 360), 360 );
 
 
     ////Do collision checks here////
 
 }
 
-void MovingObject::get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out)
+void MovingObject::get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out)
 {
     *xPos_out = xPos;
     *yPos_out = yPos;
+    *Angle_out = Angle;
     *xVel_out = xVel;
     *yVel_out = yVel;
-    *Angle_out = Angle;
     *rotVel_out = rotVel;
 }
 

@@ -17,24 +17,41 @@ Player::Player(float xp, float yp, float ang )
     hitpoints = 100;
 
     TEX_INDEX = PLAYER;
+    //*currentKeyStates = 0;
+    //currentKeyStates = SDL_GetKeyboardState( NULL );
+}
+
+void Player::handle_keystate(const Uint8* currentKeyStates)
+{
+    upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
+    downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
+    leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
+    rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
+    strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
+    strafeRight = currentKeyStates[SDL_SCANCODE_E];
+
+    if(upKey)
+        thrust_b();
+    if(downKey)
+        thrust_f();
+    if(leftKey)
+        rot_l();
+    if(rightKey)
+        rot_r();
+    if(strafeLeft)
+        thrust_r();
+    if(strafeRight)
+        thrust_l();
+
 }
 
 //client side code
-void Player::render( int x, int y, float ang, const Uint8* currentKeyStates )
+void Player::render( int x, int y, float ang )// const Uint8* currentKeyStates )
 {
     // here is my(robs) added code that implements a cool ship that has some moving parts.
 
-    //local variables resembling if movement keys are pushed. Includes both wasd and updownleftright.
-    //makes less to type in each if statement
-    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
-    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
-    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
-    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
-    bool strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
-    bool strafeRight = currentKeyStates[SDL_SCANCODE_E];
 
-    //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
-    //
+    //renders the thruster images according to which keys are pressed.
     if(upKey)
         textures[PLAYER_THR_B].render( x, y, NULL, ang );
     if(leftKey && !downKey)

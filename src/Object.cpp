@@ -35,7 +35,9 @@ void Object::render( int x, int y, float ang )
     textures[TEX_INDEX].render( x, y, NULL, ang );
 }
 
+/*
 void Object::render( int x, int y, float ang, const Uint8* currentKeyStates )
 {
     render( x, y, ang );
 }
+*/

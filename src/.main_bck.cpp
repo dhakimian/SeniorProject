@@ -39,29 +39,11 @@ SDL_Renderer* gRenderer = NULL;
 LTexture gTargetTexture;
 
 //The angle at which the target texture is rendered
-float Angle_targ = 30.0;
+float Angle_targ = -100.0;
 
 //The velocity at which that angle changes
 float rotVel_targ = 0.0;
-
-//The rate at which that velocity changes to match the player's rotational velocity
 float rotAccel_targ = 0.0;
-
-//these (similar to the above) deal with motion/position of the target texture
-float xOffset_targ = SCREEN_WIDTH/2;
-float yOffset_targ = SCREEN_HEIGHT/2;
-float xVel_targ = 0.0;
-float yVel_targ = 0.0;
-float xAccel_targ = 0.0;
-float yAccel_targ = 0.0;
-
-//these deal with motion/position of the contents of the target texture
-float xPos_cam = SCREEN_WIDTH/2;
-float yPos_cam = SCREEN_HEIGHT/2;
-float xVel_cam = 0.0;
-float yVel_cam = 0.0;
-float xAccel_cam = 0.0;
-float yAccel_cam = 0.0;
 
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
@@ -160,16 +142,15 @@ bool loadMedia()
     objects.push_back( new Planet(500.0, 500.0) );
     objects.push_back( new Alien(200.0, 0.0, -35.0) );
     objects.push_back( new Ship(0.0, 0.0, 35.0) );
-    //objects.push_back( &player );
 
-    players.push_back( new Player(100, 300, 0) );
     players.push_back( new Player(100, 100, 135) );
     players.push_back( new Player(300, 100, -90) );
-    players.push_back( new Player(300, 300, -45) );
+    players.push_back( new Player(100, 300, 0) );
 
-    for( unsigned int i=0; i<players.size(); i++ )
-        objects.push_back( players[i] );
-
+    objects.push_back( players[0] );
+    objects.push_back( players[1] );
+    objects.push_back( players[2] );
+    //objects.push_back( &player );
     return success;
 }
 
@@ -233,6 +214,8 @@ void render()
 
     int xScreenPos_ren, yScreenPos_ren;
 
+    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
     //loop through the list of currently present objects to render them
     for( unsigned int i=0; i<objects.size(); i++ )
     {
@@ -262,7 +245,7 @@ void render()
                 {yrc -= LEVEL_HEIGHT; render = true;}
         }
         if( render )
-            objects[i]->render(xrc, yrc, Angle);
+            objects[i]->render(xrc, yrc, Angle, currentKeyStates);
         //else they are not close enough, so don't render them.
     }
 
@@ -270,20 +253,41 @@ void render()
     SDL_SetRenderTarget( gRenderer, NULL );
 
     /*
-    while( Angle_pl < 0 )
-        Angle_pl += 360;
-    while( Angle_targ < 0 )
-        Angle_targ += 360;
+    float TARG_ROT_ACCEL = 0.02;
+    //if( (rotVel_pl - rotVel_targ) </> ___ && abs(rotVel_targ - rotVel_pl) < 180 )
+    if( Angle_targ < Angle_pl && abs(Angle_targ - Angle_pl) > 180 )
+    //if( rotVel_targ < rotVel_pl )
+    {
+        rotVel_targ += TARG_ROT_ACCEL;
+        //Angle_targ += 1;
+    } else if( Angle_targ > Angle_pl && abs(Angle_targ - Angle_pl) <= 180 )
+    // else if( rotVel_targ > rotVel_pl )
+    {
+        rotVel_targ -= TARG_ROT_ACCEL;
+        //Angle_targ -= 1;
+    }
+
+    if( abs(Angle_targ - Angle_pl) < 0.1 )
+    //if(Angle_targ == Angle_pl)
+    {
+        //std::cout<<"eq"<<std::endl;
+        rotVel_targ = rotVel_pl;
+    }
     */
 
-    float diff = Angle_pl - Angle_targ;
-    if( diff < -180 )
-        diff += 360;
-    if( diff >= 180 )
-        diff -=360;
-
-    rotAccel_targ = diff/20.0;
+    float diff = abs(Angle_pl - Angle_targ);
+    std::cout << diff << std::endl;
+    if( diff < 180 )
+        rotAccel_targ = -diff/20.0;
+    else if( diff >= 180 )
+        rotAccel_targ = -diff/20.0;
+    //std::cout<<rotAccel_targ<<" a | v ";
     rotVel_targ = rotVel_pl + rotAccel_targ;
+    //std::cout<<rotVel_targ<<std::endl;
+    /*
+    rotVel_targ = (Angle_pl - Angle_targ)/10.0;
+    std::cout<<rotVel_targ<<std::endl;
+    */
 
     Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
 
@@ -333,7 +337,41 @@ void render()
     else
         textures[HEALTH_0].render(xp, yp);
 
+    //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
+    if(currentKeyStates[SDL_SCANCODE_K])
+    {
+        players[player]->hitpoints -= 1;
+    }
+
 }
+
+//handle actions based on current key state
+void handle_keystate()
+{
+    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
+    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
+    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
+    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
+    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
+    bool strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
+    bool strafeRight = currentKeyStates[SDL_SCANCODE_E];
+
+    if(upKey)
+        players[player]->thrust_b();
+    if(downKey)
+        players[player]->thrust_f();
+    if(leftKey)
+        players[player]->rot_l();
+    if(rightKey)
+        players[player]->rot_r();
+    if(strafeLeft)
+        players[player]->thrust_r();
+    if(strafeRight)
+        players[player]->thrust_l();
+
+}
+
 
 void close()
 {
@@ -401,23 +439,17 @@ int main( int argc, char* args[] )
                             case SDLK_c:
                                 float xPos, yPos, Angle; 
                                 players[player]->get_values(&xPos, &yPos, &Angle);
-                                std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
+                                std::cout <<"x: "<<xPos<< " y: "<<yPos<< " ang: "<<Angle<<std::endl;
                                 break;
                             case SDLK_p:
                                 player = fmod( player+1, players.size() );
                                 break;
-                                //"test code to make sure hit function in the ship class is working."
-                                //I'd say it's just to test the healthbar rendering
-                                //It lowers the players health if you press the K key     
-                            case SDLK_k:
-                                players[player]->hitpoints -= 1;
                         }
                     }
                 }
 
-                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
                 //handle actions based on current key state
-                players[player]->handle_keystate(currentKeyStates);
+                handle_keystate();
 
                 //Move the ship
                 //player.update();
