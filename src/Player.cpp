@@ -17,8 +17,6 @@ Player::Player(float xp, float yp, float ang )
     hitpoints = 100;
 
     TEX_INDEX = PLAYER;
-    //*currentKeyStates = 0;
-    //currentKeyStates = SDL_GetKeyboardState( NULL );
 }
 
 void Player::handle_keystate(const Uint8* currentKeyStates)
@@ -46,7 +44,7 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
 }
 
 //client side code
-void Player::render( int x, int y, float ang )// const Uint8* currentKeyStates )
+void Player::render( int x, int y, float ang )
 {
     // here is my(robs) added code that implements a cool ship that has some moving parts.
 

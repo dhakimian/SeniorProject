@@ -32,7 +32,6 @@ class Object
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
 
         virtual void render( int x, int y, float ang );
-        //virtual void render( int x, int y, float ang, const Uint8* currentKeyStates );
 
         virtual int get_cRad();
 

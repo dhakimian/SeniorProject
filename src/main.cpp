@@ -406,9 +406,8 @@ int main( int argc, char* args[] )
                             case SDLK_p:
                                 player = fmod( player+1, players.size() );
                                 break;
-                                //"test code to make sure hit function in the ship class is working."
-                                //I'd say it's just to test the healthbar rendering
-                                //It lowers the players health if you press the K key     
+                            //test code to make sure the health bar is rendering correctly
+                            //It lowers the players health if you press the K key     
                             case SDLK_k:
                                 players[player]->hitpoints -= 1;
                         }
