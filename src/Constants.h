@@ -10,6 +10,12 @@ const int SCREEN_HEIGHT = 600;
 
 const int Render_Radius = 1000;
 
+const int targ_w = SCREEN_WIDTH + Render_Radius;
+const int targ_h = SCREEN_HEIGHT + Render_Radius;
+
+const int targ_cx = targ_w/2; //The center of the target image, which is...
+const int targ_cy = targ_h/2; //...usually where the player is centered 
+
 //the distance between the current and target position is divided by this number and...
 //...stored in the appropriate accel var
 // bigger number -> slower snap  smaller number -> faster snap

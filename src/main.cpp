@@ -63,6 +63,10 @@ float yVel_cam = 0.0;
 float xAccel_cam = 0.0;
 float yAccel_cam = 0.0;
 
+//boolean config options
+bool targ_Follow_Rotation = true;
+bool targ_Ship_Centered = false;
+
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
 std::vector<LTexture> textures (images.size());
@@ -170,7 +174,7 @@ void loadObjects()
     //objects.push_back( &player );
 
     players.push_back( new Player(100, 300, 0) );
-    players.push_back( new Player(100, 100, 135) );
+    players.push_back( new Player(100, 100, -45) );
     players.push_back( new Player(300, 100, -90) );
     players.push_back( new Player(300, 300, -45) );
 
@@ -178,20 +182,8 @@ void loadObjects()
         objects.push_back( players[i] );
 }
 
-void render()
-{
-    //set the image as the render target
-    gTargetTexture.setAsRenderTarget();
-    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
-    SDL_RenderClear( gRenderer );
-
-    int xScreenPos = (SCREEN_WIDTH+Render_Radius)/2 ; //The center of the target image, which is...
-    int yScreenPos = (SCREEN_HEIGHT+Render_Radius)/2; //...usually where the player is centered 
-
-    float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
-    players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
-    
-    //render the background tiles that are within a certain radius of the player, and also...
+void render_bg()
+{   //render the background tiles that are within a certain radius of the camera, and also...
     //...render tiles on the other side of a wrap to replace the void
     int tile_w = textures[BACKGROUND].getWidth();
     int tile_h = textures[BACKGROUND].getHeight();
@@ -200,8 +192,8 @@ void render()
         for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
         {
             bool render = false;
-            int xrc = i+xScreenPos-xPos_cam; // X render coordinate
-            int yrc = j+yScreenPos-yPos_cam; // Y render coordinate
+            int xrc = i+targ_cx-xPos_cam; // X render coordinate
+            int yrc = j+targ_cy-yPos_cam; // Y render coordinate
 
             int tilePos_x = i + tile_w/2;
             int tilePos_y = j + tile_h/2;
@@ -210,7 +202,7 @@ void render()
             if( abs(tilePos_x - xPos_cam) < Render_Radius && abs(tilePos_y - yPos_cam) < Render_Radius )
                 render = true;
             else { //image is not close enough, so don't render, but first...
-                //...check if the image would be close enough if the map actually wrapped, so...
+                //...check if the image would be close enough if the map literally wrapped, so...
                 //...we can render tiles from the other side of an edge-wrap to eliminate the void
                 if( abs(tilePos_x + LEVEL_WIDTH - xPos_cam) < Render_Radius ) //r
                     {xrc += LEVEL_WIDTH; render = true;}
@@ -226,13 +218,10 @@ void render()
             //else they are not close enough, so don't render them.
         }
     }
+}
 
-    SDL_Point center;
-    center.x = xScreenPos;
-    center.y = yScreenPos;
-
-    int xScreenPos_ren, yScreenPos_ren;
-
+void render_objects()
+{
     //loop through the list of currently present objects to render them
     for( unsigned int i=0; i<objects.size(); i++ )
     {
@@ -241,16 +230,17 @@ void render()
         int tex_index = objects[i]->get_tex_index();
 
         bool render = false;
-        xScreenPos_ren = xScreenPos - textures[tex_index].getWidth()/2;
-        yScreenPos_ren = yScreenPos - textures[tex_index].getWidth()/2;
-        int xrc = xPos+xScreenPos_ren-xPos_cam; // X render coordinate
-        int yrc = yPos+yScreenPos_ren-yPos_cam; // Y render coordinate
+
+        int xOffset_tex = textures[tex_index].getWidth()/2;
+        int yOffset_tex = textures[tex_index].getHeight()/2;
+        int xrc = xPos+targ_cx-xOffset_tex-xPos_cam; // X render coordinate
+        int yrc = yPos+targ_cy-yOffset_tex-yPos_cam; // Y render coordinate
 
         // only render if within a certain radius
-        if( abs( xPos - xPos_pl ) < Render_Radius && abs( yPos - yPos_pl ) < Render_Radius )
+        if( abs( xPos - xPos_cam ) < Render_Radius && abs( yPos - yPos_cam ) < Render_Radius )
             render = true;
         else {//object is not close enough, so don't render, but first...
-            //...check if the object would be close enough if the map actually wrapped, so we can...
+            //...check if the object would be close enough if the map literally wrapped, so we can...
             //...render objects from the other side of an edge-wrap so they don't disapper near edges
             if( abs( xPos + LEVEL_WIDTH - xPos_cam ) < Render_Radius ) //r
                 {xrc += LEVEL_WIDTH; render = true;}
@@ -265,57 +255,10 @@ void render()
             objects[i]->render(xrc, yrc, Angle);
         //else they are not close enough, so don't render them.
     }
+}
 
-    //Reset render target to the window
-    SDL_SetRenderTarget( gRenderer, NULL );
-
-    /*
-    while( Angle_pl < 0 )
-        Angle_pl += 360;
-    while( Angle_targ < 0 )
-        Angle_targ += 360;
-    */
-
-    float diff = Angle_pl - Angle_targ;
-
-    if( diff < -180 )
-        diff += 360;
-    if( diff >= 180 )
-        diff -=360;
-
-    rotAccel_targ = diff/20.0;
-    rotVel_targ = rotVel_pl + rotAccel_targ;
-
-    Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
-
-    //gTargetTexture.render( -(Render_Radius/2), -(Render_Radius/3), NULL, -Angle_pl, &center );
-    gTargetTexture.render( -(Render_Radius/2), -(Render_Radius/3), NULL, -Angle_targ, &center );
-    //std::cout<<Angle_pl<<" angPL | angT "<<Angle_targ<<std::endl;
-
-    float diff_x = xPos_pl - xPos_cam;
-    float diff_y = yPos_pl - yPos_cam;
-
-    if( diff_x < -LEVEL_WIDTH/2 )
-        diff_x += LEVEL_WIDTH;
-    if( diff_y < -LEVEL_HEIGHT/2 )
-        diff_y += LEVEL_HEIGHT;
-    if( diff_x >= LEVEL_WIDTH/2 )
-        diff_x -= LEVEL_WIDTH;
-    if( diff_y >= LEVEL_HEIGHT/2 )
-        diff_y -= LEVEL_HEIGHT;
-
-    xAccel_cam = diff_x/delta_Accel_cam;
-    yAccel_cam = diff_y/delta_Accel_cam;
-
-    xVel_cam = xVel_pl + xAccel_cam;
-    yVel_cam = yVel_pl + yAccel_cam;
-    
-    xPos_cam = fmod( (xPos_cam + xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
-    yPos_cam = fmod( (yPos_cam + yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
-
-    //anything rendered past here will be overlayed on top of the screen
-    //everything before gets rotated with the ship
-
+void render_healthbar()
+{
     //this code is the health bar
     float xp, yp;
     xp = (SCREEN_WIDTH / 2) - 151;
@@ -355,6 +298,85 @@ void render()
     else
         textures[HEALTH_0].render(xp, yp);
 
+}
+
+void render_overlay()
+{
+    render_healthbar();
+    //render_minimap();
+}
+
+void render()
+{
+    //set the image as the render target
+    gTargetTexture.setAsRenderTarget();
+    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+    SDL_RenderClear( gRenderer );
+
+    float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
+    players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
+
+    render_bg();
+
+    render_objects();
+
+    //Reset render target to the window
+    SDL_SetRenderTarget( gRenderer, NULL );
+
+    /*
+    while( Angle_pl < 0 )
+        Angle_pl += 360;
+    while( Angle_targ < 0 )
+        Angle_targ += 360;
+    */
+
+    float diff_ang = Angle_pl - Angle_targ;
+
+    if( diff_ang < -180 )
+        diff_ang += 360;
+    if( diff_ang >= 180 )
+        diff_ang -=360;
+
+    rotAccel_targ = diff/20.0;
+    rotVel_targ = rotVel_pl + rotAccel_targ;
+
+    Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
+
+    int y_offset;
+    if( targ_Ship_Centered )
+        y_offset = -(Render_Radius/2);
+    else
+        y_offset = -(Render_Radius/3);
+
+    if( targ_Follow_Rotation )
+        gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, -Angle_targ );
+    else
+        gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, 0 );
+
+    //std::cout<<Angle_pl<<" angPL | angT "<<Angle_targ<<std::endl;
+
+    float diff_x = xPos_pl - xPos_cam;
+    float diff_y = yPos_pl - yPos_cam;
+
+    if( diff_x < -LEVEL_WIDTH/2 )
+        diff_x += LEVEL_WIDTH;
+    if( diff_y < -LEVEL_HEIGHT/2 )
+        diff_y += LEVEL_HEIGHT;
+    if( diff_x >= LEVEL_WIDTH/2 )
+        diff_x -= LEVEL_WIDTH;
+    if( diff_y >= LEVEL_HEIGHT/2 )
+        diff_y -= LEVEL_HEIGHT;
+
+    xAccel_cam = diff_x/delta_Accel_cam;
+    yAccel_cam = diff_y/delta_Accel_cam;
+
+    xVel_cam = xVel_pl + xAccel_cam;
+    yVel_cam = yVel_pl + yAccel_cam;
+    
+    xPos_cam = fmod( (xPos_cam + xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
+    yPos_cam = fmod( (yPos_cam + yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
+
+    render_overlay();
 }
 
 void close()
