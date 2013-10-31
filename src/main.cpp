@@ -165,7 +165,6 @@ bool loadMedia()
 }
 
 //load initial map objects
-//bool loadObjects()
 void loadObjects()
 {
     objects.push_back( new Planet(500.0, 500.0) );
@@ -323,13 +322,6 @@ void render()
     //Reset render target to the window
     SDL_SetRenderTarget( gRenderer, NULL );
 
-    /*
-    while( Angle_pl < 0 )
-        Angle_pl += 360;
-    while( Angle_targ < 0 )
-        Angle_targ += 360;
-    */
-
     float diff_ang = Angle_pl - Angle_targ;
 
     if( diff_ang < -180 )
@@ -337,7 +329,7 @@ void render()
     if( diff_ang >= 180 )
         diff_ang -=360;
 
-    rotAccel_targ = diff/20.0;
+    rotAccel_targ = diff_ang/20.0;
     rotVel_targ = rotVel_pl + rotAccel_targ;
 
     Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
@@ -352,8 +344,6 @@ void render()
         gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, -Angle_targ );
     else
         gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, 0 );
-
-    //std::cout<<Angle_pl<<" angPL | angT "<<Angle_targ<<std::endl;
 
     float diff_x = xPos_pl - xPos_cam;
     float diff_y = yPos_pl - yPos_cam;
@@ -443,10 +433,15 @@ int main( int argc, char* args[] )
                             case SDLK_ESCAPE:
                                 quit = true;
                                 break;
-                            case SDLK_c:
+                            //print current ship coords for debugging
+                            case SDLK_x:
                                 float xPos, yPos, Angle; 
                                 players[player]->get_values(&xPos, &yPos, &Angle);
                                 std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
+                                break;
+                            case SDLK_c: //toggle camera mode
+                                targ_Follow_Rotation = !targ_Follow_Rotation;
+                                targ_Ship_Centered = !targ_Ship_Centered;
                                 break;
                             //switch control between present Player ships
                             case SDLK_p:
