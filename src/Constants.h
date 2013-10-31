@@ -10,6 +10,13 @@ const int SCREEN_HEIGHT = 600;
 
 const int Render_Radius = 1000;
 
+//the distance between the current and target position is divided by this number and...
+//...stored in the appropriate accel var
+// bigger number -> slower snap  smaller number -> faster snap
+const float delta_rotAccel_targ = 20.0;
+const float delta_Accel_targ = 20.0;
+const float delta_Accel_cam = 20.0;
+
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
 const int LEVEL_WIDTH = 32000;

@@ -17,6 +17,14 @@ Player::Player(float xp, float yp, float ang )
     hitpoints = 100;
 
     TEX_INDEX = PLAYER;
+
+    upKey = false;
+    downKey = false;
+    leftKey = false;
+    rightKey = false;
+    strafeLeft = false;
+    strafeRight = false;
+
 }
 
 void Player::handle_keystate(const Uint8* currentKeyStates)

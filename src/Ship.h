@@ -1,19 +1,6 @@
 #ifndef _SHIP_H
 #define _SHIP_H
 
-#ifdef __APPLE__
-#include <SDL2/SDL.h>
-#include <SDL2_image/SDL_image.h>
-#else
-#include <SDL.h>
-#include <SDL_image.h>
-#endif
-#include <math.h>
-#include <string>
-
-#include "Constants.h"
-#include "Util.h"
-#include "LTexture.h"
 #include "MovingObject.h"
 
 class Ship : public MovingObject
