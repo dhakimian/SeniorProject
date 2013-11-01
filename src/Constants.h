@@ -17,11 +17,15 @@ const int targ_cx = targ_w/2; //The center of the target image, which is...
 const int targ_cy = targ_h/2; //...usually where the player is centered 
 
 //the distance between the current and target position is divided by this number and...
-//...stored in the appropriate accel var
+//...stored in the appropriate accel/(vel?) var
 // bigger number -> slower snap  smaller number -> faster snap
-const float delta_rotAccel_targ = 20.0;
-const float delta_Accel_targ = 20.0;
-const float delta_Accel_cam = 20.0;
+const float rotDeccel_targ = 15.0;
+const float Deccel_targ = 10.0;
+const float Deccel_cam = 15.0;
+//I'm not sure if the above values would actually be classified as the acceleration, not a change in
+//acceleration, because what I was calling accel might actually be just velocity, but even so, these
+//values aren't... a=vt... distance != time, so I don't know. I don't know what the values are actually
+//called, but I know they work; I just have to give them an appropriate name... :P
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky

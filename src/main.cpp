@@ -48,8 +48,8 @@ float rotVel_targ = 0.0;
 float rotAccel_targ = 0.0;
 
 //these (similar to the above) deal with motion/position of the target texture
-float xOffset_targ = SCREEN_WIDTH/2;
-float yOffset_targ = SCREEN_HEIGHT/2;
+float xOffset_targ = 2;
+float yOffset_targ = 2;
 float xVel_targ = 0.0;
 float yVel_targ = 0.0;
 float xAccel_targ = 0.0;
@@ -335,29 +335,41 @@ void render()
     if( diff_ang < -180 )
         diff_ang += 360;
     if( diff_ang >= 180 )
-        diff_ang -=360;
+        diff_ang -= 360;
 
-    rotAccel_targ = diff_ang/20.0;
     if( targ_Follow_Rotation )
-        rotVel_targ = rotVel_pl + rotAccel_targ;
+        rotVel_targ = rotVel_pl + diff_ang/rotDeccel_targ;
     else
-        rotVel_targ = 0 + rotAccel_targ;
+        rotVel_targ = 0 + diff_ang/rotDeccel_targ;
 
     Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
 
-    int y_offset;
+    int x_offset_dest, y_offset_dest;
+    //1.5->top or left
+    //2->middle
+    //3->bottom or right
+    x_offset_dest = 2;
+
     if( targ_Ship_Centered )
-        y_offset = -(Render_Radius/2);
+        y_offset_dest = 2;
     else
-        y_offset = -(Render_Radius/3);
+        y_offset_dest = 3;
 
-   // if( targ_Follow_Rotation )
-        gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, -Angle_targ );
-    //else
-     //   gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, 0 );
+    float diff_x = x_offset_dest - xOffset_targ;
+    float diff_y = y_offset_dest - yOffset_targ;
 
-    float diff_x = xPos_pl - xPos_cam;
-    float diff_y = yPos_pl - yPos_cam;
+    xVel_targ = diff_x/Deccel_targ;
+    yVel_targ = diff_y/Deccel_targ;
+    
+    xOffset_targ += xVel_targ;
+    yOffset_targ += yVel_targ;
+
+    ///--///
+    gTargetTexture.render( -(Render_Radius/xOffset_targ), -(Render_Radius/yOffset_targ), NULL, -Angle_targ );
+    ///--///
+
+    diff_x = xPos_pl - xPos_cam;
+    diff_y = yPos_pl - yPos_cam;
 
     if( diff_x < -LEVEL_WIDTH/2 )
         diff_x += LEVEL_WIDTH;
@@ -368,11 +380,8 @@ void render()
     if( diff_y >= LEVEL_HEIGHT/2 )
         diff_y -= LEVEL_HEIGHT;
 
-    xAccel_cam = diff_x/delta_Accel_cam;
-    yAccel_cam = diff_y/delta_Accel_cam;
-
-    xVel_cam = xVel_pl + xAccel_cam;
-    yVel_cam = yVel_pl + yAccel_cam;
+    xVel_cam = xVel_pl + diff_x/Deccel_cam;
+    yVel_cam = yVel_pl + diff_y/Deccel_cam;
     
     xPos_cam = fmod( (xPos_cam + xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
     yPos_cam = fmod( (yPos_cam + yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
