@@ -13,7 +13,7 @@ Ship::Ship(float xp, float yp, float ang )
     //SHIP_STRAFE_ACCEL = 
     SHIP_ROT_ACCEL = 0.03;
 
-    C_RAD = 30;
+    Collider.r = 30;
 
     xPos = xp;
     yPos = yp;

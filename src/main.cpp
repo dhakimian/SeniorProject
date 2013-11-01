@@ -154,7 +154,7 @@ bool loadMedia()
 
     //Load texture target
     gTargetTexture.setRenderer(gRenderer);
-    if( !gTargetTexture.createBlank( SCREEN_WIDTH + Render_Radius, SCREEN_HEIGHT + Render_Radius, SDL_TEXTUREACCESS_TARGET ) )
+    if( !gTargetTexture.createBlank( targ_w, targ_h, SDL_TEXTUREACCESS_TARGET ) )
     {
         printf( "Failed to create target texture!\n" );
         success = false;
@@ -299,6 +299,10 @@ void render_healthbar()
 
 }
 
+//void render_minimap()
+//{
+//}
+
 void render_overlay()
 {
     render_healthbar();
@@ -322,7 +326,11 @@ void render()
     //Reset render target to the window
     SDL_SetRenderTarget( gRenderer, NULL );
 
-    float diff_ang = Angle_pl - Angle_targ;
+    float diff_ang;
+    if( targ_Follow_Rotation )
+        diff_ang = Angle_pl - Angle_targ;
+    else
+        diff_ang = 0 - Angle_targ;
 
     if( diff_ang < -180 )
         diff_ang += 360;
@@ -330,7 +338,10 @@ void render()
         diff_ang -=360;
 
     rotAccel_targ = diff_ang/20.0;
-    rotVel_targ = rotVel_pl + rotAccel_targ;
+    if( targ_Follow_Rotation )
+        rotVel_targ = rotVel_pl + rotAccel_targ;
+    else
+        rotVel_targ = 0 + rotAccel_targ;
 
     Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
 
@@ -340,10 +351,10 @@ void render()
     else
         y_offset = -(Render_Radius/3);
 
-    if( targ_Follow_Rotation )
+   // if( targ_Follow_Rotation )
         gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, -Angle_targ );
-    else
-        gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, 0 );
+    //else
+     //   gTargetTexture.render( -(Render_Radius/2), y_offset, NULL, 0 );
 
     float diff_x = xPos_pl - xPos_cam;
     float diff_y = yPos_pl - yPos_cam;

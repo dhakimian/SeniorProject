@@ -97,9 +97,12 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     HEALTH_0
 };
 
-extern std::vector<std::string> images;// (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
+extern std::vector<std::string> images;
 
-extern std::vector<LTexture> textures;// (images.size());
+extern std::vector<LTexture> textures;
+
+class Object; // forward declaration for the following vector
+extern std::vector<Object*> objects;
  
 struct Circle
 {

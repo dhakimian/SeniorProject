@@ -6,7 +6,7 @@
 
 Player::Player(float xp, float yp, float ang )
 {
-    //C_RAD = 
+    //Collider.r = 
 
     xPos = xp;
     yPos = yp;

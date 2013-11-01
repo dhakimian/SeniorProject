@@ -34,13 +34,11 @@ class Object
 
         virtual void render( int x, int y, float ang );
 
-        virtual int get_cRad();
+        virtual Circle get_collider();
 
         int get_tex_index();
 
     protected:
-        //radius of object's collider, centered on xPos,yPos
-        int C_RAD;
 
         //the index of the default image to render for instances of this object
         int TEX_INDEX;
@@ -50,6 +48,10 @@ class Object
 
         //object's current angle
         float Angle;
+
+        //Collider for this object
+        //TODO:make this a shape superclass that can be either a circle or SDLRECT
+        Circle Collider;
 
 };
 
