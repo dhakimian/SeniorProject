@@ -13,7 +13,7 @@ class Laser : public MovingObject
         //~Laser();
 
         //how fast laser moves relative to ship (at the time of firing)
-        static const float VEL = 10;
+        static constexpr float VEL = 10;
 
         //how many cycles a laser lasts before it disappears
         static const int LIFESPAN = 100;
