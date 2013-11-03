@@ -18,4 +18,4 @@ For macs, make sure the SDL2 framework is installed as per the directions in the
 If you have everything installed, then typing 'make' while in the root directory of the project should compile the
 existing code successfully, and if the make is successful, then typing './our\_game' should show up a window with a 
 ship that flies around with the arrow keys. Pressing 'f' toggles fullscreen, 'c' switches camera modes, 'p' cycles
-through present Player ships, pressing 'k' decreases the health of the current Player ship, and pressing 'q' quits.
+through present Player ships, pressing 'k' decreases the health of the current Player ship, pressing 'space' shoots, and pressing 'q' quits.
