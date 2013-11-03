@@ -35,6 +35,7 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
     rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
     strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
     strafeRight = currentKeyStates[SDL_SCANCODE_E];
+    shootKey = currentKeyStates[SDL_SCANCODE_SPACE];
 
     if(upKey)
         thrust_b();
@@ -48,6 +49,8 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
         thrust_r();
     if(strafeRight)
         thrust_l();
+    if(shootKey)
+        shoot();
 
 }
 

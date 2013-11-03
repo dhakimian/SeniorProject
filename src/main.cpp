@@ -28,6 +28,7 @@
 #include "Player.h"
 #include "Alien.h"
 #include "Planet.h"
+#include "Laser.h"
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -44,24 +45,17 @@ float Angle_targ = 30.0;
 //The velocity at which that angle changes
 float rotVel_targ = 0.0;
 
-//The rate at which that velocity changes to match the player's rotational velocity
-float rotAccel_targ = 0.0;
-
 //these (similar to the above) deal with motion/position of the target texture
 float xOffset_targ = 2;
 float yOffset_targ = 2;
 float xVel_targ = 0.0;
 float yVel_targ = 0.0;
-float xAccel_targ = 0.0;
-float yAccel_targ = 0.0;
 
 //these deal with motion/position of the contents of the target texture
 float xPos_cam = SCREEN_WIDTH/2;
 float yPos_cam = SCREEN_HEIGHT/2;
 float xVel_cam = 0.0;
 float yVel_cam = 0.0;
-float xAccel_cam = 0.0;
-float yAccel_cam = 0.0;
 
 //boolean config options
 bool targ_Follow_Rotation = true;
@@ -482,7 +476,15 @@ int main( int argc, char* args[] )
                 //Move the ship
                 //player.update();
                 for( unsigned int i = 0; i<objects.size(); i++ )
-                    objects[i]->update();
+                {
+                    if( objects[i]->is_dead() )
+                    {
+                        //delete objects[i];
+                        objects.erase( objects.begin()+i );
+                        i--;
+                    } else
+                        objects[i]->update();
+                }
 
                 //Clear screen
                 //SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );

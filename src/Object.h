@@ -38,6 +38,8 @@ class Object
 
         int get_tex_index();
 
+        bool is_dead();
+
     protected:
 
         //the index of the default image to render for instances of this object
@@ -50,8 +52,12 @@ class Object
         float Angle;
 
         //Collider for this object
-        //TODO:make this a shape superclass that can be either a circle or SDLRECT
+        //TODO:make this a shape superclass that can be either a circle or Sdl_Rect
+        //     because we may want some (stationary) objects to have a rectangular hitbox
         Circle Collider;
+
+        //if this is true, the object will be removed from the objects vector next cycle
+        bool dead;
 
 };
 
