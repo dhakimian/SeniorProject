@@ -6,6 +6,7 @@ libsdl.org/projects, or from your package manager if it has it. The instructions
 same as those below for the base SDL2 libraries.
 
 First of all, replace the file 'Makefile' in the root directory with the appropriate file in 'makefiles/'.   
+
 If you are using a mac and are following the below instructions for mac frameworks, then use the Makefile-macFrameworks makefile.
 The macports makefile is for if you used macports to install the sdl libs. If you don't know if you are using macports then you very likely aren't using it.
 

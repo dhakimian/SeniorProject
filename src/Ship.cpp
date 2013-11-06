@@ -5,31 +5,30 @@
 
 #include "Ship.h"
 
-Ship::Ship()
+Ship::Ship(float xp, float yp, float ang )
 {
-    xPos = (float) SCREEN_WIDTH / 2;
-    yPos = (float) SCREEN_HEIGHT / 2;
+    // acceleration rates
+    SHIP_ACCEL = 0.07;
+    SHIP_REV_ACCEL = 0.04;
+    //SHIP_STRAFE_ACCEL = 
+    SHIP_ROT_ACCEL = 0.03;
+
+    C_RAD = 30;
+
+    xPos = xp;
+    yPos = yp;
 
     xVel = 0.0;
     yVel = 0.0;
 
-    Angle = 0.0;
+    Angle = ang;
 
     rotVel = 0.0;
 
-    Collider.x = xPos;
-    Collider.y = yPos;
-    Collider.r = Collider.r;
+    TEX_INDEX = PLAYER;
 }
 
-/*
-   Ship::~Ship()
-   {
-
-   }
-   */
-
-void Ship::thrust_b()
+void Ship::thrust_b() // fire rear thrusters, moving the ship forward
 {
     double ang = M_PI * Angle;
     ang = ang / 180;
@@ -37,7 +36,7 @@ void Ship::thrust_b()
     yVel -= SHIP_ACCEL * cos(ang);
 }
 
-void Ship::thrust_f()
+void Ship::thrust_f() // fire forward thrusters, moving the ship backwards
 {
     double ang = M_PI * Angle;
     ang = ang / 180;
@@ -45,75 +44,28 @@ void Ship::thrust_f()
     yVel += SHIP_REV_ACCEL * cos(ang);
 }
 
-void Ship::thrust_l()
+void Ship::rot_l()
 {
     rotVel -= SHIP_ROT_ACCEL;
 }
 
-void Ship::thrust_r()
+void Ship::rot_r()
 {
     rotVel += SHIP_ROT_ACCEL;
 }
 
-void Ship::update_pos()
+void Ship::thrust_l() // fire port-side thrusters, moving the ship right
 {
-    //Move the ship left or right
-    xPos += xVel;
-
-    //If the ship went too far to the left
-    if( xPos - Collider.r < 0 )
-    {
-        xPos = (float) Collider.r;
-        xVel = 0.0;
-    }
-    //If the ship went too far to the right
-    if ( xPos + Collider.r > LEVEL_WIDTH )
-    {
-        xPos = (float) LEVEL_WIDTH - Collider.r;
-        xVel = 0.0;
-    }
-
-    //Move the ship up or down
-    yPos += yVel;
-
-    //If the ship went too far up
-    if( yPos - Collider.r < 0 )
-    {
-        yPos = (float) Collider.r;
-        yVel = 0.0;
-    }
-    //If the ship went too far down
-    if( yPos + Collider.r > LEVEL_HEIGHT )
-    {
-        yPos = (float) LEVEL_HEIGHT - Collider.r;
-        yVel = 0.0;
-    }
-
-    Angle += rotVel;
+    double ang = M_PI * Angle;
+    ang = ang / 180;
+    xVel += SHIP_REV_ACCEL * cos(ang);
+    yVel += SHIP_REV_ACCEL * sin(ang);
 }
 
-void Ship::get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out)
+void Ship::thrust_r() // fire starboard thrusters, moving the ship left
 {
-    *xPos_out = xPos;
-    *yPos_out = yPos;
-    *xVel_out = xVel;
-    *yVel_out = yVel;
-    *Angle_out = Angle;
-    *rotVel_out = rotVel;
+    double ang = M_PI * Angle;
+    ang = ang / 180;
+    xVel -= SHIP_REV_ACCEL * cos(ang);
+    yVel -= SHIP_REV_ACCEL * sin(ang);
 }
-
-void Ship::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
-{
-    *xPos_out = xPos;
-    *yPos_out = yPos;
-    *Angle_out = Angle;
-}
-
-/*SDL_Point getCenter();
-{
-    SDL_Point center;
-    center.x = (SHIP_WIDTH / 2);
-    center.y = (SHIP_HEIGHT / 2);
-    return center;
-}
-*/
