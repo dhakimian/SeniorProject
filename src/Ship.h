@@ -1,20 +1,9 @@
 #ifndef _SHIP_H
 #define _SHIP_H
 
-#ifdef __APPLE__
-#include <SDL2/SDL.h>
-#include <SDL2_image/SDL_image.h>
-#else
-#include <SDL.h>
-#include <SDL_image.h>
-#endif
-#include <math.h>
-#include <string>
-
-#include "Constants.h"
-#include "Util.h"
-#include "LTexture.h"
 #include "MovingObject.h"
+#include "Laser.h"
+#include <vector>
 
 class Ship : public MovingObject
 {
@@ -30,9 +19,15 @@ class Ship : public MovingObject
         void rot_r();
         void thrust_l();
         void thrust_r();
+
+        void update();
         
+        //shoots a laser
+        void shoot();
+
         //ship's current hitpoints
         int hitpoints;
+
     protected:
 
         // Unenforced Constants
@@ -48,7 +43,20 @@ class Ship : public MovingObject
 
         //----------------------//
 
-        
-        
+        //The size of the laser object pool
+        int pool_size;
+
+        //laser object pool
+        std::vector<Laser*> laser_pool;
+
+        //a copy of which laser objects are currently in the objects vector
+        std::vector<Laser*> active_lasers;
+
+        //time needed between shots
+        int Req_Cooldown;
+
+        //time left before another laser can be shot
+        int cooldown;
+
 };
 #endif

@@ -24,6 +24,9 @@ void MovingObject::update()
     //Rotate the object clockwise or counter-clockwise
     Angle = fmod( (Angle + rotVel + 360), 360 );
 
+    Collider.x = xPos;
+    Collider.y = yPos;
+
 
     ////Do collision checks here////
 

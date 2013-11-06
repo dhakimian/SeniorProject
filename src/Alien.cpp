@@ -13,7 +13,7 @@ Alien::Alien(float xp, float yp, float ang )
     //SHIP_STRAFE_ACCEL = 
     SHIP_ROT_ACCEL = 0.03;
 
-    C_RAD =
+    Collider.r =
         */
 
     xPos = xp;

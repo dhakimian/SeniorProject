@@ -6,7 +6,7 @@
 
 Player::Player(float xp, float yp, float ang )
 {
-    //C_RAD = 
+    //Collider.r = 
 
     xPos = xp;
     yPos = yp;
@@ -17,6 +17,14 @@ Player::Player(float xp, float yp, float ang )
     hitpoints = 100;
 
     TEX_INDEX = PLAYER;
+
+    upKey = false;
+    downKey = false;
+    leftKey = false;
+    rightKey = false;
+    strafeLeft = false;
+    strafeRight = false;
+
 }
 
 void Player::handle_keystate(const Uint8* currentKeyStates)
@@ -27,6 +35,7 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
     rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
     strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
     strafeRight = currentKeyStates[SDL_SCANCODE_E];
+    shootKey = currentKeyStates[SDL_SCANCODE_SPACE];
 
     if(upKey)
         thrust_b();
@@ -40,6 +49,8 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
         thrust_r();
     if(strafeRight)
         thrust_l();
+    if(shootKey)
+        shoot();
 
 }
 

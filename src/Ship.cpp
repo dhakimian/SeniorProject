@@ -13,7 +13,7 @@ Ship::Ship(float xp, float yp, float ang )
     //SHIP_STRAFE_ACCEL = 
     SHIP_ROT_ACCEL = 0.03;
 
-    C_RAD = 30;
+    Collider.r = 30;
 
     xPos = xp;
     yPos = yp;
@@ -25,7 +25,35 @@ Ship::Ship(float xp, float yp, float ang )
 
     rotVel = 0.0;
 
+    pool_size = 5;
+    Req_Cooldown = 30;
+    cooldown = 0;
+
+    for( int i=0; i<pool_size; i++ )
+        laser_pool.push_back( new Laser() );
+
     TEX_INDEX = PLAYER;
+}
+
+void Ship::update()
+{
+    if( hitpoints <= 0 )
+        dead = true;
+    else
+    {
+        MovingObject::update();
+        if( cooldown > 0 )
+            cooldown--;
+        for( unsigned int i=0; i<active_lasers.size(); i++ )
+        {
+            if( active_lasers[i]->is_dead() )
+            {
+                laser_pool.push_back( active_lasers[i] );
+                active_lasers.erase( active_lasers.begin()+i );
+                i--;
+            }
+        }
+    }
 }
 
 void Ship::thrust_b() // fire rear thrusters, moving the ship forward
@@ -68,4 +96,23 @@ void Ship::thrust_r() // fire starboard thrusters, moving the ship left
     ang = ang / 180;
     xVel -= SHIP_REV_ACCEL * cos(ang);
     yVel -= SHIP_REV_ACCEL * sin(ang);
+}
+
+void Ship::shoot()
+{
+    if( cooldown <= 0 && laser_pool.size() > 0 )
+    {
+        //shoot a laser;
+        double ang = M_PI * Angle;
+        ang = ang / 180;
+        float xv = xVel + Laser::VEL * sin(ang);
+        float yv = yVel - Laser::VEL * cos(ang);
+        laser_pool.back()->set_values(xPos, yPos, Angle, xv, yv, Laser::LIFESPAN);
+
+        active_lasers.push_back( laser_pool.back() );
+        objects.push_back( laser_pool.back() );
+        laser_pool.pop_back();
+        cooldown = Req_Cooldown;
+    }
+
 }

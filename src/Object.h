@@ -8,6 +8,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #endif
+
 #include <math.h>
 #include <string>
 
@@ -33,13 +34,13 @@ class Object
 
         virtual void render( int x, int y, float ang );
 
-        virtual int get_cRad();
+        virtual Circle get_collider();
 
         int get_tex_index();
 
+        bool is_dead();
+
     protected:
-        //radius of object's collider, centered on xPos,yPos
-        int C_RAD;
 
         //the index of the default image to render for instances of this object
         int TEX_INDEX;
@@ -49,6 +50,14 @@ class Object
 
         //object's current angle
         float Angle;
+
+        //Collider for this object
+        //TODO:make this a shape superclass that can be either a circle or Sdl_Rect
+        //     because we may want some (stationary) objects to have a rectangular hitbox
+        Circle Collider;
+
+        //if this is true, the object will be removed from the objects vector next cycle
+        bool dead;
 
 };
 

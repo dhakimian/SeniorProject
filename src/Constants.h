@@ -10,6 +10,19 @@ const int SCREEN_HEIGHT = 600;
 
 const int Render_Radius = 1000;
 
+const int targ_w = SCREEN_WIDTH + Render_Radius;
+const int targ_h = SCREEN_HEIGHT + Render_Radius;
+
+const int targ_cx = targ_w/2; //The center of the target image, which is...
+const int targ_cy = targ_h/2; //...usually where the player is centered 
+
+//the distance between the current and target position is divided by this number and...
+//...stored in the appropriate accel/(vel?) var
+// bigger number -> slower snap  smaller number -> faster snap
+const float rotDeccel_targ = 15.0;
+const float Deccel_targ = 10.0;
+const float Deccel_cam = 15.0;
+
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
 const int LEVEL_WIDTH = 32000;
@@ -29,6 +42,7 @@ static const std::string imgarr[] = {
     "media/player/SF_Ship/wings_rightTurn.png",
     "media/player/SF_Ship/ship_body_Rtilt.png",
     "media/player/SF_Ship/ship_body_Ltilt.png",
+    "media/laser1.png",
     "media/aliens/alienship.png",
     "media/Planet_A.png",
     "media/player/Health/health15.png",
@@ -64,6 +78,7 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     PLAYER_WNG_R,
     PLAYER_Tlt_R,
     PLAYER_Tlt_L,
+    LASER,
     ALIEN,
     PLANET,
     HEALTH_15,
@@ -84,9 +99,12 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     HEALTH_0
 };
 
-extern std::vector<std::string> images;// (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
+extern std::vector<std::string> images;
 
-extern std::vector<LTexture> textures;// (images.size());
+extern std::vector<LTexture> textures;
+
+class Object; // forward declaration for the following vector
+extern std::vector<Object*> objects;
  
 struct Circle
 {

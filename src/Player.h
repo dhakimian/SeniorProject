@@ -24,5 +24,7 @@ class Player : public Ship
         bool strafeLeft;
         bool strafeRight;
 
+        bool shootKey;
+
 };
 #endif

@@ -28,6 +28,7 @@
 #include "Player.h"
 #include "Alien.h"
 #include "Planet.h"
+#include "Laser.h"
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -44,24 +45,21 @@ float Angle_targ = 30.0;
 //The velocity at which that angle changes
 float rotVel_targ = 0.0;
 
-//The rate at which that velocity changes to match the player's rotational velocity
-float rotAccel_targ = 0.0;
-
 //these (similar to the above) deal with motion/position of the target texture
-float xOffset_targ = SCREEN_WIDTH/2;
-float yOffset_targ = SCREEN_HEIGHT/2;
+float xOffset_targ = 2;
+float yOffset_targ = 2;
 float xVel_targ = 0.0;
 float yVel_targ = 0.0;
-float xAccel_targ = 0.0;
-float yAccel_targ = 0.0;
 
 //these deal with motion/position of the contents of the target texture
 float xPos_cam = SCREEN_WIDTH/2;
 float yPos_cam = SCREEN_HEIGHT/2;
 float xVel_cam = 0.0;
 float yVel_cam = 0.0;
-float xAccel_cam = 0.0;
-float yAccel_cam = 0.0;
+
+//boolean config options
+bool targ_Follow_Rotation = true;
+bool targ_Ship_Centered = false;
 
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
@@ -150,47 +148,35 @@ bool loadMedia()
 
     //Load texture target
     gTargetTexture.setRenderer(gRenderer);
-    if( !gTargetTexture.createBlank( SCREEN_WIDTH + Render_Radius, SCREEN_HEIGHT + Render_Radius, SDL_TEXTUREACCESS_TARGET ) )
+    if( !gTargetTexture.createBlank( targ_w, targ_h, SDL_TEXTUREACCESS_TARGET ) )
     {
         printf( "Failed to create target texture!\n" );
         success = false;
     }
 
-    //these are only here temporarily -- they should be in loadObjects once that is being used
+
+    return success;
+}
+
+//load initial map objects
+void loadObjects()
+{
     objects.push_back( new Planet(500.0, 500.0) );
     objects.push_back( new Alien(200.0, 0.0, -35.0) );
     objects.push_back( new Ship(0.0, 0.0, 35.0) );
     //objects.push_back( &player );
 
     players.push_back( new Player(100, 300, 0) );
-    players.push_back( new Player(100, 100, 135) );
+    players.push_back( new Player(100, 100, -45) );
     players.push_back( new Player(300, 100, -90) );
     players.push_back( new Player(300, 300, -45) );
 
     for( unsigned int i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
-
-    return success;
 }
 
-//bool loadObjects()
-//{
-//}
-
-void render()
-{
-    //set the image as the render target
-    gTargetTexture.setAsRenderTarget();
-    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
-    SDL_RenderClear( gRenderer );
-
-    int xScreenPos = (SCREEN_WIDTH+Render_Radius)/2 ; //The center of the target image, which is...
-    int yScreenPos = (SCREEN_HEIGHT+Render_Radius)/2; //...also where the player is centered 
-
-    float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
-    players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
-    
-    //render the background tiles that are within a certain radius of the player, and also...
+void render_bg()
+{   //render the background tiles that are within a certain radius of the camera, and also...
     //...render tiles on the other side of a wrap to replace the void
     int tile_w = textures[BACKGROUND].getWidth();
     int tile_h = textures[BACKGROUND].getHeight();
@@ -199,26 +185,25 @@ void render()
         for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
         {
             bool render = false;
-            int xrc = i+xScreenPos-xPos_pl; // X render coordinate
-            int yrc = j+yScreenPos-yPos_pl; // Y render coordinate
+            int xrc = i+targ_cx-xPos_cam; // X render coordinate
+            int yrc = j+targ_cy-yPos_cam; // Y render coordinate
 
             int tilePos_x = i + tile_w/2;
             int tilePos_y = j + tile_h/2;
 
-            // only render if within a certain radius of the player
-            if( abs( tilePos_x - xPos_pl ) < Render_Radius && abs( tilePos_y - yPos_pl ) < Render_Radius )
+            // only render if within a certain radius
+            if( abs(tilePos_x - xPos_cam) < Render_Radius && abs(tilePos_y - yPos_cam) < Render_Radius )
                 render = true;
-                //textures[BACKGROUND].render( i+xScreenPos-xPos_pl, j+yScreenPos-yPos_pl);
             else { //image is not close enough, so don't render, but first...
-                //...check if the image would be close enough if the map actually wrapped, so...
+                //...check if the image would be close enough if the map literally wrapped, so...
                 //...we can render tiles from the other side of an edge-wrap to eliminate the void
-                if( abs( tilePos_x + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
+                if( abs(tilePos_x + LEVEL_WIDTH - xPos_cam) < Render_Radius ) //r
                     {xrc += LEVEL_WIDTH; render = true;}
-                if( abs( tilePos_y + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
+                if( abs(tilePos_y + LEVEL_HEIGHT - yPos_cam) < Render_Radius ) //b
                     {yrc += LEVEL_HEIGHT; render = true;}
-                if( abs( tilePos_x - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
+                if( abs(tilePos_x - LEVEL_WIDTH - xPos_cam) < Render_Radius ) //l
                     {xrc -= LEVEL_WIDTH; render = true;}
-                if( abs( tilePos_y - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
+                if( abs(tilePos_y - LEVEL_HEIGHT - yPos_cam) < Render_Radius ) //t
                     {yrc -= LEVEL_HEIGHT; render = true;}
             }
             if( render )
@@ -226,13 +211,10 @@ void render()
             //else they are not close enough, so don't render them.
         }
     }
+}
 
-    SDL_Point center;
-    center.x = xScreenPos;
-    center.y = yScreenPos;
-
-    int xScreenPos_ren, yScreenPos_ren;
-
+void render_objects()
+{
     //loop through the list of currently present objects to render them
     for( unsigned int i=0; i<objects.size(); i++ )
     {
@@ -241,59 +223,35 @@ void render()
         int tex_index = objects[i]->get_tex_index();
 
         bool render = false;
-        xScreenPos_ren = xScreenPos - textures[tex_index].getWidth()/2;
-        yScreenPos_ren = yScreenPos - textures[tex_index].getWidth()/2;
-        int xrc = xPos+xScreenPos_ren-xPos_pl; // X render coordinate
-        int yrc = yPos+yScreenPos_ren-yPos_pl; // Y render coordinate
 
-        // only render if within a certain radius of the player
-        if( abs( xPos - xPos_pl ) < Render_Radius && abs( yPos - yPos_pl ) < Render_Radius )
+        int xOffset_tex = textures[tex_index].getWidth()/2;
+        int yOffset_tex = textures[tex_index].getHeight()/2;
+        int xrc = xPos+targ_cx-xOffset_tex-xPos_cam; // X render coordinate
+        int yrc = yPos+targ_cy-yOffset_tex-yPos_cam; // Y render coordinate
+
+        // only render if within a certain radius
+        if( abs( xPos - xPos_cam ) < Render_Radius && abs( yPos - yPos_cam ) < Render_Radius )
             render = true;
         else {//object is not close enough, so don't render, but first...
-            //...check if the object would be close enough if the map actually wrapped, so we can...
+            //...check if the object would be close enough if the map literally wrapped, so we can...
             //...render objects from the other side of an edge-wrap so they don't disapper near edges
-            if( abs( xPos + LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //r
+            if( abs( xPos + LEVEL_WIDTH - xPos_cam ) < Render_Radius ) //r
                 {xrc += LEVEL_WIDTH; render = true;}
-            if( abs( yPos + LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //b
+            if( abs( yPos + LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) //b
                 {yrc += LEVEL_HEIGHT; render = true;}
-            if( abs( xPos - LEVEL_WIDTH - xPos_pl ) < Render_Radius ) //l
+            if( abs( xPos - LEVEL_WIDTH - xPos_cam ) < Render_Radius ) //l
                 {xrc -= LEVEL_WIDTH; render = true;}
-            if( abs( yPos - LEVEL_HEIGHT - yPos_pl ) < Render_Radius ) //t
+            if( abs( yPos - LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) //t
                 {yrc -= LEVEL_HEIGHT; render = true;}
         }
         if( render )
             objects[i]->render(xrc, yrc, Angle);
         //else they are not close enough, so don't render them.
     }
+}
 
-    //Reset render target to the window
-    SDL_SetRenderTarget( gRenderer, NULL );
-
-    /*
-    while( Angle_pl < 0 )
-        Angle_pl += 360;
-    while( Angle_targ < 0 )
-        Angle_targ += 360;
-    */
-
-    float diff = Angle_pl - Angle_targ;
-    if( diff < -180 )
-        diff += 360;
-    if( diff >= 180 )
-        diff -=360;
-
-    rotAccel_targ = diff/20.0;
-    rotVel_targ = rotVel_pl + rotAccel_targ;
-
-    Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
-
-    //gTargetTexture.render( -(Render_Radius/2), -(Render_Radius/3), NULL, -Angle_pl, &center );
-    gTargetTexture.render( -(Render_Radius/2), -(Render_Radius/3), NULL, -Angle_targ, &center );
-    //std::cout<<Angle_pl<<" angPL | angT "<<Angle_targ<<std::endl;
-
-    //anything rendered past here will be overlayed on top of the screen
-    //everything before gets rotated with the ship
-
+void render_healthbar()
+{
     //this code is the health bar
     float xp, yp;
     xp = (SCREEN_WIDTH / 2) - 151;
@@ -333,6 +291,96 @@ void render()
     else
         textures[HEALTH_0].render(xp, yp);
 
+}
+
+//void render_minimap()
+//{
+//}
+
+void render_overlay()
+{
+    render_healthbar();
+    //render_minimap();
+}
+
+void render()
+{
+    //set the image as the render target
+    gTargetTexture.setAsRenderTarget();
+    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+    SDL_RenderClear( gRenderer );
+
+    float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
+    players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
+
+    render_bg();
+
+    render_objects();
+
+    //Reset render target to the window
+    SDL_SetRenderTarget( gRenderer, NULL );
+
+    float diff_ang;
+    if( targ_Follow_Rotation )
+        diff_ang = Angle_pl - Angle_targ;
+    else
+        diff_ang = 0 - Angle_targ;
+
+    if( diff_ang < -180 )
+        diff_ang += 360;
+    if( diff_ang >= 180 )
+        diff_ang -= 360;
+
+    if( targ_Follow_Rotation )
+        rotVel_targ = rotVel_pl + diff_ang/rotDeccel_targ;
+    else
+        rotVel_targ = 0 + diff_ang/rotDeccel_targ;
+
+    Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
+
+    int x_offset_dest, y_offset_dest;
+    //1.5->top or left
+    //2->middle
+    //3->bottom or right
+    x_offset_dest = 2;
+
+    if( targ_Ship_Centered )
+        y_offset_dest = 2;
+    else
+        y_offset_dest = 3;
+
+    float diff_x = x_offset_dest - xOffset_targ;
+    float diff_y = y_offset_dest - yOffset_targ;
+
+    xVel_targ = diff_x/Deccel_targ;
+    yVel_targ = diff_y/Deccel_targ;
+    
+    xOffset_targ += xVel_targ;
+    yOffset_targ += yVel_targ;
+
+    ///--///
+    gTargetTexture.render( -(Render_Radius/xOffset_targ), -(Render_Radius/yOffset_targ), NULL, -Angle_targ );
+    ///--///
+
+    diff_x = xPos_pl - xPos_cam;
+    diff_y = yPos_pl - yPos_cam;
+
+    if( diff_x < -LEVEL_WIDTH/2 )
+        diff_x += LEVEL_WIDTH;
+    if( diff_y < -LEVEL_HEIGHT/2 )
+        diff_y += LEVEL_HEIGHT;
+    if( diff_x >= LEVEL_WIDTH/2 )
+        diff_x -= LEVEL_WIDTH;
+    if( diff_y >= LEVEL_HEIGHT/2 )
+        diff_y -= LEVEL_HEIGHT;
+
+    xVel_cam = xVel_pl + diff_x/Deccel_cam;
+    yVel_cam = yVel_pl + diff_y/Deccel_cam;
+    
+    xPos_cam = fmod( (xPos_cam + xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
+    yPos_cam = fmod( (yPos_cam + yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
+
+    render_overlay();
 }
 
 void close()
@@ -377,6 +425,7 @@ int main( int argc, char* args[] )
             //Event handler
             SDL_Event e;
 
+            loadObjects();
 
             //While application is running
             while( !quit )
@@ -398,11 +447,17 @@ int main( int argc, char* args[] )
                             case SDLK_ESCAPE:
                                 quit = true;
                                 break;
-                            case SDLK_c:
+                            //print current ship coords for debugging
+                            case SDLK_x:
                                 float xPos, yPos, Angle; 
                                 players[player]->get_values(&xPos, &yPos, &Angle);
                                 std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
                                 break;
+                            case SDLK_c: //toggle camera mode
+                                targ_Follow_Rotation = !targ_Follow_Rotation;
+                                targ_Ship_Centered = !targ_Ship_Centered;
+                                break;
+                            //switch control between present Player ships
                             case SDLK_p:
                                 player = fmod( player+1, players.size() );
                                 break;
@@ -421,7 +476,15 @@ int main( int argc, char* args[] )
                 //Move the ship
                 //player.update();
                 for( unsigned int i = 0; i<objects.size(); i++ )
-                    objects[i]->update();
+                {
+                    if( objects[i]->is_dead() )
+                    {
+                        //delete objects[i];
+                        objects.erase( objects.begin()+i );
+                        i--;
+                    } else
+                        objects[i]->update();
+                }
 
                 //Clear screen
                 //SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
