@@ -52,7 +52,7 @@ class Object
         float Angle;
 
         //Collider for this object
-        //TODO:make this a shape superclass that can be either a circle or Sdl_Rect
+        //TODO:make this a shape superclass that can be either a circle or SDL_Rect
         //     because we may want some (stationary) objects to have a rectangular hitbox
         Circle Collider;
 

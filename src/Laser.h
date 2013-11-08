@@ -9,9 +9,6 @@ class Laser : public MovingObject
         //Initializes variables
         Laser();
 
-        //Deallocates memory
-        //~Laser();
-
         //how fast laser moves relative to ship (at the time of firing)
         static constexpr float VEL = 10;
 

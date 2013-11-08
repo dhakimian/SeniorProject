@@ -2,10 +2,6 @@
 
 Laser::Laser()
 {
-
-    //xPos = 0;
-    //yPos = 0;
-
     Collider.r = 2;
 
     TEX_INDEX = LASER;

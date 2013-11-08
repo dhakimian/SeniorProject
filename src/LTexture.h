@@ -14,7 +14,6 @@
 #include <SDL_image.h>
 #endif
 
-
 //Texture wrapper class
 class LTexture
 {
