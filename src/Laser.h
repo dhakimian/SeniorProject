@@ -9,6 +9,8 @@ class Laser : public MovingObject
         //Initializes variables
         Laser();
 
+        int get_type();
+
         //how fast laser moves relative to ship (at the time of firing)
         static constexpr float VEL = 10;
 
@@ -17,7 +19,12 @@ class Laser : public MovingObject
 
         void update();
 
-        void set_values(float x, float y, float ang, float xv, float yv, int time);
+        void onCollide( Object* collided_with );
+
+        //void set_values(float x, float y, float ang, float xv, float yv, int time);
+        void set_values(float x, float y, float ang, float xv, float yv);
+
+        int get_time_left();
 
     private:
         //how many cycles the laser missile has left before it disappears

@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <typeinfo>
 
 #include "Constants.h"
 #include "Util.h"
@@ -217,6 +218,7 @@ void render_objects()
 {
     //loop through the list of currently present objects to render them
     for( unsigned int i=0; i<objects.size(); i++ )
+    //for( int i=objects.size()-1; i>=0; i-- )
     {
         float xPos, yPos, Angle; 
         objects[i]->get_values(&xPos, &yPos, &Angle);
@@ -257,7 +259,7 @@ void render_healthbar()
     xp = (SCREEN_WIDTH / 2) - 151;
     yp = 1;
     //code for drawing the right ammount of health increments depending on palyers health
-    int player_health = players[player]->hitpoints;
+    int player_health = players[player]->get_hitpoints();
     if(player_health > 93.5)
         textures[HEALTH_15].render(xp, yp);
     else if(player_health > 87)
@@ -464,7 +466,7 @@ int main( int argc, char* args[] )
                             //test code to make sure the health bar is rendering correctly
                             //It lowers the players health if you press the K key     
                             case SDLK_k:
-                                players[player]->hitpoints -= 1;
+                                players[player]->takeDamage(1);
                         }
                     }
                 }
@@ -479,7 +481,7 @@ int main( int argc, char* args[] )
                 {
                     if( objects[i]->is_dead() )
                     {
-                        //delete objects[i];
+                        //delete objects[i]; //this currently causes bugs
                         objects.erase( objects.begin()+i );
                         i--;
                     } else

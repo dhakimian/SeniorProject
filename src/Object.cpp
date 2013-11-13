@@ -19,6 +19,14 @@ void Object::update()
 {
 }
 
+void Object::onCollide( Object* collided_with )
+{
+}
+
+void Object::takeDamage( int amount )
+{
+}
+
 void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
 {
     *xPos_out = xPos;
@@ -34,6 +42,11 @@ Circle Object::get_collider()
 int Object::get_tex_index()
 {
     return TEX_INDEX;
+}
+
+int Object::get_type()
+{
+    return T_OBJ;
 }
 
 bool Object::is_dead()

@@ -18,29 +18,16 @@
 #include "Constants.h"
 #include "Util.h"
 
-class Collision
-{
-    public:
-        //Initializes variables
-        Collision();
+//Circle/Circle collision detector
+bool checkCollision( Circle& a, Circle& b );
 
-        //Deallocates memory
-        ~Collision();
+//Circle/Box collision detector
+bool checkCollision( Circle& a, SDL_Rect& b );
 
-        //Circle/Circle collision detector
-        bool checkCollision( Circle& a, Circle& b );
+//Box/Box collision detector
+bool checkCollision( SDL_Rect a, SDL_Rect b );
 
-        //Circle/Box collision detector
-        bool checkCollision( Circle& a, SDL_Rect& b );
-
-        //Box/Box collision detector
-        bool checkCollision( SDL_Rect a, SDL_Rect b );
-
-        //Calculates distance squared between two points
-        double distanceSquared( int x1, int y1, int x2, int y2 );
-
-    private:
-
-};
+//Calculates distance squared between two points
+double distanceSquared( int x1, int y1, int x2, int y2 );
 
 #endif

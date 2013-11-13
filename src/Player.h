@@ -15,6 +15,8 @@ class Player : public Ship
         //client code: render the ship
         void render( int x, int y, float ang );
 
+        int get_type();
+
     private:
         //variables telling whether certain keys are pushed. Includes both wasd and updownleftright.
         bool upKey;

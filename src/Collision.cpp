@@ -5,7 +5,7 @@
 
 #include "Collision.h"
 
-bool Collision::checkCollision( Circle& a, Circle& b )
+bool checkCollision( Circle& a, Circle& b )
 {
     //Calculate total radius squared
     int totalRadiusSquared = a.r + b.r;
@@ -22,7 +22,7 @@ bool Collision::checkCollision( Circle& a, Circle& b )
     return false;
 }
 
-bool Collision::checkCollision( Circle& a, SDL_Rect& b )
+bool checkCollision( Circle& a, SDL_Rect& b )
 {
     //Closest point on collision box
     int cX, cY;
@@ -66,7 +66,7 @@ bool Collision::checkCollision( Circle& a, SDL_Rect& b )
     return false;
 }
 
-bool Collision::checkCollision( SDL_Rect a, SDL_Rect b )
+bool checkCollision( SDL_Rect a, SDL_Rect b )
 {
     //The sides of the rectangles
     int leftA, leftB;
@@ -109,11 +109,4 @@ bool Collision::checkCollision( SDL_Rect a, SDL_Rect b )
 
     //If none of the sides from A are outside B
     return true;
-}
-
-double Collision::distanceSquared( int x1, int y1, int x2, int y2 )
-{
-    int deltaX = x2 - x1;
-    int deltaY = y2 - y1;
-    return deltaX*deltaX + deltaY*deltaY;
 }

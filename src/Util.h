@@ -13,6 +13,8 @@
 
 void toggle_fullscreen(SDL_Window *win);
 
+double distanceSquared( int x1, int y1, int x2, int y2 );
+
 void logSDLError(std::ostream &os, const std::string &msg);
 
 //---

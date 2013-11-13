@@ -9,8 +9,20 @@ MovingObject::MovingObject()
 
 }
 
+int MovingObject::get_type()
+{
+    return T_MOVOBJ;
+}
+
 void MovingObject::update()
 {
+    xPos_old = xPos;
+    yPos_old = yPos;
+
+    xVel_old = xVel;
+    yVel_old = yVel;
+    rotVel_old = rotVel;
+
     //Move the object left or right
     xPos = fmod( (xPos + xVel + LEVEL_WIDTH), LEVEL_WIDTH );
 
@@ -27,8 +39,28 @@ void MovingObject::update()
     Collider.x = xPos;
     Collider.y = yPos;
 
+    //Collision checks
+    for( int i=0; i<objects.size(); i++ )
+    {
+        Circle other_collider = objects[i]->get_collider();
+        if( checkCollision( Collider, other_collider ) && (this != objects[i]) )
+            onCollide( objects[i] );
+    }
+}
 
-    ////Do collision checks here////
+void MovingObject::onCollide( Object* collided_with )
+{
+    xVel = 0.0;
+    yVel = 0.0;
+    rotVel = 0.0;
+    //TODO: implement transferal of kinetic energy, or in other words "bounce"
+    //      This may require the addition of mass values for objects
+    
+    //Undo move left or right
+    xPos = xPos_old;
+
+    //Undo move up or down
+    yPos = yPos_old;
 
 }
 

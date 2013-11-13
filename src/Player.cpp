@@ -27,6 +27,11 @@ Player::Player(float xp, float yp, float ang )
 
 }
 
+int Player::get_type()
+{
+    return T_PLAYER;
+}
+
 void Player::handle_keystate(const Uint8* currentKeyStates)
 {
     upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];

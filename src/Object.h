@@ -15,6 +15,7 @@
 #include "Constants.h"
 #include "Util.h"
 #include "LTexture.h"
+#include "Collision.h"
 
 class Object
 {
@@ -34,9 +35,15 @@ class Object
 
         virtual void render( int x, int y, float ang );
 
+        virtual void onCollide( Object* collided_with );
+
+        virtual void takeDamage(int amount);
+
         virtual Circle get_collider();
 
         int get_tex_index();
+
+        virtual int get_type();
 
         bool is_dead();
 

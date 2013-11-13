@@ -99,6 +99,17 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     HEALTH_0
 };
 
+enum ObjectType { // Constants for identifying object type, to avoid doing string compares
+    T_OBJ,        // T_ stands for type_
+    T_MOVOBJ,
+    T_SHIP,
+    T_PLAYER,
+    T_ALIEN,
+    T_LASER,
+    T_PLANET,
+    T_ASTEROID
+};
+
 extern std::vector<std::string> images;
 
 extern std::vector<LTexture> textures;

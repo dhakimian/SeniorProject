@@ -21,12 +21,18 @@ class Ship : public MovingObject
         void thrust_r();
 
         void update();
+
+        void onCollide( Object* collided_with );
+
+        int get_type();
+
+        int get_hitpoints();
         
         //shoots a laser
         void shoot();
 
-        //ship's current hitpoints
-        int hitpoints;
+        void takeDamage( int amount );
+
 
     protected:
 
@@ -42,6 +48,9 @@ class Ship : public MovingObject
         int MAX_HP;
 
         //----------------------//
+
+        //ship's current hitpoints
+        int hitpoints;
 
         //The size of the laser object pool
         int pool_size;

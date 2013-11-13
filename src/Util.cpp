@@ -7,6 +7,12 @@ void toggle_fullscreen(SDL_Window *win) {
                         SDL_SetWindowFullscreen(win, SDL_TRUE);
 }
 
+double distanceSquared( int x1, int y1, int x2, int y2 )
+{
+    int deltaX = x2 - x1;
+    int deltaY = y2 - y1;
+    return deltaX*deltaX + deltaY*deltaY;
+}
 
 /**
  * Log an SDL error with some error message to the output stream of our choice
