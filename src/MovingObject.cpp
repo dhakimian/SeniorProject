@@ -29,7 +29,6 @@ void MovingObject::update()
 
     bool overlapping = false;
 
-    /*
     //check if object is already colliding
     for( int i=0; i<objects.size(); i++ )
     {
@@ -49,32 +48,6 @@ void MovingObject::update()
                 yVel += Separation_vel;
         }
     }
-    */
-
-    ///* MEGA RANDOM BOUNCING
-    //check if object is already colliding
-    for( int i=0; i<objects.size(); i++ )
-    {
-        Circle other_collider = objects[i]->get_collider();
-        if( checkCollision( Collider, other_collider ) && (objects[i] != this)
-                && objects[i]->get_type() != T_LASER
-                && this->get_type() != T_LASER )
-        {
-            overlapping = true;
-            float r = (rand()%300+10)/100;
-            if( (Collider.x - other_collider.x) < 0 )
-                xVel = -r;
-            else
-                xVel = r;
-
-            r = (rand()%300+10)/100;
-            if( (Collider.y - other_collider.y) < 0 )
-                yVel = -r;
-            else
-                yVel = r;
-        }
-    }
-    //*/
 
     //Move the object left or right
     xPos = fmod( (xPos + xVel + LEVEL_WIDTH), LEVEL_WIDTH );
@@ -128,8 +101,8 @@ void MovingObject::onCollide( Object* collided_with )
         //Undo move up or down
         yPos = yPos_old;
 
-        //Collider.x = xPos;
-        //Collider.y = yPos;
+        Collider.x = xPos;
+        Collider.y = yPos;
         /////
 
         //damage the object depending on how fast it was moving when it collided

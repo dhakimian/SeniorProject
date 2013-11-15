@@ -179,11 +179,6 @@ void loadObjects()
 
     for( unsigned int i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
-
-    for( int i=0; i<300; i++ )
-    {
-        objects.push_back( new Asteroid(rand()%2000-1000,rand()%2000-1000,0,0,0,1) );
-    }
 }
 
 void render_bg()
@@ -453,9 +448,6 @@ int main( int argc, char* args[] )
                     if( e.type == SDL_KEYDOWN )
                     {
                         switch( e.key.keysym.sym ) {
-                            case SDLK_2:
-                                myasteroid->split();
-                                break;
                             case SDLK_f:
                                 toggle_fullscreen(gWindow);
                                 break;
