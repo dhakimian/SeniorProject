@@ -30,6 +30,7 @@
 #include "Alien.h"
 #include "Planet.h"
 #include "Laser.h"
+#include "Asteroid.h"
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -61,6 +62,13 @@ float yVel_cam = 0.0;
 //boolean config options
 bool targ_Follow_Rotation = true;
 bool targ_Ship_Centered = false;
+
+
+Asteroid* myasteroid =  new Asteroid(0.0, 0.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1);
+
+
+
+
 
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
@@ -165,8 +173,9 @@ void loadObjects()
     objects.push_back( new Planet(500.0, 500.0) );
     objects.push_back( new Alien(200.0, 0.0, -35.0) );
     objects.push_back( new Ship(0.0, 0.0, 35.0) );
+    objects.push_back(myasteroid);
     //objects.push_back( &player );
-
+    
     players.push_back( new Player(100, 300, 0) );
     players.push_back( new Player(100, 100, -45) );
     players.push_back( new Player(300, 100, -90) );
@@ -443,6 +452,9 @@ int main( int argc, char* args[] )
                     if( e.type == SDL_KEYDOWN )
                     {
                         switch( e.key.keysym.sym ) {
+			case SDLK_2:
+			  myasteroid->split();
+			  break;
                             case SDLK_f:
                                 toggle_fullscreen(gWindow);
                                 break;

@@ -60,7 +60,10 @@ static const std::string imgarr[] = {
     "media/player/Health/health3.png",
     "media/player/Health/health2.png",
     "media/player/Health/health1.png",
-    "media/player/Health/health0.png"
+    "media/player/Health/health0.png",
+    "media/Asteroid.png",
+    "media/Mini_Asteroid.png",
+    "media/Very_Mini_Asteroid.png"
 };
 
 // these must be in the same order as the above
@@ -96,7 +99,10 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     HEALTH_3,
     HEALTH_2,
     HEALTH_1,
-    HEALTH_0
+    HEALTH_0,
+    ASTEROID,
+    MINI_ASTEROID,
+    VERY_MINI_ASTEROID
 };
 
 enum ObjectType { // Constants for identifying object type, to avoid doing string compares
