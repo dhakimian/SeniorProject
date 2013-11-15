@@ -180,17 +180,19 @@ void loadObjects()
     for( unsigned int i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
 
-    /*
+    /* ROCKS EVERYWHERE!
     for( int i=0; i<300; i++ )
     {
         objects.push_back( new Asteroid(rand()%2000-1000,rand()%2000-1000,rand()%360,0,0,rand()%7-3,1) );
     }
     */
 
+    ///* DIFFUSION! or EXPLOSION!
     for( int i=0; i<150; i++ )
     {
-        objects.push_back( new Asteroid(-120,-10,rand()%360,0,0,0,1) );
+        objects.push_back( new Asteroid(-120+rand()%3-1,-10+rand()%3-1,rand()%360,0,0,0,1) );
     }
+    //*/
 }
 
 void render_bg()
