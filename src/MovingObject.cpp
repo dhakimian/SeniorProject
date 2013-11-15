@@ -29,7 +29,7 @@ void MovingObject::update()
 
     bool overlapping = false;
 
-    ///* ALL IN ONE PLACE => EXPLOSION! also with noclipping
+    /* ALL IN ONE PLACE => EXPLOSION! also with noclipping
     //check if object is already colliding
     for( unsigned int i=0; i<objects.size(); i++ )
     {
@@ -49,9 +49,9 @@ void MovingObject::update()
                 yVel += Separation_vel;
         }
     }
-    //*/
+    */
 
-    /* MEGA RANDOM BOUNCING
+    ///* MEGA RANDOM BOUNCING
     //check if object is already colliding
     for( unsigned int i=0; i<objects.size(); i++ )
     {
@@ -74,7 +74,7 @@ void MovingObject::update()
                 yVel = r;
         }
     }
-    */
+    //*/
 
     //Move the object left or right
     xPos = fmod( (xPos + xVel + LEVEL_WIDTH), LEVEL_WIDTH );
