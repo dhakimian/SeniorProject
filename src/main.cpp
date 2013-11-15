@@ -64,7 +64,7 @@ bool targ_Follow_Rotation = true;
 bool targ_Ship_Centered = false;
 
 
-Asteroid* myasteroid =  new Asteroid(0.0, 0.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1);
+Asteroid* myasteroid =  new Asteroid(0.0, 0.0, rand()%360, rand()%3-1, rand()%3-1, rand()%5-2, 1);
 
 
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
@@ -180,9 +180,16 @@ void loadObjects()
     for( unsigned int i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
 
+    /*
     for( int i=0; i<300; i++ )
     {
-        objects.push_back( new Asteroid(rand()%2000-1000,rand()%2000-1000,0,0,0,1) );
+        objects.push_back( new Asteroid(rand()%2000-1000,rand()%2000-1000,rand()%360,0,0,rand()%7-3,1) );
+    }
+    */
+
+    for( int i=0; i<150; i++ )
+    {
+        objects.push_back( new Asteroid(-120,-10,rand()%360,0,0,0,1) );
     }
 }
 

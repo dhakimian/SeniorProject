@@ -1,6 +1,6 @@
 #include "Asteroid.h"
 
-Asteroid::Asteroid(float x, float y, float ang, float xv, float yv, int s)
+Asteroid::Asteroid(float x, float y, float ang, float xv, float yv, float rv, int s)
 {
     xPos = x;
     yPos = y;
@@ -9,6 +9,7 @@ Asteroid::Asteroid(float x, float y, float ang, float xv, float yv, int s)
     Angle = ang;
     xVel = xv;
     yVel = yv;
+    rotVel = rv;
     set_size(s);
 }
 
@@ -47,7 +48,7 @@ void Asteroid::split()
         set_size(size+1);
         for (int i=0; i<2; i++) {
             //objects.push_back(new Asteroid(xPos, yPos, Angle, ((double) rand()/RAND_MAX) -0.5, ((float) rand()/RAND_MAX)-0.5, size));
-            objects.push_back( new Asteroid(xPos+rand()%7-3, yPos+rand()%7-3, Angle, 0, 0, size) );
+            objects.push_back( new Asteroid(xPos+rand()%7-3, yPos+rand()%7-3, Angle, 0, 0, rand()%7-3, size) );
         }
     }
     else dead = true;

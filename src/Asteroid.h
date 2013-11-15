@@ -7,7 +7,7 @@ class Asteroid : public MovingObject
 {
     public:
         //Initializes variables
-        Asteroid(float x, float y, float ang, float xv, float yv, int size);
+        Asteroid(float x, float y, float ang, float xv, float yv, float rv, int size);
 
         void update();
 
