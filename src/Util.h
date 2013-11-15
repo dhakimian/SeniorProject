@@ -13,6 +13,7 @@
 
 void toggle_fullscreen(SDL_Window *win);
 
+//Calculates distance squared between two points
 double distanceSquared( int x1, int y1, int x2, int y2 );
 
 void logSDLError(std::ostream &os, const std::string &msg);

@@ -27,7 +27,4 @@ bool checkCollision( Circle& a, SDL_Rect& b );
 //Box/Box collision detector
 bool checkCollision( SDL_Rect a, SDL_Rect b );
 
-//Calculates distance squared between two points
-double distanceSquared( int x1, int y1, int x2, int y2 );
-
 #endif

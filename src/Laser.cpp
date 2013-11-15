@@ -41,6 +41,7 @@ void Laser::update()
 
 void Laser::onCollide( Object* collided_with )
 {
-    if( time_left < 95 )
+    //prevent laser from colliding with the ship that shot it
+    if( time_left < LIFESPAN-5 )
         dead = true;
 }

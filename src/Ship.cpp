@@ -72,7 +72,7 @@ void Ship::onCollide( Object* collided_with )
     {
         Laser* laser = (Laser*) collided_with;
         //prevent laser from doing damage for 5 cycles to avoid damaging the ship shooting the laser
-        if( laser->get_time_left() < 95 )
+        if( laser->get_time_left() < Laser::LIFESPAN-5 )
             takeDamage(10);
     } else {
         MovingObject::onCollide( collided_with );
