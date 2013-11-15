@@ -32,6 +32,7 @@ class Object
         //function for sending private values to other functions in bulk
         //(to avoid making a bunch of separate public 'get' methods)
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
+        void get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out);
 
         virtual void render( int x, int y, float ang );
 
@@ -45,6 +46,8 @@ class Object
 
         virtual int get_type();
 
+        int get_hitpoints();
+        
         bool is_dead();
 
     protected:
@@ -58,10 +61,27 @@ class Object
         //object's current angle
         float Angle;
 
+        //object's current velocity
+        float xVel, yVel;
+
+        //ship's current rotational velocity
+        float rotVel;
+
+        //copies of previous values in case of collision
+        float xPos_old, yPos_old, xVel_old, yVel_old, rotVel_old;
+
         //Collider for this object
         //TODO:make this a shape superclass that can be either a circle or SDL_Rect
         //     because we may want some (stationary) objects to have a rectangular hitbox
         Circle Collider;
+
+        //objects's maximum hitpoints
+        int MAX_HP;
+
+        //object's current hitpoints
+        int hitpoints;
+
+        bool can_take_damage;
 
         //if this is true, the object will be removed from the objects vector next cycle
         bool dead;

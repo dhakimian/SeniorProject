@@ -13,10 +13,12 @@ Ship::Ship(float xp, float yp, float ang )
     //SHIP_STRAFE_ACCEL = 
     SHIP_ROT_ACCEL = 0.03;
 
-    Collider.r = 30;
-
     xPos = xp;
     yPos = yp;
+
+    Collider.r = 30;
+    Collider.x = xPos;
+    Collider.y = yPos;
 
     xVel = 0.0;
     yVel = 0.0;
@@ -40,11 +42,6 @@ int Ship::get_type()
     return T_SHIP;
 }
 
-int Ship::get_hitpoints()
-{
-    return hitpoints;
-}
-
 void Ship::update()
 {
     if( hitpoints <= 0 )
@@ -66,29 +63,11 @@ void Ship::update()
     }
 }
 
+/*
 void Ship::onCollide( Object* collided_with )
 {
-    if( collided_with->get_type() == T_LASER )
-    {
-        Laser* laser = (Laser*) collided_with;
-        //prevent laser from doing damage for 5 cycles to avoid damaging the ship shooting the laser
-        if( laser->get_time_left() < Laser::LIFESPAN-5 )
-            takeDamage(10);
-    } else {
-        MovingObject::onCollide( collided_with );
-
-        //damage the ship depending on how fast it was moving when it collided
-        float vel_old_squared = abs( xVel_old * xVel_old ) + abs( yVel_old * yVel_old );
-        int damage = vel_old_squared / 5;
-        takeDamage( damage );
-        collided_with->takeDamage( damage );
-    }
 }
-
-void Ship::takeDamage( int amount )
-{
-    hitpoints -= amount;
-}
+*/
 
 void Ship::thrust_b() // fire rear thrusters, moving the ship forward
 {

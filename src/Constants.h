@@ -23,6 +23,9 @@ const float rotDeccel_targ = 15.0;
 const float Deccel_targ = 10.0;
 const float Deccel_cam = 15.0;
 
+//speed at which objects that are overlapping move away from each other
+const float Separation_vel = 0.01;
+
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
 const int LEVEL_WIDTH = 32000;
@@ -63,7 +66,7 @@ static const std::string imgarr[] = {
     "media/player/Health/health0.png",
     "media/Asteroid.png",
     "media/Mini_Asteroid.png",
-    "media/Very_Mini_Asteroid.png"
+    "media/Tiny_Asteroid.png"
 };
 
 // these must be in the same order as the above
@@ -102,7 +105,7 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     HEALTH_0,
     ASTEROID,
     MINI_ASTEROID,
-    VERY_MINI_ASTEROID
+    TINY_ASTEROID
 };
 
 enum ObjectType { // Constants for identifying object type, to avoid doing string compares

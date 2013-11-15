@@ -6,15 +6,16 @@
 
 Player::Player(float xp, float yp, float ang )
 {
-    //Collider.r = 
-
     xPos = xp;
     yPos = yp;
+
+    Collider.x = xPos;
+    Collider.y = yPos;
 
     Angle = ang;
 
     MAX_HP = 100;
-    hitpoints = 100;
+    hitpoints = MAX_HP;
 
     TEX_INDEX = PLAYER;
 

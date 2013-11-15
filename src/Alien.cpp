@@ -19,6 +19,9 @@ Alien::Alien(float xp, float yp, float ang )
     xPos = xp;
     yPos = yp;
 
+    Collider.x = xPos;
+    Collider.y = yPos;
+
     Angle = ang;
 
     rotVel = 1.0;

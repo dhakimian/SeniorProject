@@ -9,12 +9,13 @@ class Asteroid : public MovingObject
         //Initializes variables
         Asteroid(float x, float y, float ang, float xv, float yv, int size);
 
-	int size;
-        //Deallocates memory
-        //~Asteroid();
-	void set_size();
-	
-	void split();
+        void update();
+
+        int size;
+        void set_size(int s);
+        void split();
+
+        int get_type();
 };
 
 #endif

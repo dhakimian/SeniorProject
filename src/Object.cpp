@@ -6,9 +6,15 @@ Object::Object()
     yPos = 1.0;
     Angle = 0;
 
+    xVel = 0.0;
+    yVel = 0.0;
+    rotVel = 0.0;
+
     Collider.x = xPos;
     Collider.y = yPos;
     Collider.r = 1;
+
+    can_take_damage = false;
 
     dead = false;
 
@@ -25,6 +31,18 @@ void Object::onCollide( Object* collided_with )
 
 void Object::takeDamage( int amount )
 {
+    if( can_take_damage )
+        hitpoints -= amount;
+}
+
+void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out)
+{
+    *xPos_out = xPos;
+    *yPos_out = yPos;
+    *Angle_out = Angle;
+    *xVel_out = xVel;
+    *yVel_out = yVel;
+    *rotVel_out = rotVel;
 }
 
 void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
@@ -47,6 +65,11 @@ int Object::get_tex_index()
 int Object::get_type()
 {
     return T_OBJ;
+}
+
+int Object::get_hitpoints()
+{
+    return hitpoints;
 }
 
 bool Object::is_dead()

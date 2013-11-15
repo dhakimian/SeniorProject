@@ -3,6 +3,8 @@
 Laser::Laser()
 {
     Collider.r = 2;
+    Collider.x = xPos;
+    Collider.y = yPos;
 
     TEX_INDEX = LASER;
 }

@@ -1,6 +1,7 @@
 #include "Planet.h"
 
 Planet::Planet(float xp, float yp, float ang)
+    : Object()
 {
     xPos = xp;
     yPos = yp;

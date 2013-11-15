@@ -67,9 +67,6 @@ bool targ_Ship_Centered = false;
 Asteroid* myasteroid =  new Asteroid(0.0, 0.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1);
 
 
-
-
-
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
 std::vector<LTexture> textures (images.size());
@@ -172,7 +169,6 @@ void loadObjects()
 {
     objects.push_back( new Planet(500.0, 500.0) );
     objects.push_back( new Alien(200.0, 0.0, -35.0) );
-    objects.push_back( new Ship(0.0, 0.0, 35.0) );
     objects.push_back(myasteroid);
     //objects.push_back( &player );
     
@@ -183,6 +179,11 @@ void loadObjects()
 
     for( unsigned int i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
+
+    for( int i=0; i<300; i++ )
+    {
+        objects.push_back( new Asteroid(rand()%2000-1000,rand()%2000-1000,0,0,0,1) );
+    }
 }
 
 void render_bg()
@@ -452,16 +453,16 @@ int main( int argc, char* args[] )
                     if( e.type == SDL_KEYDOWN )
                     {
                         switch( e.key.keysym.sym ) {
-			case SDLK_2:
-			  myasteroid->split();
-			  break;
+                            case SDLK_2:
+                                myasteroid->split();
+                                break;
                             case SDLK_f:
                                 toggle_fullscreen(gWindow);
                                 break;
                             case SDLK_ESCAPE:
                                 quit = true;
                                 break;
-                            //print current ship coords for debugging
+                                //print current ship coords for debugging
                             case SDLK_x:
                                 float xPos, yPos, Angle; 
                                 players[player]->get_values(&xPos, &yPos, &Angle);
@@ -471,7 +472,7 @@ int main( int argc, char* args[] )
                                 targ_Follow_Rotation = !targ_Follow_Rotation;
                                 targ_Ship_Centered = !targ_Ship_Centered;
                                 break;
-                            //switch control between present Player ships
+                                //switch control between present Player ships
                             case SDLK_p:
                                 player = fmod( player+1, players.size() );
                                 break;
