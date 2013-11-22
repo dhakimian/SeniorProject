@@ -30,8 +30,8 @@ Alien::Alien(float xp, float yp, float ang )
     hitpoints = MAX_HP;
 
     animated = true;
-    tiles_x = 17;
-    tiles_y = 2;
+    frames_x = 17;
+    frames_y = 2;
 
     TEX_INDEX = ANIMATION;
     //TEX_INDEX = ALIEN;

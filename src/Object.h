@@ -63,8 +63,8 @@ class Object
         int frame_num;
         //how many frames in the animation; defaults tiles_x*tiles_y
         int num_frames;
-        //how many tiles of an animation are on each row and column of the image
-        int tiles_x, tiles_y;
+        //how many frames of an animation are on each row and column of the image
+        int frames_x, frames_y;
         //animation frame dimensions
         int frame_w, frame_h;
 
