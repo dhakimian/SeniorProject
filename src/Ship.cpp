@@ -120,8 +120,11 @@ void Ship::shoot()
         ang = ang / 180;
         float xv = xVel + Laser::VEL * sin(ang);
         float yv = yVel - Laser::VEL * cos(ang);
+        //float xp = xPos + Collider.r * sin(ang);
+        //float yp = yPos - Collider.r * cos(ang);
         //laser_pool.back()->set_values(xPos, yPos, Angle, xv, yv, Laser::LIFESPAN);
         laser_pool.back()->set_values(xPos, yPos, Angle, xv, yv);
+        //laser_pool.back()->set_values(xp, yp, Angle, xv, yv);
 
         active_lasers.push_back( laser_pool.back() );
         objects.push_back( laser_pool.back() );

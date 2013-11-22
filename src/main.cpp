@@ -168,7 +168,7 @@ bool loadMedia()
 void loadObjects()
 {
     objects.push_back( new Planet(500.0, 500.0) );
-    objects.push_back( new Alien(200.0, 0.0, -35.0) );
+    objects.push_back( new Alien(200.0, -50.0, -35.0) );
     objects.push_back(myasteroid);
     //objects.push_back( &player );
     

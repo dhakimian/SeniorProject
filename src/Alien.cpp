@@ -12,9 +12,9 @@ Alien::Alien(float xp, float yp, float ang )
     SHIP_REV_ACCEL = 0.04;
     //SHIP_STRAFE_ACCEL = 
     SHIP_ROT_ACCEL = 0.03;
-
-    Collider.r =
         */
+
+    Collider.r = 50;
 
     xPos = xp;
     yPos = yp;
@@ -27,8 +27,13 @@ Alien::Alien(float xp, float yp, float ang )
     rotVel = 1.0;
 
     MAX_HP = 200;
-    hitpoints = 200;
+    hitpoints = MAX_HP;
 
-    TEX_INDEX = ALIEN;
+    animated = true;
+    tiles_x = 17;
+    tiles_y = 2;
+
+    TEX_INDEX = ANIMATION;
+    //TEX_INDEX = ALIEN;
 }
 

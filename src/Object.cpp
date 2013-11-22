@@ -1,4 +1,5 @@
 #include "Object.h"
+#include <iostream>
 
 Object::Object()
 {
@@ -17,6 +18,14 @@ Object::Object()
     can_take_damage = false;
 
     dead = false;
+
+    animated = false;
+    frame_num = 0;
+    num_frames = 0;
+    frame_w = 0;
+    frame_h = 0;
+    tiles_x = 0;
+    tiles_y = 0;
 
     TEX_INDEX = 1;
 }
@@ -79,5 +88,51 @@ bool Object::is_dead()
 
 void Object::render( int x, int y, float ang )
 {
-    textures[TEX_INDEX].render( x, y, NULL, ang );
+    if( animated )
+    {
+        LTexture* tex = &textures[TEX_INDEX];
+        SDL_Rect frame;
+
+        if( frame_w == 0 )
+        {
+            if( tiles_x == 0 )
+            {
+                std::cerr<<"Either frame_w or tiles_x must be defined for animated textures"<<std::endl;
+                return;
+            } else {
+                frame_w = tex->getWidth()/tiles_x;
+            }
+        }
+        if( frame_h == 0 )
+        {
+            if( tiles_y == 0 )
+            {
+                std::cerr<<"Either frame_h or tiles_y must be defined for animated textures"<<std::endl;
+                return;
+            } else {
+                frame_h = tex->getHeight()/tiles_y;
+            }
+        }
+
+        if( tiles_x == 0 )
+            tiles_x = tex->getWidth()/frame_w;
+        if( tiles_y == 0 )
+            tiles_y = tex->getHeight()/frame_h;
+
+        if( num_frames == 0 )
+            num_frames = tiles_x * tiles_y;
+
+        frame.w = frame_w;
+        frame.h = frame_h;
+        frame.x = (frame_num % tiles_x) * frame_w;
+        frame.y = (frame_num / tiles_x) * frame_h;
+        x += (tex->getWidth()/2-frame.w/2);
+        y += (tex->getHeight()/2-frame.h/2);
+
+        tex->render( x, y, &frame, ang );
+
+        frame_num = (frame_num + 1) % num_frames;
+
+    } else
+        textures[TEX_INDEX].render( x, y, NULL, ang );
 }

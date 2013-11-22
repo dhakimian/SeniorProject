@@ -106,9 +106,11 @@ void MovingObject::onCollide( Object* collided_with )
         /////
 
         //damage the object depending on how fast it was moving when it collided
+        float xVel_other, yVel_other, dummy;
+        collided_with->get_values(&dummy, &dummy, &dummy, &xVel_other, &yVel_other, &dummy);
         float vel_old_squared = abs( xVel_old * xVel_old ) + abs( yVel_old * yVel_old );
-        //float vel_other_squared = abs( 
-        int damage = vel_old_squared / 5;
+        float vel_other_squared = abs( xVel_other * xVel_other ) + abs( yVel_other * yVel_other );
+        int damage = abs( vel_old_squared - vel_other_squared ) / 5; //magic number: needs to be named and moved
         takeDamage( damage );
         collided_with->takeDamage( damage );
     }

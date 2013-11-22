@@ -30,6 +30,9 @@ class Laser : public MovingObject
         //how many cycles the laser missile has left before it disappears
         int time_left;
 
+        //ID of player who shot this laser
+        int owner;
+
 
 };
 

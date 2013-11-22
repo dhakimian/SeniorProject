@@ -32,7 +32,7 @@ class Object
         //function for sending private values to other functions in bulk
         //(to avoid making a bunch of separate public 'get' methods)
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
-        void get_values(float* xPos_out, float* yPos_out, float* xVel_out, float* yVel_out, float* Angle_out, float* rotVel_out);
+        void get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out);
 
         virtual void render( int x, int y, float ang );
 
@@ -54,6 +54,19 @@ class Object
 
         //the index of the default image to render for instances of this object
         int TEX_INDEX;
+
+        //whether or not the image is to be animated
+        bool animated;
+        //whether the animation loops or not
+        bool anim_loops;
+        //if animated, which frame to render
+        int frame_num;
+        //how many frames in the animation; defaults tiles_x*tiles_y
+        int num_frames;
+        //how many tiles of an animation are on each row and column of the image
+        int tiles_x, tiles_y;
+        //animation frame dimensions
+        int frame_w, frame_h;
 
         //object's current position (represents the center of the ship, not the topleft corner)
         float xPos, yPos;

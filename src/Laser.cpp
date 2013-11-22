@@ -14,7 +14,6 @@ int Laser::get_type()
     return T_LASER;
 }
 
-//void Laser::set_values(float x, float y, float ang, float xv, float yv, int time)
 void Laser::set_values(float x, float y, float ang, float xv, float yv)
 {
     xPos = x;
@@ -22,7 +21,6 @@ void Laser::set_values(float x, float y, float ang, float xv, float yv)
     Angle = ang;
     xVel = xv;
     yVel = yv;
-    //time_left = time;
     time_left = LIFESPAN;
     dead = false;
 }
