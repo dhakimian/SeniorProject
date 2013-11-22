@@ -8,6 +8,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #endif
+
 #include <math.h>
 #include <string>
 
@@ -18,28 +19,45 @@
 class Object
 {
     public:
+
         //Initializes variables
         Object();
 
         //Deallocates memory
         //~Object();
 
-        void update();
+        virtual void update();
 
         //function for sending private values to other functions in bulk
         //(to avoid making a bunch of separate public 'get' methods)
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
 
+        virtual void render( int x, int y, float ang );
+
+        virtual Circle get_collider();
+
+        int get_tex_index();
+
+        bool is_dead();
+
     protected:
+
+        //the index of the default image to render for instances of this object
+        int TEX_INDEX;
+
         //object's current position (represents the center of the ship, not the topleft corner)
         float xPos, yPos;
 
         //object's current angle
         float Angle;
 
-        //object's collider
+        //Collider for this object
+        //TODO:make this a shape superclass that can be either a circle or Sdl_Rect
+        //     because we may want some (stationary) objects to have a rectangular hitbox
         Circle Collider;
 
+        //if this is true, the object will be removed from the objects vector next cycle
+        bool dead;
 
 };
 

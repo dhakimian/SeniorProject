@@ -28,6 +28,11 @@
 #include "LTexture.h"
 //#include "LTimer.h"
 #include "Player.h"
+#include "Alien.h"
+#include "Planet.h"
+#include "Laser.h"
+#include "Asteroid.h"
+#include "PowerUp.h"
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -35,56 +40,44 @@ SDL_Window* gWindow = NULL;
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
-static const std::string imgarr[] = {
-    "media/bg_image.gif",
-    //"media/solid_bg.png",
-    "media/player/SF_Ship/ship_body.png",
-    "media/player/SF_Ship/jet_forward.png",
-    "media/player/SF_Ship/jet_reverse.png",
-    "media/player/SF_Ship/jet_leftTurn.png",
-    "media/player/SF_Ship/jet_rightTurn.png",
-    "media/player/SF_Ship/wings_reverse.png",
-    "media/player/SF_Ship/wings_normal.png",
-    "media/player/SF_Ship/wings_forward.png",
-    "media/player/SF_Ship/wings_leftTurn.png",
-    "media/player/SF_Ship/wings_rightTurn.png",
-    "media/player/SF_Ship/ship_body_Rtilt.png",
-    "media/player/SF_Ship/ship_body_Ltilt.png",
-    "media/player/Health/health15.png",
-    "media/player/Health/health14.png",
-    "media/player/Health/health13.png",
-    "media/player/Health/health12.png",
-    "media/player/Health/health11.png",
-    "media/player/Health/health10.png",
-    "media/player/Health/health9.png",
-    "media/player/Health/health8.png",
-    "media/player/Health/health7.png",
-    "media/player/Health/health6.png",
-    "media/player/Health/health5.png",
-    "media/player/Health/health4.png",
-    "media/player/Health/health3.png",
-    "media/player/Health/health2.png",
-    "media/player/Health/health1.png",
-    "media/player/Health/health0.png",
-    "media/Laser1.png"
-};
+//The texture that everything adjacent will be rendered to before being rotated relative to the ship
+LTexture gTargetTexture;
+
+//The angle at which the target texture is rendered
+float Angle_targ = 30.0;
+
+//The velocity at which that angle changes
+float rotVel_targ = 0.0;
+
+//these (similar to the above) deal with motion/position of the target texture
+float xOffset_targ = 2;
+float yOffset_targ = 2;
+float xVel_targ = 0.0;
+float yVel_targ = 0.0;
+
+//these deal with motion/position of the contents of the target texture
+float xPos_cam = SCREEN_WIDTH/2;
+float yPos_cam = SCREEN_HEIGHT/2;
+float xVel_cam = 0.0;
+float yVel_cam = 0.0;
+
+//boolean config options
+bool targ_Follow_Rotation = true;
+bool targ_Ship_Centered = false;
+
+Asteroid *myasteroid = new Asteroid(0.0, 0.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1);
+
 std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 
 std::vector<LTexture> textures (images.size());
 
-//std::vector<Object> objects; // list of all the objects currently in the level
-//std::vector<Laser*> bullets; // list of bullets that are flying around the map.?
-std::vector<ImgInstance> cur_images; // the images to be rendered this frame, with their coords and angle
+std::vector<Object*> objects; // list of all the objects currently in the level
+//Player player;
+int player = 0;
 
-//The music that will be played
+std::vector<Player*> players;
+
 Mix_Music *music = NULL;
-//The sound effects that will be used
-Mix_Chunk *thrust = NULL;
-Mix_Chunk *hit = NULL;
-Mix_Chunk *hyperLaser = NULL;
-Mix_Chunk *singleLaser = NULL;
-Mix_Chunk *doubleLaser = NULL;
-
 
 bool init()
 {
@@ -92,7 +85,7 @@ bool init()
     bool success = true;
 
     //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO  | SDL_INIT_AUDIO ) < 0 )
+    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         success = false;
@@ -141,259 +134,286 @@ bool init()
                 }
             }
         }
-    }
-    //Initialize SDL_mixer
-    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ){
-        printf( "SDL could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
+
+            if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ){
+                printf( "SDL could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+                success = false;
+            }
     }
 
     return success;
 }
 
-bool loadMedia(SDL_Renderer* ren)
+bool loadMedia()
 {
     //Loading success flag
     bool success = true;
 
     for( unsigned int i=0; i<images.size(); i++ )
     {
-        if( !textures[i].loadFromFile( gRenderer, images[i] ) )
+        textures[i].setRenderer(gRenderer);
+        if( !textures[i].loadFromFile( images[i] ) )
         {
             std::cout << "Failed to load '" << images[i] << "'!" << std::endl;
             success = false;
         }
     }
-    //Load music
-    music = Mix_LoadMUS( "media/sounds/Crosses.wav" );
+
+    //Load texture target
+    gTargetTexture.setRenderer(gRenderer);
+    if( !gTargetTexture.createBlank( targ_w, targ_h, SDL_TEXTUREACCESS_TARGET ) )
+    {
+        printf( "Failed to create target texture!\n" );
+        success = false;
+    }
+
+    music = Mix_LoadMUS( "media/sounds/Amb.wav" );
     if( music == NULL )
     {
         printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
         success = false;
     }
-    thrust = Mix_LoadWAV( "media/sounds/thrust.wav" );
-    if( thrust == NULL )
-    {
-        printf( "Failed to load thruster sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
-    }
-    
-    //Load sound effects
-    hit = Mix_LoadWAV( "media/sounds/Hit.wav" );
-    if( hit == NULL )
-    {
-        printf( "Failed to load hit effect! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
-    }
-    hyperLaser = Mix_LoadWAV( "media/sounds/hyperLaser.wav" );
-    if( hyperLaser == NULL )
-    {
-        printf( "Failed to load hyperLaser effect! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
-    }
-    doubleLaser = Mix_LoadWAV( "media/sounds/DoubleLaser.wav" );
-    if( doubleLaser == NULL )
-    {
-        printf( "Failed to load doubleLaser sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
-    }
-    singleLaser = Mix_LoadWAV( "media/sounds/SingleLaser.wav" );
-    if( singleLaser == NULL )
-    {
-        printf( "Failed to load singleLaser sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
-    }
+
 
     return success;
 }
 
-//void render(SDL_Renderer* ren, int camX, int camY)
-void render(SDL_Renderer* ren, Player* player)
+//load initial map objects
+void loadObjects()
 {
-    float xPos, yPos, Angle; 
-    player->get_values(&xPos, &yPos, &Angle);
+    
+    objects.push_back( new Planet(500.0, 500.0) );
+    objects.push_back( new Alien(200.0, 0.0, -350.0) );
+    objects.push_back( new Ship(0.0, 0.0, 35.0) );
+    objects.push_back(myasteroid);//objects.push_back( &player );
+    objects.push_back( new Powerup(350, 150, 0));
 
-    int xScreenPos = SCREEN_WIDTH/2 ;    //The position on the screen where the ship resides..
-    int yScreenPos = SCREEN_HEIGHT*3/4; //..as the world moves relative to it
 
-    SDL_Point center;
+    players.push_back( new Player(100, 300, 0) );
+    players.push_back( new Player(100, 100, -45) );
+    players.push_back( new Player(300, 100, -90) );
+    players.push_back( new Player(300, 300, -45) );
 
+    for( unsigned int i=0; i<players.size(); i++ )
+        objects.push_back( players[i] );
+
+
+}
+
+void render_bg()
+{   //render the background tiles that are within a certain radius of the camera, and also...
+    //...render tiles on the other side of a wrap to replace the void
     int tile_w = textures[BACKGROUND].getWidth();
     int tile_h = textures[BACKGROUND].getHeight();
     for( int i=0; i<LEVEL_WIDTH; i+= tile_w )
+    {
         for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
         {
-            center.x = xPos - i;
-            center.y = yPos - j;
-            textures[BACKGROUND].render( ren, i+xScreenPos-xPos, j+yScreenPos-yPos, NULL, -Angle, &center);
+            bool render = false;
+            int xrc = i+targ_cx-xPos_cam; // X render coordinate
+            int yrc = j+targ_cy-yPos_cam; // Y render coordinate
+
+            int tilePos_x = i + tile_w/2;
+            int tilePos_y = j + tile_h/2;
+
+            // only render if within a certain radius
+            if( abs(tilePos_x - xPos_cam) < Render_Radius && abs(tilePos_y - yPos_cam) < Render_Radius )
+                render = true;
+            else { //image is not close enough, so don't render, but first...
+                //...check if the image would be close enough if the map literally wrapped, so...
+                //...we can render tiles from the other side of an edge-wrap to eliminate the void
+                if( abs(tilePos_x + LEVEL_WIDTH - xPos_cam) < Render_Radius ) //r
+                    {xrc += LEVEL_WIDTH; render = true;}
+                if( abs(tilePos_y + LEVEL_HEIGHT - yPos_cam) < Render_Radius ) //b
+                    {yrc += LEVEL_HEIGHT; render = true;}
+                if( abs(tilePos_x - LEVEL_WIDTH - xPos_cam) < Render_Radius ) //l
+                    {xrc -= LEVEL_WIDTH; render = true;}
+                if( abs(tilePos_y - LEVEL_HEIGHT - yPos_cam) < Render_Radius ) //t
+                    {yrc -= LEVEL_HEIGHT; render = true;}
+            }
+            if( render )
+                textures[BACKGROUND].render( xrc, yrc );
+            //else they are not close enough, so don't render them.
         }
-
-    xScreenPos -= textures[PLAYER].getWidth()/2;  //shift the coords so that the center of the image..
-    yScreenPos -= textures[PLAYER].getHeight()/2; //..will be on the point instead of the top left corner
-
-    textures[PLAYER].render( ren, xScreenPos, yScreenPos );
-
-    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-
-    // here is my(robs) added code that implements a cool ship that has some moving parts.
-
-    //local variables resembling if movement keys are pushed. Includes both wasd and updownleftright.
-    //makes less to type in each if statement
-    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
-    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
-    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
-    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
-    bool strafeRight = currentKeyStates[SDL_SCANCODE_E];
-    bool strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
-    //renders the thruster images according to which button you pushed. works for both wasd and up/down/left/rt keys 
-    //
-    if(upKey)
-        textures[PLAYER_THR_B].render( ren, xScreenPos, yScreenPos );
-    if(leftKey && !downKey)
-        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
-    if(rightKey && !downKey)
-        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
-    if(downKey)
-        textures[PLAYER_THR_F].render( ren, xScreenPos, yScreenPos );
-    if(rightKey && downKey)
-        textures[PLAYER_THR_R].render( ren, xScreenPos, yScreenPos );
-    if(leftKey && downKey)
-        textures[PLAYER_THR_L].render( ren, xScreenPos, yScreenPos );
-    //these functions draw different wing orentations depending on which direction the ship is turning.
-    if(downKey && !upKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}else{
-    if(leftKey && !rightKey && !downKey){
-        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_L].render(ren, xScreenPos, yScreenPos);}else{
-    if(rightKey && !leftKey && !downKey){
-        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos );    
-        textures[PLAYER_WNG_R].render(ren, xScreenPos, yScreenPos);}else{
-    if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos);    
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
-    if(downKey && leftKey && rightKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );    
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos);}else{
-    if(leftKey && rightKey && downKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_B].render(ren, xScreenPos, yScreenPos );}else{
-    if((downKey && upKey) || (leftKey && rightKey)){ 
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );   
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
-    if(strafeRight && !strafeLeft){
-        textures[PLAYER_Tlt_R].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
-    if(strafeLeft && !strafeRight){
-        textures[PLAYER_Tlt_L].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
-    if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );    
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}else{
-    if(!downKey && !upKey && !leftKey && !rightKey){
-        textures[PLAYER].render( ren, xScreenPos, yScreenPos );
-        textures[PLAYER_WNG_NORM].render(ren, xScreenPos, yScreenPos);}
-    }}}}}}}}}}
-
-     //test code to make sure hit fuction in the ship class is working. it lowers the players health if you press the K key     
-    if(currentKeyStates[SDL_SCANCODE_K]){
-        player->hitpoints--;
-        //Play the hit effect
-        Mix_PlayChannel( 1, hit, 0 );
-        //SDL_Delay(100);
     }
-    if(currentKeyStates[SDL_SCANCODE_SPACE]){
-         //Play the shoot effect
-        //Laser* laser = new Laser(player->xPos, player->yPos, player->Angle);
-       // bullets.push_back(laser);
-        Mix_PlayChannel( -1, singleLaser, 0 );
-        //SDL_Delay(100);
-    }
-    //code for thruster sounds
-    if(rightKey || leftKey || upKey || downKey)
-    {
-        if(Mix_Playing(7) == 0 )
-        {
-            Mix_PlayChannel(7, thrust, 0);
-        }else
-        {
-            Mix_Resume(7);
-        }
-    }            
-    if(!(rightKey || leftKey || upKey || downKey))
-    {
-    Mix_Pause(7);
-    }
-
-    //this code is the health bar
-        float xp, yp;
-        xp = (SCREEN_WIDTH / 2) - 151;
-        yp = 1;
-        //empty health bar
-        
-
-        //code for drawing the right ammount of health increments depending on palyers health
-        int player_health = player->hitpoints;
-        if(player_health > 93.5){
-            textures[HEALTH_15].render(ren, xp, yp);}else{
-        if(player_health > 87){
-            textures[HEALTH_14].render(ren, xp, yp);}else{
-        if(player_health > 80.5){
-            textures[HEALTH_13].render(ren, xp, yp);}else{
-        if(player_health > 74){
-            textures[HEALTH_12].render(ren, xp, yp);}else{
-        if(player_health > 67.5){
-            textures[HEALTH_11].render(ren, xp, yp);}else{
-        if(player_health > 61){
-            textures[HEALTH_10].render(ren, xp, yp);}else{
-        if(player_health > 54.5){
-            textures[HEALTH_9].render(ren, xp, yp);}else{
-        if(player_health > 48){
-            textures[HEALTH_8].render(ren, xp, yp);}else{
-        if(player_health > 41.5){
-            textures[HEALTH_7].render(ren, xp, yp);}else{
-        if(player_health > 35){
-            textures[HEALTH_6].render(ren, xp, yp);}else{
-        if(player_health > 28.5){
-            textures[HEALTH_5].render(ren, xp, yp);}else{
-        if(player_health > 22){
-            textures[HEALTH_4].render(ren, xp, yp);}else{
-        if(player_health > 15.5){
-            textures[HEALTH_3].render(ren, xp, yp);}else{
-        if(player_health > 9){
-            textures[HEALTH_2].render(ren, xp, yp);}else{
-        if(player_health > 2.5){
-            textures[HEALTH_1].render(ren, xp, yp);}else{
-            textures[HEALTH_0].render(ren, xp, yp);}}}}}}}}}}}}}}}
-
 }
 
-//handle actions based on current key state
-void handle_keystate(Player* player)
+void render_minimap()
 {
-    const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+    textures[MAP].render(5, 5);
+    // load one the objects in the objects vector 
+    // divide the x posn and y posn by 1000.
+    //multiply by 6 i think (whatever value is = to minimap size/32)
+    //render on those locations. figure out how to render different images for different objects.  
+}
 
-    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
-    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
-    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
-    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
-    bool strafeRight = currentKeyStates[SDL_SCANCODE_E];
-    bool strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
-    if(upKey)
-        player->thrust_b();
-    if(downKey)
-        player->thrust_f();
-    if(leftKey)
-        player->thrust_l();
-    if(rightKey)
-        player->thrust_r();
-    if(strafeLeft)
-        player->strafe_l();
-    if(strafeRight)
-        player->strafe_r();
+void render_objects()
+{
+    //loop through the list of currently present objects to render them
+    for( unsigned int i=0; i<objects.size(); i++ )
+    {
+        float xPos, yPos, Angle; 
+        objects[i]->get_values(&xPos, &yPos, &Angle);
+        int tex_index = objects[i]->get_tex_index();
+
+        bool render = false;
+
+        int xOffset_tex = textures[tex_index].getWidth()/2;
+        int yOffset_tex = textures[tex_index].getHeight()/2;
+        int xrc = xPos+targ_cx-xOffset_tex-xPos_cam; // X render coordinate
+        int yrc = yPos+targ_cy-yOffset_tex-yPos_cam; // Y render coordinate
+
+        // only render if within a certain radius
+        if( abs( xPos - xPos_cam ) < Render_Radius && abs( yPos - yPos_cam ) < Render_Radius )
+            render = true;
+        else {//object is not close enough, so don't render, but first...
+            //...check if the object would be close enough if the map literally wrapped, so we can...
+            //...render objects from the other side of an edge-wrap so they don't disapper near edges
+            if( abs( xPos + LEVEL_WIDTH - xPos_cam ) < Render_Radius ) //r
+                {xrc += LEVEL_WIDTH; render = true;}
+            if( abs( yPos + LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) //b
+                {yrc += LEVEL_HEIGHT; render = true;}
+            if( abs( xPos - LEVEL_WIDTH - xPos_cam ) < Render_Radius ) //l
+                {xrc -= LEVEL_WIDTH; render = true;}
+            if( abs( yPos - LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) //t
+                {yrc -= LEVEL_HEIGHT; render = true;}
+        }
+        if( render )
+            objects[i]->render(xrc, yrc, Angle);
+        //else they are not close enough, so don't render them.
+    }
+}
+
+void render_healthbar()
+{
+    //this code is the health bar
+    float xp, yp;
+    xp = (SCREEN_WIDTH / 2) - 151;
+    yp = 1;
+    //code for drawing the right ammount of health increments depending on palyers health
+    int player_health = players[player]->hitpoints;
+    if(player_health > 93.5)
+        textures[HEALTH_15].render(xp, yp);
+    else if(player_health > 87)
+        textures[HEALTH_14].render(xp, yp);
+    else if(player_health > 80.5)
+        textures[HEALTH_13].render(xp, yp);
+    else if(player_health > 74)
+        textures[HEALTH_12].render(xp, yp);
+    else if(player_health > 67.5)
+        textures[HEALTH_11].render(xp, yp);
+    else if(player_health > 61)
+        textures[HEALTH_10].render(xp, yp);
+    else if(player_health > 54.5)
+        textures[HEALTH_9].render(xp, yp);
+    else if(player_health > 48)
+        textures[HEALTH_8].render(xp, yp);
+    else if(player_health > 41.5)
+        textures[HEALTH_7].render(xp, yp);
+    else if(player_health > 35)
+        textures[HEALTH_6].render(xp, yp);
+    else if(player_health > 28.5)
+        textures[HEALTH_5].render(xp, yp);
+    else if(player_health > 22)
+        textures[HEALTH_4].render(xp, yp);
+    else if(player_health > 15.5)
+        textures[HEALTH_3].render(xp, yp);
+    else if(player_health > 9)
+        textures[HEALTH_2].render(xp, yp);
+    else if(player_health > 2.5)
+        textures[HEALTH_1].render(xp, yp);
+    else
+        textures[HEALTH_0].render(xp, yp);
 
 }
 
+void render_overlay()
+{
+    render_healthbar();
+    render_minimap();
+}
+
+void render()
+{
+    //set the image as the render target
+    gTargetTexture.setAsRenderTarget();
+    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+    SDL_RenderClear( gRenderer );
+
+    float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
+    players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
+
+    render_bg();
+
+    render_objects();
+
+    //Reset render target to the window
+    SDL_SetRenderTarget( gRenderer, NULL );
+
+    float diff_ang;
+    if( targ_Follow_Rotation )
+        diff_ang = Angle_pl - Angle_targ;
+    else
+        diff_ang = 0 - Angle_targ;
+
+    if( diff_ang < -180 )
+        diff_ang += 360;
+    if( diff_ang >= 180 )
+        diff_ang -= 360;
+
+    if( targ_Follow_Rotation )
+        rotVel_targ = rotVel_pl + diff_ang/rotDeccel_targ;
+    else
+        rotVel_targ = 0 + diff_ang/rotDeccel_targ;
+
+    Angle_targ = fmod( (Angle_targ + rotVel_targ + 360), 360 );
+
+    int x_offset_dest, y_offset_dest;
+    //1.5->top or left
+    //2->middle
+    //3->bottom or right
+    x_offset_dest = 2;
+
+    if( targ_Ship_Centered )
+        y_offset_dest = 2;
+    else
+        y_offset_dest = 3;
+
+    float diff_x = x_offset_dest - xOffset_targ;
+    float diff_y = y_offset_dest - yOffset_targ;
+
+    xVel_targ = diff_x/Deccel_targ;
+    yVel_targ = diff_y/Deccel_targ;
+    
+    xOffset_targ += xVel_targ;
+    yOffset_targ += yVel_targ;
+
+    ///--///
+    gTargetTexture.render( -(Render_Radius/xOffset_targ), -(Render_Radius/yOffset_targ), NULL, -Angle_targ );
+    ///--///
+
+    diff_x = xPos_pl - xPos_cam;
+    diff_y = yPos_pl - yPos_cam;
+
+    if( diff_x < -LEVEL_WIDTH/2 )
+        diff_x += LEVEL_WIDTH;
+    if( diff_y < -LEVEL_HEIGHT/2 )
+        diff_y += LEVEL_HEIGHT;
+    if( diff_x >= LEVEL_WIDTH/2 )
+        diff_x -= LEVEL_WIDTH;
+    if( diff_y >= LEVEL_HEIGHT/2 )
+        diff_y -= LEVEL_HEIGHT;
+
+    xVel_cam = xVel_pl + diff_x/Deccel_cam;
+    yVel_cam = yVel_pl + diff_y/Deccel_cam;
+    
+    xPos_cam = fmod( (xPos_cam + xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
+    yPos_cam = fmod( (yPos_cam + yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
+
+    render_overlay();
+
+    
+}
 
 void close()
 {
@@ -402,21 +422,13 @@ void close()
     {
         textures[i].free();
     }
-    //Free the sound effects
-    Mix_FreeChunk( hit );
-    Mix_FreeChunk( thrust );
-    Mix_FreeChunk( hyperLaser );
-    Mix_FreeChunk( singleLaser );
-    Mix_FreeChunk( doubleLaser );
-
-    //Free the music
-    Mix_FreeMusic( music );
 
     //Destroy window    
     SDL_DestroyRenderer( gRenderer );
     SDL_DestroyWindow( gWindow );
     gWindow = NULL;
     gRenderer = NULL;
+    Mix_FreeMusic( music );
 
     //Quit SDL subsystems
     IMG_Quit();
@@ -434,7 +446,7 @@ int main( int argc, char* args[] )
     else
     {
         //Load media
-        if( !loadMedia(gRenderer) )
+        if( !loadMedia() )
         {
             printf( "Failed to load media!\n" );
         }
@@ -445,9 +457,11 @@ int main( int argc, char* args[] )
 
             //Event handler
             SDL_Event e;
-            //The dot that will be moving around on the screen
-            Player player;
 
+            loadObjects();
+
+
+            Mix_PlayMusic(music, -1);
             //While application is running
             while( !quit )
             {
@@ -462,16 +476,33 @@ int main( int argc, char* args[] )
                     if( e.type == SDL_KEYDOWN )
                     {
                         switch( e.key.keysym.sym ) {
+			case SDLK_2:
+			  myasteroid->split();
+			  break;
                             case SDLK_f:
                                 toggle_fullscreen(gWindow);
                                 break;
                             case SDLK_ESCAPE:
                                 quit = true;
                                 break;
-                            case SDLK_c:
+                            //print current ship coords for debugging
+                            case SDLK_x:
                                 float xPos, yPos, Angle; 
-                                player.get_values(&xPos, &yPos, &Angle);
+                                players[player]->get_values(&xPos, &yPos, &Angle);
                                 std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
+                                break;
+                            case SDLK_c: //toggle camera mode
+                                targ_Follow_Rotation = !targ_Follow_Rotation;
+                                targ_Ship_Centered = !targ_Ship_Centered;
+                                break;
+                            //switch control between present Player ships
+                            case SDLK_p:
+                                player = fmod( player+1, players.size() );
+                                break;
+                            //test code to make sure the health bar is rendering correctly
+                            //It lowers the players health if you press the K key     
+                            case SDLK_k:
+                                players[player]->hitpoints -= 5;
                                 break;
                             case SDLK_9:
                                 Mix_PlayMusic( music, -1);
@@ -479,16 +510,31 @@ int main( int argc, char* args[] )
                             case SDLK_0:    
                                 Mix_PauseMusic(); 
                                 break;
+                            case SDLK_3:    
+                                players[player]->weapons_upgrade(); 
+                                break;
+
 
                         }
                     }
                 }
 
+                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
                 //handle actions based on current key state
-                handle_keystate( &player );
+                players[player]->handle_keystate(currentKeyStates);
 
                 //Move the ship
-                player.update();
+                //player.update();
+                for( unsigned int i = 0; i<objects.size(); i++ )
+                {
+                    if( objects[i]->is_dead() )
+                    {
+                        //delete objects[i];
+                        objects.erase( objects.begin()+i );
+                        i--;
+                    } else
+                        objects[i]->update();
+                }
 
                 //Clear screen
                 //SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
@@ -496,7 +542,8 @@ int main( int argc, char* args[] )
                 SDL_RenderClear( gRenderer );
 
                 //Render objects
-                render( gRenderer, &player );
+                render();
+                //render( objects );
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
