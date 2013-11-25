@@ -4,6 +4,7 @@
  * and may not be redistributed without written permission.*/
 
 #include "Ship.h"
+#include <iostream>
 
 Ship::Ship(float xp, float yp, float ang )
 {
@@ -40,6 +41,7 @@ Ship::Ship(float xp, float yp, float ang )
         laser_pool.push_back( new Laser() );
 
     TEX_INDEX = PLAYER;
+    soundindex = 0;
 }
 
 int Ship::get_type()
@@ -56,6 +58,8 @@ void Ship::update()
         MovingObject::update();
         if( cooldown > 0 )
             cooldown--;
+        if( upgrade_cooldown > 0 )
+            upgrade_cooldown--;
         for( uint i=0; i<active_lasers.size(); i++ )
         {
             if( active_lasers[i]->is_dead() )
@@ -118,12 +122,15 @@ void Ship::thrust_r() // fire starboard thrusters, moving the ship left
 
 void Ship::weapons_upgrade()
 {
-    Mix_PlayChannel( -1, sounds[GET_POWERUP], 0);
     if (upgrade_cooldown == 0) {
-
         upgrade_cooldown = Req_upgrade_cooldown;
+        Mix_PlayChannel( -1, sounds[GET_POWERUP], 0);
 
-        for(int i=0; i < pool_size; i++ )
+        //std::cout<<"\nweapons_upgrade"<<std::endl;
+
+        //the vector laser_pool changes size whenever you shoot, so you must use its actual
+        //current size when looping through it, not its initial/max size (causes weirdness)
+        for( uint i=0; i < laser_pool.size(); i++ )
             laser_pool[i]->upgrade();
         for( uint i=0; i<active_lasers.size(); i++ )
             active_lasers[i]->upgrade();

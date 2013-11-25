@@ -116,7 +116,7 @@ void MovingObject::onCollide( Object* collided_with )
         collided_with->get_values(&dummy, &dummy, &dummy, &xVel_other, &yVel_other, &dummy);
         float vel_old_squared = abs( xVel_old * xVel_old ) + abs( yVel_old * yVel_old );
         float vel_other_squared = abs( xVel_other * xVel_other ) + abs( yVel_other * yVel_other );
-        int damage = abs( vel_old_squared - vel_other_squared );// / 5; //magic number: needs to be named and moved (TODO)
+        int damage = abs( vel_old_squared - vel_other_squared ) * 2; //magic number: needs to be named and moved (TODO)
         if( damage > 0 )
             std::cout<<damage<<" collision damage"<<std::endl;
         takeDamage( damage );

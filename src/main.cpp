@@ -511,7 +511,18 @@ int main( int argc, char* args[] )
                             //test code to make sure the health bar is rendering correctly
                             //It lowers the players health if you press the K key     
                             case SDLK_k:
-                                players[player]->takeDamage(1);
+                                players[player]->takeDamage(10);
+                                break;
+                            case SDLK_9:
+                                Mix_PlayMusic( music, -1);
+                                break;
+                            case SDLK_0:    
+                                Mix_PauseMusic(); 
+                                break;
+                            case SDLK_3:    
+                                players[player]->weapons_upgrade(); 
+                                break;
+
                         }
                     }
                 }

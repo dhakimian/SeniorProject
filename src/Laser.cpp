@@ -33,16 +33,6 @@ void Laser::set_values(Object* ship, float x, float y, float ang, float xv, floa
     yVel = yv;
     time_left = LIFESPAN;
     dead = false;
-    if (weapon_level == 1)
-        TEX_INDEX = LASER1;
-    else if (weapon_level == 2)
-        TEX_INDEX = LASER2;
-    else if (weapon_level == 3)
-        TEX_INDEX = LASER3;
-    else
-    {
-        TEX_INDEX = LASER4;
-    }
 }
 
 int Laser::get_time_left()
@@ -62,7 +52,16 @@ void Laser::update()
 void Laser::upgrade()
 {
     weapon_level++;
-    //also change collider dimention depending on how the images change
+    //std::cout<<"UPGRADE! "<<weapon_level<<std::endl;
+    if (weapon_level == 1)
+        TEX_INDEX = LASER1;
+    else if (weapon_level == 2)
+        TEX_INDEX = LASER2;
+    else if (weapon_level == 3)
+        TEX_INDEX = LASER3;
+    else
+        TEX_INDEX = LASER4;
+   //also change collider dimention depending on how the images change
 }
 
 void Laser::onCollide( Object* collided_with )
