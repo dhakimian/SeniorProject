@@ -4,7 +4,7 @@
  * and may not be redistributed without written permission.*/
 #include "Player.h"
 
-Player::Player(float xp, float yp, float ang )
+Player::Player(int teamnumber, float xp, float yp, float ang )
 {
     xPos = xp;
     yPos = yp;
@@ -14,10 +14,35 @@ Player::Player(float xp, float yp, float ang )
 
     Angle = ang;
 
-    MAX_HP = 100;
+    MAX_HP = 1000;
     hitpoints = MAX_HP;
 
-    TEX_INDEX = PLAYER;
+    team = teamnumber;
+
+    if (team == 2)
+    {
+        //TEX_INDEX = PLAYER_O;
+        TEX_TEAM_INDEX_BODY = PLAYER_O;
+        TEX_TEAM_INDEX_L = PLAYER_O_Tlt_L;
+        TEX_TEAM_INDEX_R = PLAYER_O_Tlt_R;
+    }else if (team == 3)
+    {
+        //TEX_INDEX = PLAYER_O;
+        TEX_TEAM_INDEX_BODY = PLAYER_O;
+        TEX_TEAM_INDEX_L = PLAYER_O_Tlt_L;
+        TEX_TEAM_INDEX_R = PLAYER_O_Tlt_R;
+    }else if (team == 4)
+    {
+        //TEX_INDEX = PLAYER_O;
+        TEX_TEAM_INDEX_BODY = PLAYER_O;
+        TEX_TEAM_INDEX_L = PLAYER_O_Tlt_L;
+        TEX_TEAM_INDEX_R = PLAYER_O_Tlt_R;
+    }else{
+    //TEX_INDEX = PLAYER;
+    TEX_TEAM_INDEX_BODY = PLAYER;
+    TEX_TEAM_INDEX_L = PLAYER_Tlt_L;
+    TEX_TEAM_INDEX_R = PLAYER_Tlt_R;
+    }
 
     upKey = false;
     downKey = false;
@@ -58,6 +83,19 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
     if(shootKey)
         shoot();
 
+    if( (rightKey || leftKey || upKey || downKey || strafeRight || strafeLeft ) && (hitpoints > 0) )
+    {
+        if(Mix_Playing(7) == 0 )
+            Mix_PlayChannel(7, sounds[THRUST], 0);
+        else
+            Mix_Resume(7);
+    }
+    if(!(rightKey || leftKey || upKey || downKey || strafeRight || strafeLeft))
+    {
+        Mix_Pause(7);
+    }
+
+
 }
 
 //client side code
@@ -82,37 +120,38 @@ void Player::render( int x, int y, float ang )
 
     //these conditionals draw different wing orentations depending on which direction the ship is turning.
     if(downKey && !upKey) {
-        textures[PLAYER].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_BODY].render( x, y, NULL, ang);
         textures[PLAYER_WNG_B].render(x, y, NULL, ang);
     } else if(leftKey && !rightKey && !downKey) {
-        textures[PLAYER_Tlt_L].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_L].render( x, y, NULL, ang);
         textures[PLAYER_WNG_L].render( x, y, NULL, ang);
     } else if(rightKey && !leftKey && !downKey) {
-        textures[PLAYER_Tlt_R].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_R].render( x, y, NULL, ang);
         textures[PLAYER_WNG_R].render( x, y, NULL, ang);
     } else if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight) {
-        textures[PLAYER].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_BODY].render( x, y, NULL, ang);
         textures[PLAYER_WNG_NORM].render( x, y, NULL, ang);
     } else if(downKey && leftKey && rightKey) {
-        textures[PLAYER].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_BODY].render( x, y, NULL, ang);
         textures[PLAYER_WNG_B].render( x, y, NULL, ang);
     } else if(leftKey && rightKey && downKey) {
-        textures[PLAYER].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_BODY].render( x, y, NULL, ang);
         textures[PLAYER_WNG_B].render( x, y, NULL, ang);
     } else if((downKey && upKey) || (leftKey && rightKey)) {
-        textures[PLAYER].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_BODY].render( x, y, NULL, ang);
         textures[PLAYER_WNG_NORM].render( x, y, NULL, ang);
     } else if(strafeRight && !strafeLeft) {
-        textures[PLAYER_Tlt_R].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_R].render( x, y, NULL, ang);
         textures[PLAYER_WNG_NORM].render( x, y, NULL, ang);
     } else if(strafeLeft && !strafeRight) {
-        textures[PLAYER_Tlt_L].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_L].render( x, y, NULL, ang);
         textures[PLAYER_WNG_NORM].render( x, y, NULL, ang);
     } else if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight) {
-        textures[PLAYER].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_BODY].render( x, y, NULL, ang);
         textures[PLAYER_WNG_NORM].render( x, y, NULL, ang);
     } else if(!downKey && !upKey && !leftKey && !rightKey) {
-        textures[PLAYER].render( x, y, NULL, ang);
+        textures[TEX_TEAM_INDEX_BODY].render( x, y, NULL, ang);
         textures[PLAYER_WNG_NORM].render( x, y, NULL, ang);
     }
 }
+

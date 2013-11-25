@@ -31,6 +31,11 @@ Ship::Ship(float xp, float yp, float ang )
     Req_Cooldown = 30;
     cooldown = 0;
 
+    Req_upgrade_cooldown = 100;
+    upgrade_cooldown = 0;
+
+    shoot_sound_current_strength = sounds[SINGLE_LASER];
+
     for( int i=0; i<pool_size; i++ )
         laser_pool.push_back( new Laser() );
 
@@ -51,7 +56,7 @@ void Ship::update()
         MovingObject::update();
         if( cooldown > 0 )
             cooldown--;
-        for( unsigned int i=0; i<active_lasers.size(); i++ )
+        for( uint i=0; i<active_lasers.size(); i++ )
         {
             if( active_lasers[i]->is_dead() )
             {
@@ -111,20 +116,57 @@ void Ship::thrust_r() // fire starboard thrusters, moving the ship left
     yVel -= SHIP_REV_ACCEL * sin(ang);
 }
 
+void Ship::weapons_upgrade()
+{
+    Mix_PlayChannel( -1, sounds[GET_POWERUP], 0);
+    if (upgrade_cooldown == 0) {
+
+        upgrade_cooldown = Req_upgrade_cooldown;
+
+        for(int i=0; i < pool_size; i++ )
+            laser_pool[i]->upgrade();
+        for( uint i=0; i<active_lasers.size(); i++ )
+            active_lasers[i]->upgrade();
+
+        soundindex += 1;
+
+        if (soundindex == 2)
+        {
+            shoot_sound_current_strength = sounds[DOUBLE_LASER];
+            Req_Cooldown = 23;
+        }
+        else if (soundindex == 3)
+        {
+            shoot_sound_current_strength = sounds[DOUBLE_LASER];
+            Req_Cooldown = 17;
+        }
+        else if (soundindex == 4)
+        {
+            shoot_sound_current_strength = sounds[HYPER_LASER];
+            Req_Cooldown = 14;
+        }
+        else if (soundindex >= 5)
+        {
+            shoot_sound_current_strength = sounds[HYPER_LASER];
+            Req_Cooldown = 10;
+        }
+    }
+}
+
 void Ship::shoot()
 {
     if( cooldown <= 0 && laser_pool.size() > 0 )
     {
         //shoot a laser;
+        Mix_PlayChannel( -1, shoot_sound_current_strength, 0 );
         double ang = M_PI * Angle;
         ang = ang / 180;
         float xv = xVel + Laser::VEL * sin(ang);
         float yv = yVel - Laser::VEL * cos(ang);
-        //float xp = xPos + Collider.r * sin(ang);
-        //float yp = yPos - Collider.r * cos(ang);
-        //laser_pool.back()->set_values(xPos, yPos, Angle, xv, yv, Laser::LIFESPAN);
-        laser_pool.back()->set_values(xPos, yPos, Angle, xv, yv);
-        //laser_pool.back()->set_values(xp, yp, Angle, xv, yv);
+        float xp = xPos + Collider.r * sin(ang);
+        float yp = yPos - Collider.r * cos(ang);
+        //laser_pool.back()->set_values(this, xPos, yPos, Angle, xv, yv);
+        laser_pool.back()->set_values(this, xp, yp, Angle, xv, yv);
 
         active_lasers.push_back( laser_pool.back() );
         objects.push_back( laser_pool.back() );

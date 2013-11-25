@@ -4,6 +4,12 @@
 #include "MovingObject.h"
 #include "Laser.h"
 #include <vector>
+#ifdef __APPLE__
+#include <SDL2_mixer/SDL_mixer.h>
+#else
+#include <SDL_mixer.h>
+#endif
+
 
 class Ship : public MovingObject
 {
@@ -29,6 +35,8 @@ class Ship : public MovingObject
         //shoots a laser
         void shoot();
 
+        //makes the lasers more powerful when you pickup a powerup
+        void weapons_upgrade();
 
     protected:
 
@@ -40,6 +48,11 @@ class Ship : public MovingObject
         float SHIP_REV_ACCEL;
         float SHIP_ROT_ACCEL;
         //----------------------//
+
+        Mix_Chunk *shoot_sound_current_strength;
+        int soundindex;
+        int upgrade_cooldown;
+        int Req_upgrade_cooldown;
 
         //The size of the laser object pool
         int pool_size;

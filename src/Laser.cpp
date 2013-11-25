@@ -1,4 +1,5 @@
 #include "Laser.h"
+#include <iostream>
 
 Laser::Laser()
 {
@@ -6,7 +7,10 @@ Laser::Laser()
     Collider.x = xPos;
     Collider.y = yPos;
 
-    TEX_INDEX = LASER;
+    solid = false;
+
+    TEX_INDEX = LASER1;
+    weapon_level = 1;
 }
 
 int Laser::get_type()
@@ -14,8 +18,14 @@ int Laser::get_type()
     return T_LASER;
 }
 
-void Laser::set_values(float x, float y, float ang, float xv, float yv)
+Object* Laser::get_owner()
 {
+    return owner;
+}
+
+void Laser::set_values(Object* ship, float x, float y, float ang, float xv, float yv)
+{
+    owner = ship;
     xPos = x;
     yPos = y;
     Angle = ang;
@@ -23,6 +33,16 @@ void Laser::set_values(float x, float y, float ang, float xv, float yv)
     yVel = yv;
     time_left = LIFESPAN;
     dead = false;
+    if (weapon_level == 1)
+        TEX_INDEX = LASER1;
+    else if (weapon_level == 2)
+        TEX_INDEX = LASER2;
+    else if (weapon_level == 3)
+        TEX_INDEX = LASER3;
+    else
+    {
+        TEX_INDEX = LASER4;
+    }
 }
 
 int Laser::get_time_left()
@@ -33,15 +53,26 @@ int Laser::get_time_left()
 void Laser::update()
 {
     time_left--;
-    if( time_left <= 0 )
+    if( time_left <= 0 ) {
         dead = true;
-    else
+    } else
         MovingObject::update();
+}
+
+void Laser::upgrade()
+{
+    weapon_level++;
+    //also change collider dimention depending on how the images change
 }
 
 void Laser::onCollide( Object* collided_with )
 {
-    //prevent laser from colliding with the ship that shot it
-    if( time_left < LIFESPAN-5 )
+    if( collided_with->is_solid() && collided_with != owner )
+    {
+        Mix_PlayChannel( 1, sounds[HIT], 0 );
+        if( collided_with != owner && collided_with->get_team() != owner->get_team() )
+            collided_with->takeDamage(100);
+        objects.push_back( new Explosion(xPos, yPos, xVel/10, yVel/10) );
         dead = true;
+    }
 }

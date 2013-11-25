@@ -2,6 +2,7 @@
 #define _LASER_H
 
 #include "MovingObject.h"
+#include "Explosion.h"
 
 class Laser : public MovingObject
 {
@@ -19,19 +20,26 @@ class Laser : public MovingObject
 
         void update();
 
+        void upgrade();
+
         void onCollide( Object* collided_with );
 
         //void set_values(float x, float y, float ang, float xv, float yv, int time);
-        void set_values(float x, float y, float ang, float xv, float yv);
+        void set_values(Object* ship, float x, float y, float ang, float xv, float yv);
 
         int get_time_left();
+
+        Object* get_owner();
 
     private:
         //how many cycles the laser missile has left before it disappears
         int time_left;
 
-        //ID of player who shot this laser
-        int owner;
+        //weapon level determins the strength of the laser
+        int weapon_level;
+
+        //player who shot this laser
+        Object* owner;
 
 
 };

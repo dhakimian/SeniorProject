@@ -16,10 +16,13 @@ Object::Object()
     Collider.r = 1;
 
     can_take_damage = false;
+    solid = true;
+    team = -1;
 
     dead = false;
 
     animated = false;
+    anim_loops = true;
     frame_num = 0;
     num_frames = 0;
     frame_w = 0;
@@ -76,6 +79,11 @@ int Object::get_type()
     return T_OBJ;
 }
 
+int Object::get_team()
+{
+    return team;
+}
+
 int Object::get_hitpoints()
 {
     return hitpoints;
@@ -84,6 +92,11 @@ int Object::get_hitpoints()
 bool Object::is_dead()
 {
     return dead;
+}
+
+bool Object::is_solid()
+{
+    return solid;
 }
 
 void Object::render( int x, int y, float ang )
@@ -131,7 +144,18 @@ void Object::render( int x, int y, float ang )
 
         tex->render( x, y, &frame, ang );
 
-        frame_num = (frame_num + 1) % num_frames;
+        //if( (time % something) == 0 )
+        //{
+            //frame_num = (frame_num + 1) % num_frames;
+            frame_num++;
+            if( frame_num >= num_frames )
+            {
+                if( anim_loops )
+                    frame_num %= num_frames;
+                else
+                    frame_num--;
+            }
+        //}
 
     } else
         textures[TEX_INDEX].render( x, y, NULL, ang );

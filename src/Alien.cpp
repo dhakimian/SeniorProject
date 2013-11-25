@@ -26,14 +26,17 @@ Alien::Alien(float xp, float yp, float ang )
 
     rotVel = 1.0;
 
-    MAX_HP = 200;
+    MAX_HP = 2000;
     hitpoints = MAX_HP;
 
-    animated = true;
-    frames_x = 17;
-    frames_y = 2;
+    team = 0;
 
-    TEX_INDEX = ANIMATION;
-    //TEX_INDEX = ALIEN;
+    //animated = true;
+    //anim_loops = false;
+    //frames_x = 17;
+    //frames_y = 2;
+
+    //TEX_INDEX = ANIMATION;
+    TEX_INDEX = ALIEN;
 }
 

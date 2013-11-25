@@ -13,24 +13,27 @@
 #ifdef __APPLE__
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <SDL2_mixer/SDL_mixer.h>
 #else
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #endif
 #include <iostream>
 #include <string>
 #include <vector>
-#include <typeinfo>
+//#include <typeinfo>
 
 #include "Constants.h"
 #include "Util.h"
 #include "LTexture.h"
-//#include "LTimer.h"
 #include "Player.h"
 #include "Alien.h"
 #include "Planet.h"
 #include "Laser.h"
 #include "Asteroid.h"
+#include "Explosion.h"
+//#include "PowerUp.h"
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -64,18 +67,19 @@ bool targ_Follow_Rotation = true;
 bool targ_Ship_Centered = false;
 
 
-Asteroid* myasteroid =  new Asteroid(0.0, 0.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1);
+std::vector<std::string> imgfiles (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
+std::vector<LTexture> textures (imgfiles.size());
 
-
-std::vector<std::string> images (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
-
-std::vector<LTexture> textures (images.size());
+std::vector<std::string> sndfiles (sndarr, sndarr + sizeof(sndarr) / sizeof(sndarr[0]) );
+std::vector<Mix_Chunk*> sounds (sndfiles.size(), NULL );
 
 std::vector<Object*> objects; // list of all the objects currently in the level
 //Player player;
 int player = 0;
 
 std::vector<Player*> players;
+
+Mix_Music* music = NULL;
 
 bool init()
 {
@@ -132,6 +136,11 @@ bool init()
                 }
             }
         }
+
+        if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ){
+            printf( "SDL could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+            success = false;
+        }
     }
 
     return success;
@@ -142,12 +151,24 @@ bool loadMedia()
     //Loading success flag
     bool success = true;
 
-    for( unsigned int i=0; i<images.size(); i++ )
+    //load textures
+    for( uint i=0; i<imgfiles.size(); i++ )
     {
         textures[i].setRenderer(gRenderer);
-        if( !textures[i].loadFromFile( images[i] ) )
+        if( !textures[i].loadFromFile( imgfiles[i] ) )
         {
-            std::cout << "Failed to load '" << images[i] << "'!" << std::endl;
+            std::cout << "Failed to load '" << imgfiles[i] << "'!" << std::endl;
+            success = false;
+        }
+    }
+
+    //load sounds
+    for( uint i=0; i<sounds.size(); i++ )
+    {
+        sounds[i] = Mix_LoadWAV( sndfiles[i].c_str() );
+        if( sounds[i] == NULL )
+        {
+            std::cout << "Failed to load '" << sndfiles[i] << "'!" << std::endl;
             success = false;
         }
     }
@@ -160,6 +181,13 @@ bool loadMedia()
         success = false;
     }
 
+    //load music
+    music = Mix_LoadMUS( "media/sounds/Amb.wav" );
+    if( music == NULL )
+    {
+        printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
 
     return success;
 }
@@ -169,15 +197,15 @@ void loadObjects()
 {
     objects.push_back( new Planet(500.0, 500.0) );
     objects.push_back( new Alien(200.0, -50.0, -35.0) );
-    objects.push_back(myasteroid);
+    objects.push_back( new Asteroid(0.0, 0.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1) );
     //objects.push_back( &player );
     
-    players.push_back( new Player(100, 300, 0) );
-    players.push_back( new Player(100, 100, -45) );
-    players.push_back( new Player(300, 100, -90) );
-    players.push_back( new Player(300, 300, -45) );
+    players.push_back( new Player(1, 100, 300, 0) );
+    players.push_back( new Player(1, 100, 100, -45) );
+    players.push_back( new Player(2, 300, 100, 180) );
+    players.push_back( new Player(2, 300, 300, 225) );
 
-    for( unsigned int i=0; i<players.size(); i++ )
+    for( uint i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
 }
 
@@ -222,7 +250,7 @@ void render_bg()
 void render_objects()
 {
     //loop through the list of currently present objects to render them
-    for( unsigned int i=0; i<objects.size(); i++ )
+    for( uint i=0; i<objects.size(); i++ )
     //for( int i=objects.size()-1; i>=0; i-- )
     {
         float xPos, yPos, Angle; 
@@ -265,49 +293,56 @@ void render_healthbar()
     yp = 1;
     //code for drawing the right ammount of health increments depending on palyers health
     int player_health = players[player]->get_hitpoints();
-    if(player_health > 93.5)
+    if(player_health > 935)
         textures[HEALTH_15].render(xp, yp);
-    else if(player_health > 87)
+    else if(player_health > 870)
         textures[HEALTH_14].render(xp, yp);
-    else if(player_health > 80.5)
+    else if(player_health > 805)
         textures[HEALTH_13].render(xp, yp);
-    else if(player_health > 74)
+    else if(player_health > 740)
         textures[HEALTH_12].render(xp, yp);
-    else if(player_health > 67.5)
+    else if(player_health > 675)
         textures[HEALTH_11].render(xp, yp);
-    else if(player_health > 61)
+    else if(player_health > 610)
         textures[HEALTH_10].render(xp, yp);
-    else if(player_health > 54.5)
+    else if(player_health > 545)
         textures[HEALTH_9].render(xp, yp);
-    else if(player_health > 48)
+    else if(player_health > 480)
         textures[HEALTH_8].render(xp, yp);
-    else if(player_health > 41.5)
+    else if(player_health > 415)
         textures[HEALTH_7].render(xp, yp);
-    else if(player_health > 35)
+    else if(player_health > 350)
         textures[HEALTH_6].render(xp, yp);
-    else if(player_health > 28.5)
+    else if(player_health > 285)
         textures[HEALTH_5].render(xp, yp);
-    else if(player_health > 22)
+    else if(player_health > 220)
         textures[HEALTH_4].render(xp, yp);
-    else if(player_health > 15.5)
+    else if(player_health > 155)
         textures[HEALTH_3].render(xp, yp);
-    else if(player_health > 9)
+    else if(player_health > 90)
         textures[HEALTH_2].render(xp, yp);
-    else if(player_health > 2.5)
+    else if(player_health > 25)
         textures[HEALTH_1].render(xp, yp);
     else
         textures[HEALTH_0].render(xp, yp);
 
 }
 
-//void render_minimap()
-//{
-//}
+void render_minimap()
+{
+    textures[MAP].render(5, 5);
+    // load one the objects in the objects vector 
+    // divide the x posn and y posn by 1000.
+    //multiply by 6 i think (whatever value is = to minimap size/32)
+    //render on those locations.
+    //[figure out how to render different images for different objects.]
+    //objects have a get_type method, which can be used for this
+}
 
 void render_overlay()
 {
     render_healthbar();
-    //render_minimap();
+    render_minimap();
 }
 
 void render()
@@ -393,7 +428,7 @@ void render()
 void close()
 {
     //Free loaded images
-    for( unsigned int i=0; i<textures.size(); i++ )
+    for( uint i=0; i<textures.size(); i++ )
     {
         textures[i].free();
     }
@@ -435,6 +470,7 @@ int main( int argc, char* args[] )
             loadObjects();
 
             //While application is running
+            Mix_PlayMusic(music, -1);
             while( !quit )
             {
                 //Handle events on queue
@@ -456,9 +492,13 @@ int main( int argc, char* args[] )
                                 break;
                                 //print current ship coords for debugging
                             case SDLK_x:
-                                float xPos, yPos, Angle; 
-                                players[player]->get_values(&xPos, &yPos, &Angle);
+                                float xPos, yPos, Angle, xVel, yVel, rotVel; 
+                                players[player]->get_values(&xPos, &yPos, &Angle, &xVel, &yVel, &rotVel);
                                 std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
+                                std::cout << "xv: " << xVel << " | yv: " << yVel << std::endl;
+                                break;
+                            case SDLK_h:
+                                std::cout<<players[player]->get_hitpoints()<<" HP"<<std::endl;
                                 break;
                             case SDLK_c: //toggle camera mode
                                 targ_Follow_Rotation = !targ_Follow_Rotation;
@@ -482,7 +522,7 @@ int main( int argc, char* args[] )
 
                 //Move the ship
                 //player.update();
-                for( unsigned int i = 0; i<objects.size(); i++ )
+                for( uint i = 0; i<objects.size(); i++ )
                 {
                     if( objects[i]->is_dead() )
                     {

@@ -3,6 +3,13 @@
 
 #include <vector>
 #include "LTexture.h"
+#ifdef __APPLE__
+#include <SDL2_mixer/SDL_mixer.h>
+#else
+#include <SDL_mixer.h>
+#endif
+
+typedef unsigned int uint;
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -26,6 +33,10 @@ const float Deccel_cam = 15.0;
 //speed at which objects that are overlapping move away from each other
 const float Separation_vel = 0.01;
 
+//how much the velocity of objects decays each cycle (as a percentage of current speed)
+//you can think of this as the speed lost due to collisions with tiny particles of space debris
+const float Speed_Decay = 0.001;
+
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
 const int LEVEL_WIDTH = 32000;
@@ -45,9 +56,12 @@ static const std::string imgarr[] = {
     "media/player/SF_Ship/wings_rightTurn.png",
     "media/player/SF_Ship/ship_body_Rtilt.png",
     "media/player/SF_Ship/ship_body_Ltilt.png",
-    "media/laser1.png",
+    "media/lasers/laser1.png",
+    "media/lasers/laser2.png",
+    "media/lasers/laser3.png",
+    "media/lasers/laser4.png",
     "media/aliens/alienship.png",
-    "media/Planet_A.png",
+    "media/planets/Planet_A.png",
     "media/player/Health/health15.png",
     "media/player/Health/health14.png",
     "media/player/Health/health13.png",
@@ -64,14 +78,21 @@ static const std::string imgarr[] = {
     "media/player/Health/health2.png",
     "media/player/Health/health1.png",
     "media/player/Health/health0.png",
-    "media/Asteroid.png",
-    "media/Mini_Asteroid.png",
-    "media/Tiny_Asteroid.png",
-    "media/explosion.png"
+    "media/asteroids/Asteroid.png",
+    "media/asteroids/Mini_Asteroid.png",
+    "media/asteroids/Tiny_Asteroid.png",
+    "media/explosions/explosion1.png",
+    "media/player/SF_Ship/ship_body_t2.png",
+    "media/player/SF_Ship/ship_body_Rtilt_t2.png",
+    "media/player/SF_Ship/ship_body_Ltilt_t2.png",
+    "media/minimap/minimap.png",
+    "media/Powerup/powerup1.png"
+
 };
 
 // these must be in the same order as the above
-enum TextureIndex { // Constants containing the index numbers of the vector of images used by the program
+enum TextureIndex
+{                  // Constants containing the index numbers of the vector of images used by the program
     BACKGROUND,    // 0
     PLAYER,        // 1
     PLAYER_THR_B,  // 2
@@ -85,7 +106,10 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     PLAYER_WNG_R,
     PLAYER_Tlt_R,
     PLAYER_Tlt_L,
-    LASER,
+    LASER1,
+    LASER2,
+    LASER3,
+    LASER4,
     ALIEN,
     PLANET,
     HEALTH_15,
@@ -107,9 +131,46 @@ enum TextureIndex { // Constants containing the index numbers of the vector of i
     ASTEROID,
     MINI_ASTEROID,
     TINY_ASTEROID,
-    ANIMATION
+    EXPLOSION,
+    PLAYER_O,
+    PLAYER_O_Tlt_R,
+    PLAYER_O_Tlt_L,
+    MAP,
+    POWERUP
+
 };
 
+static const std::string sndarr[] = {
+    "media/sounds/thrust.wav",
+    "media/sounds/singleLaser.wav",
+    "media/sounds/doubleLaser.wav",
+    "media/sounds/hyperLaser.wav",
+    "media/sounds/Hit.wav",
+    "media/sounds/shipexplode.wav",
+    "media/sounds/Powerup.wav"
+};
+
+enum SoundIndex
+{
+    THRUST,
+    SINGLE_LASER,
+    DOUBLE_LASER,
+    HYPER_LASER,
+    HIT,
+    SHIP_EXPLODE,
+    GET_POWERUP
+};
+
+extern std::vector<std::string> imgfiles;
+extern std::vector<LTexture> textures;
+
+//class Mix_Chunk; //forward declaration for the following vector
+extern std::vector<std::string> sndfiles;
+extern std::vector<Mix_Chunk*> sounds;
+
+class Object; // forward declaration for the following vector
+extern std::vector<Object*> objects;
+ 
 enum ObjectType { // Constants for identifying object type, to avoid doing string compares
     T_OBJ,        // T_ stands for type_
     T_MOVOBJ,
@@ -118,16 +179,10 @@ enum ObjectType { // Constants for identifying object type, to avoid doing strin
     T_ALIEN,
     T_LASER,
     T_PLANET,
-    T_ASTEROID
+    T_ASTEROID,
+    T_EXPLOSION
 };
 
-extern std::vector<std::string> images;
-
-extern std::vector<LTexture> textures;
-
-class Object; // forward declaration for the following vector
-extern std::vector<Object*> objects;
- 
 struct Circle
 {
     int x, y;

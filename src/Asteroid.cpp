@@ -20,17 +20,17 @@ void Asteroid::set_size(int s)
         case 1:
             Collider.r = 50;
             TEX_INDEX = ASTEROID;
-            hitpoints = 30;
+            hitpoints = 300;
             break;
         case 2:
             Collider.r = 25;
             TEX_INDEX = MINI_ASTEROID;
-            hitpoints = 20;
+            hitpoints = 200;
             break;
         case 3:
             Collider.r = 15;
             TEX_INDEX = TINY_ASTEROID;
-            hitpoints = 10;
+            hitpoints = 100;
     }
 }
 

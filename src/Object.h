@@ -4,9 +4,11 @@
 #ifdef __APPLE__
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <SDL2_mixer/SDL_mixer.h>
 #else
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #endif
 
 #include <math.h>
@@ -46,9 +48,13 @@ class Object
 
         virtual int get_type();
 
+        int get_team();
+
         int get_hitpoints();
         
         bool is_dead();
+
+        bool is_solid();
 
     protected:
 
@@ -61,8 +67,8 @@ class Object
         bool anim_loops;
         //if animated, which frame to render
         int frame_num;
-        //how many frames in the animation; defaults tiles_x*tiles_y
-        int num_frames;
+        //how many frames in the animation; defaults frames_x*frames_y
+        int num_frames; //you would use this if you didn't have enough frames to fill their image
         //how many frames of an animation are on each row and column of the image
         int frames_x, frames_y;
         //animation frame dimensions
@@ -88,6 +94,9 @@ class Object
         //     because we may want some (stationary) objects to have a rectangular hitbox
         Circle Collider;
 
+        //whether this object should behave as a solid in collisions or ghost through everything
+        bool solid;
+
         //objects's maximum hitpoints
         int MAX_HP;
 
@@ -95,6 +104,11 @@ class Object
         int hitpoints;
 
         bool can_take_damage;
+
+        //The number of the team this object is on
+        //(objects on the same team can not damage each other)
+        //(objects on team==-1 CAN damage each other)
+        int team;
 
         //if this is true, the object will be removed from the objects vector next cycle
         bool dead;
