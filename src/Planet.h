@@ -12,6 +12,8 @@ class Planet : public Object
         //Deallocates memory
         //~Planet();
 
+        int get_type();
+
     private:
         //gravity radius of effect
         int G_RAD;

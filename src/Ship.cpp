@@ -124,12 +124,9 @@ void Ship::weapons_upgrade()
 {
     if (upgrade_cooldown == 0) {
         upgrade_cooldown = Req_upgrade_cooldown;
-        Mix_PlayChannel( -1, sounds[GET_POWERUP], 0);
+        if( SOUND_ON )
+            Mix_PlayChannel( -1, sounds[GET_POWERUP], 0);
 
-        //std::cout<<"\nweapons_upgrade"<<std::endl;
-
-        //the vector laser_pool changes size whenever you shoot, so you must use its actual
-        //current size when looping through it, not its initial/max size (causes weirdness)
         for( uint i=0; i < laser_pool.size(); i++ )
             laser_pool[i]->upgrade();
         for( uint i=0; i<active_lasers.size(); i++ )
@@ -165,7 +162,8 @@ void Ship::shoot()
     if( cooldown <= 0 && laser_pool.size() > 0 )
     {
         //shoot a laser;
-        Mix_PlayChannel( -1, shoot_sound_current_strength, 0 );
+        if( SOUND_ON )
+            Mix_PlayChannel( -1, shoot_sound_current_strength, 0 );
         double ang = M_PI * Angle;
         ang = ang / 180;
         float xv = xVel + Laser::VEL * sin(ang);

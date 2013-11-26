@@ -65,41 +65,27 @@ void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
 }
 
 Circle Object::get_collider()
-{
-    return Collider;
-}
+{ return Collider; }
 
 int Object::get_tex_index()
-{
-    return TEX_INDEX;
-}
+{ return TEX_INDEX; }
 
 int Object::get_type()
-{
-    return T_OBJ;
-}
+{ return T_OBJ; }
 
 int Object::get_team()
-{
-    return team;
-}
+{ return team; }
 
 int Object::get_hitpoints()
-{
-    return hitpoints;
-}
+{ return hitpoints; }
 
 bool Object::is_dead()
-{
-    return dead;
-}
+{ return dead; }
 
 bool Object::is_solid()
-{
-    return solid;
-}
+{ return solid; }
 
-void Object::render( int x, int y, float ang )
+void Object::render( int x, int y, float ang, bool centered )
 {
     if( animated )
     {
@@ -139,10 +125,8 @@ void Object::render( int x, int y, float ang )
         frame.h = frame_h;
         frame.x = (frame_num % frames_x) * frame_w;
         frame.y = (frame_num / frames_x) * frame_h;
-        x += (tex->getWidth()/2-frame.w/2);
-        y += (tex->getHeight()/2-frame.h/2);
 
-        tex->render( x, y, &frame, ang );
+        tex->render( x-frame.w/2, y-frame.h/2, &frame, ang );
 
         //if( (time % something) == 0 )
         //{
@@ -157,6 +141,10 @@ void Object::render( int x, int y, float ang )
             }
         //}
 
-    } else
-        textures[TEX_INDEX].render( x, y, NULL, ang );
+    } else {
+        if( centered )
+            textures[TEX_INDEX].render_center( x, y, NULL, ang );
+        else
+            textures[TEX_INDEX].render( x, y, NULL, ang );
+    }
 }

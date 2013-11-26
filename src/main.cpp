@@ -35,6 +35,8 @@
 #include "Explosion.h"
 //#include "PowerUp.h"
 
+bool show_minimap = true;
+
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
@@ -43,6 +45,9 @@ SDL_Renderer* gRenderer = NULL;
 
 //The texture that everything adjacent will be rendered to before being rotated relative to the ship
 LTexture gTargetTexture;
+
+//The texture that the minimap is rendered to before being rotated relative to the ship
+LTexture gMinimap;
 
 //The angle at which the target texture is rendered
 float Angle_targ = 30.0;
@@ -65,7 +70,6 @@ float yVel_cam = 0.0;
 //boolean config options
 bool targ_Follow_Rotation = true;
 bool targ_Ship_Centered = false;
-
 
 std::vector<std::string> imgfiles (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 std::vector<LTexture> textures (imgfiles.size());
@@ -175,10 +179,22 @@ bool loadMedia()
 
     //Load texture target
     gTargetTexture.setRenderer(gRenderer);
-    if( !gTargetTexture.createBlank( targ_w, targ_h, SDL_TEXTUREACCESS_TARGET ) )
+    if( !gTargetTexture.createBlank( TARG_W, TARG_H, SDL_TEXTUREACCESS_TARGET ) )
     {
-        printf( "Failed to create target texture!\n" );
+        printf( "Failed to create main target texture!\n" );
         success = false;
+    }
+
+    //Load minimap target tex
+    gMinimap.setRenderer(gRenderer);
+    if( !gMinimap.createBlank( textures[MAP].getWidth(), textures[MAP].getHeight(), SDL_TEXTUREACCESS_TARGET ) )
+    {
+        printf( "Failed to create minimap target texture!\n" );
+        success = false;
+    }
+    else {
+        //Set standard alpha blending
+        gMinimap.setBlendMode( SDL_BLENDMODE_BLEND );
     }
 
     //load music
@@ -195,15 +211,15 @@ bool loadMedia()
 //load initial map objects
 void loadObjects()
 {
-    objects.push_back( new Planet(500.0, 500.0) );
-    objects.push_back( new Alien(200.0, -50.0, -35.0) );
-    objects.push_back( new Asteroid(0.0, 0.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1) );
+    objects.push_back( new Planet(350.0, 350.0) );
+    objects.push_back( new Alien(0.0, -250.0, -35.0) );
+    objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1) );
     //objects.push_back( &player );
     
-    players.push_back( new Player(1, 100, 300, 0) );
-    players.push_back( new Player(1, 100, 100, -45) );
-    players.push_back( new Player(2, 300, 100, 180) );
-    players.push_back( new Player(2, 300, 300, 225) );
+    players.push_back( new Player(1, -100, 100, 0) );
+    players.push_back( new Player(1, -100, -100, -45) );
+    players.push_back( new Player(2, 100, -100, 180) );
+    players.push_back( new Player(2, 100, 100, 225) );
 
     for( uint i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
@@ -219,8 +235,8 @@ void render_bg()
         for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
         {
             bool render = false;
-            int xrc = i+targ_cx-xPos_cam; // X render coordinate
-            int yrc = j+targ_cy-yPos_cam; // Y render coordinate
+            int xrc = i+TARG_cX-xPos_cam; // X render coordinate
+            int yrc = j+TARG_cY-yPos_cam; // Y render coordinate
 
             int tilePos_x = i + tile_w/2;
             int tilePos_y = j + tile_h/2;
@@ -231,14 +247,14 @@ void render_bg()
             else { //image is not close enough, so don't render, but first...
                 //...check if the image would be close enough if the map literally wrapped, so...
                 //...we can render tiles from the other side of an edge-wrap to eliminate the void
-                if( abs(tilePos_x + LEVEL_WIDTH - xPos_cam) < Render_Radius ) //r
-                    {xrc += LEVEL_WIDTH; render = true;}
-                if( abs(tilePos_y + LEVEL_HEIGHT - yPos_cam) < Render_Radius ) //b
-                    {yrc += LEVEL_HEIGHT; render = true;}
-                if( abs(tilePos_x - LEVEL_WIDTH - xPos_cam) < Render_Radius ) //l
-                    {xrc -= LEVEL_WIDTH; render = true;}
-                if( abs(tilePos_y - LEVEL_HEIGHT - yPos_cam) < Render_Radius ) //t
-                    {yrc -= LEVEL_HEIGHT; render = true;}
+                if( abs(tilePos_x + LEVEL_WIDTH - xPos_cam) < Render_Radius ) {//r
+                    xrc += LEVEL_WIDTH; render = true;}
+                if( abs(tilePos_y + LEVEL_HEIGHT - yPos_cam) < Render_Radius ) {//b
+                    yrc += LEVEL_HEIGHT; render = true;}
+                if( abs(tilePos_x - LEVEL_WIDTH - xPos_cam) < Render_Radius ) {//l
+                    xrc -= LEVEL_WIDTH; render = true;}
+                if( abs(tilePos_y - LEVEL_HEIGHT - yPos_cam) < Render_Radius ) {//t
+                    yrc -= LEVEL_HEIGHT; render = true;}
             }
             if( render )
                 textures[BACKGROUND].render( xrc, yrc );
@@ -255,32 +271,31 @@ void render_objects()
     {
         float xPos, yPos, Angle; 
         objects[i]->get_values(&xPos, &yPos, &Angle);
-        int tex_index = objects[i]->get_tex_index();
+        //int tex_index = objects[i]->get_tex_index();
 
         bool render = false;
 
-        int xOffset_tex = textures[tex_index].getWidth()/2;
-        int yOffset_tex = textures[tex_index].getHeight()/2;
-        int xrc = xPos+targ_cx-xOffset_tex-xPos_cam; // X render coordinate
-        int yrc = yPos+targ_cy-yOffset_tex-yPos_cam; // Y render coordinate
+        int xrc = xPos+TARG_cX-xPos_cam; // X render coordinate
+        int yrc = yPos+TARG_cY-yPos_cam; // Y render coordinate
 
         // only render if within a certain radius
-        if( abs( xPos - xPos_cam ) < Render_Radius && abs( yPos - yPos_cam ) < Render_Radius )
+        //if( abs( xPos - xPos_cam ) < Render_Radius && abs( yPos - yPos_cam ) < Render_Radius )
+        if( distanceSquared(xPos, yPos, xPos_cam, yPos_cam) < Render_Radius*Render_Radius )
             render = true;
         else {//object is not close enough, so don't render, but first...
             //...check if the object would be close enough if the map literally wrapped, so we can...
             //...render objects from the other side of an edge-wrap so they don't disapper near edges
-            if( abs( xPos + LEVEL_WIDTH - xPos_cam ) < Render_Radius ) //r
-                {xrc += LEVEL_WIDTH; render = true;}
-            if( abs( yPos + LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) //b
-                {yrc += LEVEL_HEIGHT; render = true;}
-            if( abs( xPos - LEVEL_WIDTH - xPos_cam ) < Render_Radius ) //l
-                {xrc -= LEVEL_WIDTH; render = true;}
-            if( abs( yPos - LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) //t
-                {yrc -= LEVEL_HEIGHT; render = true;}
+            if( abs( xPos + LEVEL_WIDTH - xPos_cam ) < Render_Radius ) {//r
+                xrc += LEVEL_WIDTH; render = true;}
+            if( abs( yPos + LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) {//b
+                yrc += LEVEL_HEIGHT; render = true;}
+            if( abs( xPos - LEVEL_WIDTH - xPos_cam ) < Render_Radius ) {//l
+                xrc -= LEVEL_WIDTH; render = true;}
+            if( abs( yPos - LEVEL_HEIGHT - yPos_cam ) < Render_Radius ) {//t
+                yrc -= LEVEL_HEIGHT; render = true;}
         }
         if( render )
-            objects[i]->render(xrc, yrc, Angle);
+            objects[i]->render(xrc, yrc, Angle, true);
         //else they are not close enough, so don't render them.
     }
 }
@@ -330,19 +345,71 @@ void render_healthbar()
 
 void render_minimap()
 {
-    textures[MAP].render(5, 5);
-    // load one the objects in the objects vector 
-    // divide the x posn and y posn by 1000.
-    //multiply by 6 i think (whatever value is = to minimap size/32)
-    //render on those locations.
-    //[figure out how to render different images for different objects.]
-    //objects have a get_type method, which can be used for this
+    gMinimap.setAsRenderTarget();
+    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+    SDL_RenderClear( gRenderer );
+
+    textures[MAP].render(0, 0);
+
+    for( uint i=0; i<objects.size(); i++ )
+    {
+        float xPos, yPos, Angle; 
+        objects[i]->get_values(&xPos, &yPos, &Angle);
+
+        int xrc = xPos-xPos_cam;
+        int yrc = yPos-yPos_cam;
+
+        //edgewrapping stuff
+        if( abs( xPos + LEVEL_WIDTH - xPos_cam ) < Minimap_Radius ) //r
+            xrc += LEVEL_WIDTH;
+        if( abs( yPos + LEVEL_HEIGHT - yPos_cam ) < Minimap_Radius ) //b
+            yrc += LEVEL_HEIGHT;
+        if( abs( xPos - LEVEL_WIDTH - xPos_cam ) < Minimap_Radius ) //l
+            xrc -= LEVEL_WIDTH;
+        if( abs( yPos - LEVEL_HEIGHT - yPos_cam ) < Minimap_Radius ) //t
+            yrc -= LEVEL_HEIGHT;
+
+        if( abs(distanceSquared(xrc+xPos_cam, yrc+yPos_cam, xPos_cam, yPos_cam))
+                < Minimap_Radius*Minimap_Radius )
+        {
+            xrc *= ( ( (float)textures[MAP].getWidth()/2 ) / (Minimap_Radius) ); //scale down the coords
+            yrc *= ( ( (float)textures[MAP].getHeight()/2 ) / (Minimap_Radius) ); //to fit on the minimap
+
+            xrc += textures[MAP].getWidth()/2;
+            yrc += textures[MAP].getHeight()/2;
+
+            if( objects[i]->get_type() == T_PLAYER )
+            {
+                if( players[player]->get_team() == objects[i]->get_team()
+                        && players[player]->get_team() >= 0 )
+                    textures[ICON_SHIP_FRIENDLY].render_center(xrc, yrc, NULL, Angle);
+                else
+                    textures[ICON_SHIP_ENEMY].render_center(xrc, yrc, NULL, Angle);
+            }
+            else if( objects[i]->get_type() == T_PLANET )
+                textures[ICON_PLANET].render_center(xrc, yrc, NULL, Angle);
+            else if( objects[i]->get_type() == T_ALIEN )
+                textures[ICON_SHIP_ENEMY].render_center(xrc, yrc, NULL, Angle);
+            else if( objects[i]->get_type() == T_ASTEROID )
+            {
+                Asteroid* ast = (Asteroid*) objects[i];
+                if( ast->get_size() < 3 )
+                    textures[ICON_ASTEROID].render_center(xrc, yrc, NULL, Angle);
+            }
+        }
+    }
+
+    //Reset render target to the window
+    SDL_SetRenderTarget( gRenderer, NULL );
+
+    gMinimap.render( 5, 5, NULL, -Angle_targ );
 }
 
 void render_overlay()
 {
     render_healthbar();
-    render_minimap();
+    if( show_minimap )
+        render_minimap();
 }
 
 void render()
@@ -470,7 +537,8 @@ int main( int argc, char* args[] )
             loadObjects();
 
             //While application is running
-            Mix_PlayMusic(music, -1);
+            if( MUSIC_ON )
+                Mix_PlayMusic(music, -1);
             while( !quit )
             {
                 //Handle events on queue
@@ -491,6 +559,9 @@ int main( int argc, char* args[] )
                                 quit = true;
                                 break;
                                 //print current ship coords for debugging
+                            case SDLK_TAB:
+                                show_minimap = !show_minimap;
+                                break;
                             case SDLK_x:
                                 float xPos, yPos, Angle, xVel, yVel, rotVel; 
                                 players[player]->get_values(&xPos, &yPos, &Angle, &xVel, &yVel, &rotVel);
@@ -513,6 +584,9 @@ int main( int argc, char* args[] )
                             case SDLK_k:
                                 players[player]->takeDamage(10);
                                 break;
+                            //case SDLK_8:
+                                //SOUND_ON = !SOUND_ON;
+                                //break;
                             case SDLK_9:
                                 Mix_PlayMusic( music, -1);
                                 break;

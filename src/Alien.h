@@ -9,6 +9,8 @@ class Alien : public Ship
         //Initializes variables
         Alien(float xp = 0.0, float yp = 0.0, float ang = 0.0 );
 
+        int get_type();
+
         //Deallocates memory
         //~Alien();
 

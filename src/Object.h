@@ -36,7 +36,7 @@ class Object
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out);
 
-        virtual void render( int x, int y, float ang );
+        virtual void render( int x, int y, float ang, bool centered=false );
 
         virtual void onCollide( Object* collided_with );
 
@@ -106,8 +106,8 @@ class Object
         bool can_take_damage;
 
         //The number of the team this object is on
-        //(objects on the same team can not damage each other)
-        //(objects on team==-1 CAN damage each other)
+        //(objects on the same team can not damage each other with lasers)
+        //(objects on team==-1 CAN damage each other) (Collision damage currently has no source)
         int team;
 
         //if this is true, the object will be removed from the objects vector next cycle

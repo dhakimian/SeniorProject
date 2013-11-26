@@ -11,17 +11,22 @@
 
 typedef unsigned int uint;
 
+const bool MUSIC_ON = false;
+const bool SOUND_ON = false;
+
 //Screen dimension constants
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 900;
+const int SCREEN_HEIGHT = 700;
 
 const int Render_Radius = 1000;
 
-const int targ_w = SCREEN_WIDTH + Render_Radius;
-const int targ_h = SCREEN_HEIGHT + Render_Radius;
+const int Minimap_Radius = 2000;
 
-const int targ_cx = targ_w/2; //The center of the target image, which is...
-const int targ_cy = targ_h/2; //...usually where the player is centered 
+const int TARG_W = SCREEN_WIDTH + Render_Radius;
+const int TARG_H = SCREEN_HEIGHT + Render_Radius;
+
+const int TARG_cX = TARG_W/2; //The center of the target image, which is...
+const int TARG_cY = TARG_H/2; //...usually where the player is centered 
 
 //the distance between the current and target position is divided by this number and...
 //...stored in the appropriate accel/(vel?) var
@@ -35,7 +40,7 @@ const float Separation_vel = 0.01;
 
 //how much the velocity of objects decays each cycle (as a percentage of current speed)
 //you can think of this as the speed lost due to collisions with tiny particles of space debris
-const float Speed_Decay = 0.001;
+const float Speed_Decay = 0.002;
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
@@ -85,8 +90,12 @@ static const std::string imgarr[] = {
     "media/player/SF_Ship/ship_body_t2.png",
     "media/player/SF_Ship/ship_body_Rtilt_t2.png",
     "media/player/SF_Ship/ship_body_Ltilt_t2.png",
+    "media/Powerup/powerup1.png",
     "media/minimap/minimap.png",
-    "media/Powerup/powerup1.png"
+    "media/minimap/minimap-shipfriendly.png",
+    "media/minimap/minimap-shipenemy.png",
+    "media/minimap/minimap-planet.png",
+    "media/minimap/minimap-asteroid.png"
 
 };
 
@@ -135,8 +144,12 @@ enum TextureIndex
     PLAYER_O,
     PLAYER_O_Tlt_R,
     PLAYER_O_Tlt_L,
+    POWERUP,
     MAP,
-    POWERUP
+    ICON_SHIP_FRIENDLY,
+    ICON_SHIP_ENEMY,
+    ICON_PLANET,
+    ICON_ASTEROID
 
 };
 

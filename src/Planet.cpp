@@ -13,3 +13,6 @@ Planet::Planet(float xp, float yp, float ang)
 
     TEX_INDEX = PLANET;
 }
+
+int Planet::get_type()
+{ return T_PLANET; }

@@ -121,23 +121,15 @@ void MovingObject::onCollide( Object* collided_with )
             std::cout<<damage<<" collision damage"<<std::endl;
         takeDamage( damage );
         collided_with->takeDamage( damage );
-    /*} else {
-        if( collided_with->get_type() == T_LASER )
-        {
-            Laser* laser = (Laser*) collided_with;
-            //prevent laser from doing damage for 5 cycles to avoid damaging the ship shooting the laser
-            //if( laser->get_time_left() < Laser::LIFESPAN-5 )
-            if( laser->get_owner() != this && laser->get_owner()->get_team() != team )
-            {
-                //takeDamage(60); // if the other ~30 is caused by explosion damage
-                takeDamage(100);
-            }
-        }*/
         /*
-        else if( collided_with->get_type() == T_EXPLOSION )
+    } else {
+        if( collided_with->get_type() == T_EXPLOSION )
         {
             takeDamage(1);
         }
+        //else if( )
+        //{
+        //}
         */
     }
 }

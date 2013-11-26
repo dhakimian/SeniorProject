@@ -13,6 +13,7 @@ class Asteroid : public MovingObject
 
         int size;
         void set_size(int s);
+        int get_size();
         void split();
 
         int get_type();

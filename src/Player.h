@@ -13,7 +13,7 @@ class Player : public Ship
         void handle_keystate( const Uint8* currentKeyStates );
 
         //client code: render the ship
-        void render( int x, int y, float ang );
+        void render( int x, int y, float ang, bool centered=true );
 
         int get_type();
 

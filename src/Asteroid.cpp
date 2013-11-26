@@ -34,6 +34,9 @@ void Asteroid::set_size(int s)
     }
 }
 
+int Asteroid::get_size()
+{ return size; }
+
 void Asteroid::update()
 {
     MovingObject::update();

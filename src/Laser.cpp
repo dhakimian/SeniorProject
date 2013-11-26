@@ -66,11 +66,15 @@ void Laser::upgrade()
 
 void Laser::onCollide( Object* collided_with )
 {
-    if( collided_with->is_solid() && collided_with != owner )
+    //if( collided_with->is_solid() && collided_with != owner )
+    if( collided_with->is_solid() && collided_with != owner
+            && ( collided_with->get_team() != owner->get_team()
+                || collided_with->get_team() < 0 ) )
     {
-        Mix_PlayChannel( 1, sounds[HIT], 0 );
-        if( collided_with != owner && collided_with->get_team() != owner->get_team() )
-            collided_with->takeDamage(100);
+        if( SOUND_ON )
+            Mix_PlayChannel( 1, sounds[HIT], 0 );
+        collided_with->takeDamage(100);
+        //collided_with->takeDamage(65); //resulting explosion does 35 damage to equal 100
         objects.push_back( new Explosion(xPos, yPos, xVel/10, yVel/10) );
         dead = true;
     }

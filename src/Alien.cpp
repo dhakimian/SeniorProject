@@ -14,7 +14,7 @@ Alien::Alien(float xp, float yp, float ang )
     SHIP_ROT_ACCEL = 0.03;
         */
 
-    Collider.r = 50;
+    //Collider.r = 30;
 
     xPos = xp;
     yPos = yp;
@@ -31,12 +31,8 @@ Alien::Alien(float xp, float yp, float ang )
 
     team = 0;
 
-    //animated = true;
-    //anim_loops = false;
-    //frames_x = 17;
-    //frames_y = 2;
-
-    //TEX_INDEX = ANIMATION;
     TEX_INDEX = ALIEN;
 }
 
+int Alien::get_type()
+{ return T_ALIEN; }
