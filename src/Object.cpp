@@ -64,6 +64,23 @@ void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
     *Angle_out = Angle;
 }
 
+void Object::set_values(float xPos_in, float yPos_in, float Angle_in, float xVel_in, float yVel_in, float rotVel_in)
+{
+    xPos = xPos_in;
+    yPos = yPos_in;
+    Angle = Angle_in;
+    xVel = xVel_in;
+    yVel = yVel_in;
+    rotVel = rotVel_in;
+}
+
+void Object::set_values(float xPos_in, float yPos_in, float Angle_in)
+{
+    xPos = xPos_in;
+    yPos = yPos_in;
+    Angle = Angle_in;
+}
+
 Circle Object::get_collider()
 { return Collider; }
 

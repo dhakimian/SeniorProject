@@ -36,6 +36,9 @@ class Object
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out);
         void get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out);
 
+        void set_values(float xPos_in, float yPos_in, float Angle_in);
+        void set_values(float xPos_in, float yPos_in, float Angle_in, float xVel_in, float yVel_in, float rotVel_in);
+
         virtual void render( int x, int y, float ang, bool centered=false );
 
         virtual void onCollide( Object* collided_with );

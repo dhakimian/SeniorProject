@@ -78,6 +78,7 @@ void MovingObject::update()
     Collider.x = xPos;
     Collider.y = yPos;
 
+    //overlapping=false;
     //Collision checks
     if( !overlapping )
     {
@@ -94,12 +95,21 @@ void MovingObject::onCollide( Object* collided_with )
 {
     if( solid && collided_with->is_solid() )
     {
-        /////
+        float xPos_other, yPos_other, Angle_other, xVel_other, yVel_other, rotVel_other;
+        collided_with->get_values(&xPos_other, &yPos_other, &Angle_other, &xVel_other, &yVel_other, &rotVel_other);
+
+        collided_with->set_values( xPos_other, yPos_other, Angle_other, xVel_other+xVel/VD, yVel_other+yVel/VD, rotVel_other );
+
+        xVel = -xVel/VD;
+        yVel = -yVel/VD;
+        rotVel /= 2;
+        /*
         xVel = 0.0;
         yVel = 0.0;
         rotVel = 0.0;
         //TODO: implement transferal of kinetic energy, or in other words "bounce"
         //      This may require the addition of mass values for objects
+        */
 
         //Undo move left or right
         xPos = xPos_old;
@@ -112,13 +122,11 @@ void MovingObject::onCollide( Object* collided_with )
         /////
 
         //damage the object depending on how fast it was moving when it collided
-        float xVel_other, yVel_other, dummy;
-        collided_with->get_values(&dummy, &dummy, &dummy, &xVel_other, &yVel_other, &dummy);
         float vel_old_squared = abs( xVel_old * xVel_old ) + abs( yVel_old * yVel_old );
         float vel_other_squared = abs( xVel_other * xVel_other ) + abs( yVel_other * yVel_other );
-        int damage = abs( vel_old_squared - vel_other_squared ) * 2; //magic number: needs to be named and moved (TODO)
-        if( damage > 0 )
-            std::cout<<damage<<" collision damage"<<std::endl;
+        int damage = abs( vel_old_squared - vel_other_squared ) * Collision_Damage_multiplier;
+        //if( damage > 0 )
+            //std::cout<<damage<<" collision damage"<<std::endl;
         takeDamage( damage );
         collided_with->takeDamage( damage );
         /*

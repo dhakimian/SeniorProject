@@ -213,7 +213,7 @@ void loadObjects()
 {
     objects.push_back( new Planet(350.0, 350.0) );
     objects.push_back( new Alien(0.0, -250.0, -35.0) );
-    objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, 1) );
+    objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, rand()%7-3, 1) );
     //objects.push_back( &player );
     
     players.push_back( new Player(1, -100, 100, 0) );
@@ -223,6 +223,18 @@ void loadObjects()
 
     for( uint i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
+
+    /* ROCKS EVERYWHERE!
+    for( int i=0; i<300; i++ )
+        objects.push_back( new Asteroid(rand()%2000-1000,rand()%2000-1000,rand()%360,0,0,rand()%7-3,1) );
+    */
+
+    /* EXPLOSION!
+    for( int i=0; i<150; i++ )
+        objects.push_back( new Asteroid(-300+rand()%3-1,-200+rand()%3-1,rand()%360,0,0,0,1) );
+    */
+
+
 }
 
 void render_bg()
@@ -350,6 +362,9 @@ void render_minimap()
     SDL_RenderClear( gRenderer );
 
     textures[MAP].render(0, 0);
+    //if a directional tracking system is implemented, we can modify the MAP texture to have a
+    //pointer of some sort on it, and rotate it here before rendering to it, so that the minimap
+    //can also act as a compass that points to our target
 
     for( uint i=0; i<objects.size(); i++ )
     {
@@ -375,8 +390,8 @@ void render_minimap()
             xrc *= ( ( (float)textures[MAP].getWidth()/2 ) / (Minimap_Radius) ); //scale down the coords
             yrc *= ( ( (float)textures[MAP].getHeight()/2 ) / (Minimap_Radius) ); //to fit on the minimap
 
-            xrc += textures[MAP].getWidth()/2;
-            yrc += textures[MAP].getHeight()/2;
+            xrc += textures[MAP].getWidth()/2;  //shift the coords so that they are centered on
+            yrc += textures[MAP].getHeight()/2; //the center of the minimap, not 0,0
 
             if( objects[i]->get_type() == T_PLAYER )
             {
@@ -393,8 +408,13 @@ void render_minimap()
             else if( objects[i]->get_type() == T_ASTEROID )
             {
                 Asteroid* ast = (Asteroid*) objects[i];
-                if( ast->get_size() < 3 )
+                if( ast->get_size() == 1 ) 
                     textures[ICON_ASTEROID].render_center(xrc, yrc, NULL, Angle);
+                else if( ast->get_size() == 2 )
+                    textures[ICON_ASTEROIDMINI].render_center(xrc, yrc, NULL, Angle);
+                else if( ast->get_size() == 3 )
+                    textures[ICON_ASTEROIDTINY].render_center(xrc, yrc, NULL, Angle);
+                //tiny asteroid are too small to be picked up on long range sensors?
             }
         }
     }

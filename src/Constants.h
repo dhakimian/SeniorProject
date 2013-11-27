@@ -14,6 +14,8 @@ typedef unsigned int uint;
 const bool MUSIC_ON = false;
 const bool SOUND_ON = false;
 
+const float VD = 10; //VEL_DIVIDER
+
 //Screen dimension constants
 const int SCREEN_WIDTH = 900;
 const int SCREEN_HEIGHT = 700;
@@ -41,6 +43,9 @@ const float Separation_vel = 0.01;
 //how much the velocity of objects decays each cycle (as a percentage of current speed)
 //you can think of this as the speed lost due to collisions with tiny particles of space debris
 const float Speed_Decay = 0.002;
+
+//This number is multiplied by an object's velocity to calculate collision damage
+const float Collision_Damage_multiplier = 2;
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
@@ -95,7 +100,9 @@ static const std::string imgarr[] = {
     "media/minimap/minimap-shipfriendly.png",
     "media/minimap/minimap-shipenemy.png",
     "media/minimap/minimap-planet.png",
-    "media/minimap/minimap-asteroid.png"
+    "media/minimap/minimap-asteroid.png",
+    "media/minimap/minimap-asteroidmini.png",
+    "media/minimap/minimap-asteroidtiny.png"
 
 };
 
@@ -149,7 +156,9 @@ enum TextureIndex
     ICON_SHIP_FRIENDLY,
     ICON_SHIP_ENEMY,
     ICON_PLANET,
-    ICON_ASTEROID
+    ICON_ASTEROID,
+    ICON_ASTEROIDMINI,
+    ICON_ASTEROIDTINY
 
 };
 
