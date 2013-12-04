@@ -29,11 +29,11 @@ Ship::Ship(float xp, float yp, float ang )
     rotVel = 0.0;
 
     pool_size = 5;
-    Req_Cooldown = 30;
-    cooldown = 0;
+    Cooldown = 30;
+    cooldown_rem = 0;
 
-    Req_upgrade_cooldown = 100;
-    upgrade_cooldown = 0;
+    Upgrade_cooldown = 100;
+    upgrade_cooldown_rem = 0;
 
     shoot_sound_current_strength = sounds[SINGLE_LASER];
 
@@ -56,10 +56,12 @@ void Ship::update()
     else
     {
         MovingObject::update();
-        if( cooldown > 0 )
-            cooldown--;
-        if( upgrade_cooldown > 0 )
-            upgrade_cooldown--;
+
+        if( cooldown_rem > 0 )
+            cooldown_rem--;
+        if( upgrade_cooldown_rem > 0 )
+            upgrade_cooldown_rem--;
+
         for( uint i=0; i<active_lasers.size(); i++ )
         {
             if( active_lasers[i]->is_dead() )
@@ -122,8 +124,8 @@ void Ship::thrust_r() // fire starboard thrusters, moving the ship left
 
 void Ship::weapons_upgrade()
 {
-    if (upgrade_cooldown == 0) {
-        upgrade_cooldown = Req_upgrade_cooldown;
+    if (upgrade_cooldown_rem == 0) {
+        upgrade_cooldown_rem = Upgrade_cooldown;
         if( SOUND_ON )
             Mix_PlayChannel( -1, sounds[GET_POWERUP], 0);
 
@@ -137,29 +139,29 @@ void Ship::weapons_upgrade()
         if (soundindex == 2)
         {
             shoot_sound_current_strength = sounds[DOUBLE_LASER];
-            Req_Cooldown = 23;
+            Cooldown = 23;
         }
         else if (soundindex == 3)
         {
             shoot_sound_current_strength = sounds[DOUBLE_LASER];
-            Req_Cooldown = 17;
+            Cooldown = 17;
         }
         else if (soundindex == 4)
         {
             shoot_sound_current_strength = sounds[HYPER_LASER];
-            Req_Cooldown = 14;
+            Cooldown = 14;
         }
         else if (soundindex >= 5)
         {
             shoot_sound_current_strength = sounds[HYPER_LASER];
-            Req_Cooldown = 10;
+            Cooldown = 10;
         }
     }
 }
 
 void Ship::shoot()
 {
-    if( cooldown <= 0 && laser_pool.size() > 0 )
+    if( cooldown_rem <= 0 && laser_pool.size() > 0 )
     {
         //shoot a laser;
         if( SOUND_ON )
@@ -176,7 +178,7 @@ void Ship::shoot()
         active_lasers.push_back( laser_pool.back() );
         objects.push_back( laser_pool.back() );
         laser_pool.pop_back();
-        cooldown = Req_Cooldown;
+        cooldown_rem = Cooldown;
     }
 
 }

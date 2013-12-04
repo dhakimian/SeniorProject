@@ -111,7 +111,8 @@ bool init()
         }
 
         //Create window
-        gWindow = SDL_CreateWindow( "Spaceship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        //gWindow = SDL_CreateWindow( "Spaceship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow( "Spaceship Game", 400, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         if( gWindow == NULL )
         {
             printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -211,28 +212,30 @@ bool loadMedia()
 //load initial map objects
 void loadObjects()
 {
-    objects.push_back( new Planet(350.0, 350.0) );
-    objects.push_back( new Alien(0.0, -250.0, -35.0) );
-    objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, rand()%7-3, 1) );
+    objects.push_back( new Planet(1350.0, 1350.0) );
+    objects.push_back( new Alien(1000.0, 750.0, 1065.0) );
+    //objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, rand()%7-3, 1) );
+    objects.push_back( new Asteroid(800.0, 800.0, 0.0, -1, -1, randBetween(-20,20)/10, 1) );
     //objects.push_back( &player );
-    
-    players.push_back( new Player(1, -100, 100, 0) );
-    players.push_back( new Player(1, -100, -100, -45) );
-    players.push_back( new Player(2, 100, -100, 180) );
-    players.push_back( new Player(2, 100, 100, 225) );
+
+    players.push_back( new Player(1, 900, 1100, 0) );
+    players.push_back( new Player(1, 900, 900, -45) );
+    players.push_back( new Player(2, 1100, 900, 180) );
+    players.push_back( new Player(2, 1100, 1100, 225) );
 
     for( uint i=0; i<players.size(); i++ )
         objects.push_back( players[i] );
 
     /* ROCKS EVERYWHERE!
-    for( int i=0; i<300; i++ )
-        objects.push_back( new Asteroid(rand()%2000-1000,rand()%2000-1000,rand()%360,0,0,rand()%7-3,1) );
-    */
+       for( int i=0; i<200; i++ )
+       objects.push_back( new Asteroid(randBetween(-500,2500), randBetween(-500,2500), rand()%360,
+                   frandBetween(-10,10)/10, frandBetween(-10,10)/10, frandBetween(-20,20)/10, 1) );
+   */
 
     /* EXPLOSION!
-    for( int i=0; i<150; i++ )
-        objects.push_back( new Asteroid(-300+rand()%3-1,-200+rand()%3-1,rand()%360,0,0,0,1) );
-    */
+       for( int i=0; i<150; i++ )
+       objects.push_back( new Asteroid(700+frandBetween(-10,10)/10,800+frandBetween(-10,10)/10,rand()%360,0,0,0,1) );
+   */
 
 
 }
@@ -483,7 +486,7 @@ void render()
 
     xVel_targ = diff_x/Deccel_targ;
     yVel_targ = diff_y/Deccel_targ;
-    
+
     xOffset_targ += xVel_targ;
     yOffset_targ += yVel_targ;
 
@@ -505,7 +508,7 @@ void render()
 
     xVel_cam = xVel_pl + diff_x/Deccel_cam;
     yVel_cam = yVel_pl + diff_y/Deccel_cam;
-    
+
     xPos_cam = fmod( (xPos_cam + xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
     yPos_cam = fmod( (yPos_cam + yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
 
@@ -587,6 +590,7 @@ int main( int argc, char* args[] )
                                 players[player]->get_values(&xPos, &yPos, &Angle, &xVel, &yVel, &rotVel);
                                 std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
                                 std::cout << "xv: " << xVel << " | yv: " << yVel << std::endl;
+                                std::cout << "vel: "<<sqrt( xVel*xVel + yVel*yVel )<<std::endl;
                                 break;
                             case SDLK_h:
                                 std::cout<<players[player]->get_hitpoints()<<" HP"<<std::endl;
@@ -604,7 +608,7 @@ int main( int argc, char* args[] )
                             case SDLK_k:
                                 players[player]->takeDamage(10);
                                 break;
-                            //case SDLK_8:
+                                //case SDLK_8:
                                 //SOUND_ON = !SOUND_ON;
                                 //break;
                             case SDLK_9:

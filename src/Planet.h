@@ -14,6 +14,8 @@ class Planet : public Object
 
         int get_type();
 
+        void update();
+
     private:
         //gravity radius of effect
         int G_RAD;

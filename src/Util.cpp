@@ -14,6 +14,24 @@ double distanceSquared( int x1, int y1, int x2, int y2 )
     return deltaX*deltaX + deltaY*deltaY;
 }
 
+int randBetween( int n1, int n2 )
+{
+    if( n1 == n2 )
+        return n1;
+    else if( n1 < n2 )
+        return ( rand() % (n2-n1+1) ) + n1 ;
+    else {
+        std::cerr<<"randBetween: first arg must be less then second arg"<<std::endl;
+        return 0;
+    }
+
+}
+
+float frandBetween( int n1, int n2 )
+{
+    return (float)randBetween( n1, n2 );
+}
+
 /**
  * Log an SDL error with some error message to the output stream of our choice
  * @param os The output stream to write the message too

@@ -51,8 +51,8 @@ class Ship : public MovingObject
 
         Mix_Chunk *shoot_sound_current_strength;
         int soundindex;
-        int upgrade_cooldown;
-        int Req_upgrade_cooldown;
+        int Upgrade_cooldown;
+        int upgrade_cooldown_rem;
 
         //The size of the laser object pool
         int pool_size;
@@ -64,10 +64,9 @@ class Ship : public MovingObject
         std::vector<Laser*> active_lasers;
 
         //time needed between shots
-        int Req_Cooldown;
-
-        //time left before another laser can be shot
-        int cooldown;
+        int Cooldown;
+        //time remaining before another laser can be shot
+        int cooldown_rem;
 
 };
 #endif

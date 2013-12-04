@@ -17,6 +17,13 @@ class Asteroid : public MovingObject
         void split();
 
         int get_type();
+
+    private:
+
+        //how many smaller asteroids a bigger one splits into
+        int split_num;
+        float mass_max; //the mass of the largest size of asteroid
+
 };
 
 #endif
