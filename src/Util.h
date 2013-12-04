@@ -16,11 +16,11 @@ void toggle_fullscreen(SDL_Window *win);
 //Calculates distance squared between two points
 double distanceSquared( int x1, int y1, int x2, int y2 );
 
-void logSDLError(std::ostream &os, const std::string &msg);
+//return a random number between n1 and n2 inclusively
+int randBetween(int n1, int n2);
+//return the int as a float so you don't have put (float) before randBetween (7->1 characters)
+float frandBetween(int n1, int n2);
 
-//---
-SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren);
-void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int w, int h);
-void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y);
+void logSDLError(std::ostream &os, const std::string &msg);
 
 #endif

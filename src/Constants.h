@@ -14,8 +14,6 @@ typedef unsigned int uint;
 const bool MUSIC_ON = false;
 const bool SOUND_ON = false;
 
-const float VD = 10; //VEL_DIVIDER
-
 //Screen dimension constants
 const int SCREEN_WIDTH = 900;
 const int SCREEN_HEIGHT = 700;
@@ -44,8 +42,11 @@ const float Separation_vel = 0.01;
 //you can think of this as the speed lost due to collisions with tiny particles of space debris
 const float Speed_Decay = 0.002;
 
-//This number is multiplied by an object's velocity to calculate collision damage
-const float Collision_Damage_multiplier = 2;
+//This number is multiplied by an object's velocity(^2?) to calculate collision damage
+const float Collision_Damage_multiplier = 30;
+
+const float CVD = 5; //COLLISION_VEL_DIVIDER
+const float LOSS_FACTOR = 2;
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky

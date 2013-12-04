@@ -10,6 +10,8 @@ Asteroid::Asteroid(float x, float y, float ang, float xv, float yv, float rv, in
     xVel = xv;
     yVel = yv;
     rotVel = rv;
+    split_num = 3;
+    mass_max = 90;
     set_size(s);
 }
 
@@ -33,6 +35,7 @@ void Asteroid::set_size(int s)
             TEX_INDEX = TINY_ASTEROID;
             hitpoints = 100;
     }
+    mass = mass_max * ( pow( 1/(float)split_num, size-1 ) );
 }
 
 int Asteroid::get_size()
@@ -49,10 +52,25 @@ void Asteroid::split()
 { 
     if(size < 3){
         set_size(size+1);
-        for (int i=0; i<2; i++) {
-            //objects.push_back(new Asteroid(xPos, yPos, Angle, ((double) rand()/RAND_MAX) -0.5, ((float) rand()/RAND_MAX)-0.5, size));
-            objects.push_back( new Asteroid(xPos+rand()%7-3, yPos+rand()%7-3, Angle, 0, 0, rand()%7-3, size) );
+        float xva = 0; //vel accumulators
+        float yva = 0; //vel accumulators
+        for (int i=0; i<split_num-1; i++)
+        {
+            float xVel_new = frandBetween(-15,15)/10;
+            float yVel_new = frandBetween(-15,15)/10;
+            //float xVel_new = randBetween(-1,1);
+            //float yVel_new = randBetween(-1,1);
+            xva += xVel_new;
+            yva += yVel_new;
+            objects.push_back( new Asteroid(xPos+randBetween(-3,3), yPos+randBetween(-3,3), Angle, xVel+xVel_new, yVel+yVel_new, frandBetween(-20,20)/10, size ) );
+            //objects.push_back( new Asteroid(xPos, yPos, Angle, xVel+rand()%5-2, yVel+rand()%5-2, rand()%5-2, size) );
+            //objects.push_back( new Asteroid(xPos+rand()%7-3, yPos+rand()%7-3, Angle, 0, 0, rand()%7-3, size) );
         }
+        xPos += randBetween(-3,3);
+        yPos += randBetween(-3,3);
+        xVel -= xva; //Ensure that the sum of all the velocities of the parts...
+        yVel -= yva; //...is equal to zero, for conservation of momentum or something
+        rotVel = frandBetween(-20,20)/10;
     }
     else dead = true;
 }

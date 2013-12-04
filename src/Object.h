@@ -54,6 +54,8 @@ class Object
         int get_team();
 
         int get_hitpoints();
+
+        float get_mass();
         
         bool is_dead();
 
@@ -63,6 +65,9 @@ class Object
 
         //the index of the default image to render for instances of this object
         int TEX_INDEX;
+
+        //amount of rgb in the image. defaults to full 255 for each, can be reduced to colorize image
+        int red, green, blue;
 
         //whether or not the image is to be animated
         bool animated;
@@ -106,11 +111,20 @@ class Object
         //object's current hitpoints
         int hitpoints;
 
+        //object's mass in unspecified arbitrary units
+        float mass;
+
+        //self-explanatory
         bool can_take_damage;
 
+        //how many cycles the object flashes red after taking damage
+        int Dmg_flash_dur;
+        //how many cycles are left to appear red
+        int dmg_flash_rem;
+
         //The number of the team this object is on
-        //(objects on the same team can not damage each other with lasers)
-        //(objects on team==-1 CAN damage each other) (Collision damage currently has no source)
+        //(objects on the same team can not damage or collide with each other)
+        //(objects on team==-1 CAN damage and collide with each other)
         int team;
 
         //if this is true, the object will be removed from the objects vector next cycle

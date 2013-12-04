@@ -28,6 +28,7 @@ Alien::Alien(float xp, float yp, float ang )
 
     MAX_HP = 2000;
     hitpoints = MAX_HP;
+    mass = 50;
 
     team = 0;
 

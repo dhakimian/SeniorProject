@@ -34,7 +34,7 @@ void MovingObject::update()
     //Collider.x = xPos;
     //Collider.y = yPos;
 
-    bool overlapping = false;
+    std::vector<Object*> overlapping;
 
     //check if object is already colliding
     for( uint i=0; i<objects.size(); i++ )
@@ -47,7 +47,7 @@ void MovingObject::update()
                 && checkCollision( Collider, other_collider )
           )
         {
-            overlapping = true;
+            overlapping.push_back(objects[i]);
             if( (Collider.x - other_collider.x) < 0 )
                 xVel -= Separation_vel;
             else
@@ -84,14 +84,14 @@ void MovingObject::update()
     Collider.y = yPos;
 
     //Next-frame collision checks
-    if( !overlapping )
+    for( uint i=0; i<objects.size(); i++ )
     {
-        for( uint i=0; i<objects.size(); i++ )
-        {
-            Circle other_collider = objects[i]->get_collider();
-            if( objects[i] != this && checkCollision( Collider, other_collider ) )
-                onCollide( objects[i] );
-        }
+        Circle other_collider = objects[i]->get_collider();
+        std::vector<Object*>::iterator obj;
+        obj = std::find(overlapping.begin(), overlapping.end(), objects[i]);
+        if( objects[i] != this && obj == overlapping.end()
+                && checkCollision( Collider, other_collider ) )
+            onCollide( objects[i] );
     }
 }
 

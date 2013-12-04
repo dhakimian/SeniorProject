@@ -18,6 +18,7 @@ Object::Object()
     can_take_damage = false;
     solid = true;
     team = -1;
+    mass = 30;
 
     dead = false;
 
@@ -30,11 +31,33 @@ Object::Object()
     frames_x = 0;
     frames_y = 0;
 
+    red = 255;
+    green = 255;
+    blue = 255;
+    Dmg_flash_dur = 10;
+    dmg_flash_rem = 0;
+
     TEX_INDEX = 1;
 }
 
 void Object::update()
 {
+    if( can_take_damage )
+    {
+        if( dmg_flash_rem > 0 )
+        {
+            dmg_flash_rem--;
+            uint diff = 255 - green;
+            green += diff/4;
+            blue += diff/4;
+        }
+        if( dmg_flash_rem <= 0 )
+        {
+            red = 255;
+            green = 255;
+            blue = 255;
+        }
+    }
 }
 
 void Object::onCollide( Object* collided_with )
@@ -43,8 +66,14 @@ void Object::onCollide( Object* collided_with )
 
 void Object::takeDamage( int amount )
 {
-    if( can_take_damage )
+    if( can_take_damage && amount > 0 )
+    {
         hitpoints -= amount;
+        dmg_flash_rem = Dmg_flash_dur;
+        red = 255;
+        green = 150;
+        blue = 150;
+    }
 }
 
 void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out)
@@ -96,6 +125,9 @@ int Object::get_team()
 int Object::get_hitpoints()
 { return hitpoints; }
 
+float Object::get_mass()
+{ return mass; }
+
 bool Object::is_dead()
 { return dead; }
 
@@ -104,9 +136,18 @@ bool Object::is_solid()
 
 void Object::render( int x, int y, float ang, bool centered )
 {
+    LTexture* tex = &textures[TEX_INDEX];
+    tex->setColor( red, green, blue );
+    /*
+    if( !solid )
+    {
+       tex->setBlendMode( SDL_BLENDMODE_BLEND );
+       tex->setAlpha( 155 );
+    }
+    */
+
     if( animated )
     {
-        LTexture* tex = &textures[TEX_INDEX];
         SDL_Rect frame;
 
         if( frame_w == 0 )

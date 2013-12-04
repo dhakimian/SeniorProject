@@ -18,6 +18,7 @@ Player::Player(int teamnumber, float xp, float yp, float ang )
     hitpoints = MAX_HP;
 
     team = teamnumber;
+    TEX_INDEX = PLAYER;
 
     if (team == 2)
     {
@@ -103,7 +104,6 @@ void Player::render( int x, int y, float ang, bool centered )
 {
     // here is my(robs) added code that implements a cool ship that has some moving parts.
 
-
     //renders the thruster images according to which keys are pressed.
     if(upKey)
         textures[PLAYER_THR_B].render_center( x, y, NULL, ang );
@@ -154,4 +154,3 @@ void Player::render( int x, int y, float ang, bool centered )
         textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
     }
 }
-
