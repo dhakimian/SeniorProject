@@ -35,7 +35,7 @@ Ship::Ship(float xp, float yp, float ang )
     Upgrade_cooldown = 100;
     upgrade_cooldown_rem = 0;
 
-    shoot_sound_current_strength = sounds[SINGLE_LASER];
+    shoot_sound_current_strength = g_sounds[SINGLE_LASER];
 
     for( int i=0; i<pool_size; i++ )
         laser_pool.push_back( new Laser() );
@@ -127,7 +127,7 @@ void Ship::weapons_upgrade()
     if (upgrade_cooldown_rem == 0) {
         upgrade_cooldown_rem = Upgrade_cooldown;
         if( SOUND_ON )
-            Mix_PlayChannel( -1, sounds[GET_POWERUP], 0);
+            Mix_PlayChannel( -1, g_sounds[GET_POWERUP], 0);
 
         for( uint i=0; i < laser_pool.size(); i++ )
             laser_pool[i]->upgrade();
@@ -138,22 +138,22 @@ void Ship::weapons_upgrade()
 
         if (soundindex == 2)
         {
-            shoot_sound_current_strength = sounds[DOUBLE_LASER];
+            shoot_sound_current_strength = g_sounds[DOUBLE_LASER];
             Cooldown = 23;
         }
         else if (soundindex == 3)
         {
-            shoot_sound_current_strength = sounds[DOUBLE_LASER];
+            shoot_sound_current_strength = g_sounds[DOUBLE_LASER];
             Cooldown = 17;
         }
         else if (soundindex == 4)
         {
-            shoot_sound_current_strength = sounds[HYPER_LASER];
+            shoot_sound_current_strength = g_sounds[HYPER_LASER];
             Cooldown = 14;
         }
         else if (soundindex >= 5)
         {
-            shoot_sound_current_strength = sounds[HYPER_LASER];
+            shoot_sound_current_strength = g_sounds[HYPER_LASER];
             Cooldown = 10;
         }
     }
@@ -176,7 +176,7 @@ void Ship::shoot()
         laser_pool.back()->set_values(this, xp, yp, Angle, xv, yv);
 
         active_lasers.push_back( laser_pool.back() );
-        objects.push_back( laser_pool.back() );
+        g_objects.push_back( laser_pool.back() );
         laser_pool.pop_back();
         cooldown_rem = Cooldown;
     }

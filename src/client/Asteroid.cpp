@@ -60,7 +60,7 @@ void Asteroid::split()
             float yVel_new = frandBetween(-15,15)/10;
             xva += xVel_new;
             yva += yVel_new;
-            objects.push_back( new Asteroid(xPos+randBetween(-3,3), yPos+randBetween(-3,3), Angle, xVel+xVel_new, yVel+yVel_new, frandBetween(-20,20)/10, size ) );
+            g_objects.push_back( new Asteroid(xPos+randBetween(-3,3), yPos+randBetween(-3,3), Angle, xVel+xVel_new, yVel+yVel_new, frandBetween(-20,20)/10, size ) );
         }
         xPos += randBetween(-3,3);
         yPos += randBetween(-3,3);

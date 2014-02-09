@@ -5,9 +5,12 @@
 *.dll
 *.exe
 *.o
+*.Po
 *.so
 *.swp
 our_game
+#server
+#client
 
 # Packages #
 ############
@@ -37,3 +40,20 @@ our_game
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Automake files #
+##################
+*.in
+compile
+config.h
+config.h.in~
+config.status
+configure
+depcomp
+install-sh
+missing
+Makefile
+stamp-h1
+.dirstamp
+aclocal.m4
+autom4te.cache/

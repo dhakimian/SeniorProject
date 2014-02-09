@@ -136,7 +136,7 @@ bool Object::is_solid()
 
 void Object::render( int x, int y, float ang, bool centered )
 {
-    LTexture* tex = &textures[TEX_INDEX];
+    LTexture* tex = &g_textures[TEX_INDEX];
     tex->setColor( red, green, blue );
     /*
     if( !solid )
@@ -201,8 +201,8 @@ void Object::render( int x, int y, float ang, bool centered )
 
     } else {
         if( centered )
-            textures[TEX_INDEX].render_center( x, y, NULL, ang );
+            g_textures[TEX_INDEX].render_center( x, y, NULL, ang );
         else
-            textures[TEX_INDEX].render( x, y, NULL, ang );
+            g_textures[TEX_INDEX].render( x, y, NULL, ang );
     }
 }

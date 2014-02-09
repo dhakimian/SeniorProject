@@ -3,6 +3,8 @@
 #include <iostream>
 #include "Vec2D.h"
 
+//TODO update from unpushed work in SofDev/Project
+
 MovingObject::MovingObject()
 {
     xVel = 0.0;
@@ -37,13 +39,13 @@ void MovingObject::update()
     bool overlapping = false;
 
     //check if object is already colliding
-    for( uint i=0; i<objects.size(); i++ )
+    for( uint i=0; i<g_objects.size(); i++ )
     {
-        Circle other_collider = objects[i]->get_collider();
-        if( solid && objects[i]->is_solid()
-                && (objects[i] != this)
-                && ( objects[i]->get_team() != get_team()
-                    || objects[i]->get_team() < 0 )
+        Circle other_collider = g_objects[i]->get_collider();
+        if( solid && g_objects[i]->is_solid()
+                && (g_objects[i] != this)
+                && ( g_objects[i]->get_team() != get_team()
+                    || g_objects[i]->get_team() < 0 )
                 && checkCollision( Collider, other_collider )
           )
         {
@@ -86,11 +88,11 @@ void MovingObject::update()
     //Next-frame collision checks
     if( !overlapping )
     {
-        for( uint i=0; i<objects.size(); i++ )
+        for( uint i=0; i<g_objects.size(); i++ )
         {
-            Circle other_collider = objects[i]->get_collider();
-            if( objects[i] != this && checkCollision( Collider, other_collider ) )
-                onCollide( objects[i] );
+            Circle other_collider = g_objects[i]->get_collider();
+            if( g_objects[i] != this && checkCollision( Collider, other_collider ) )
+                onCollide( g_objects[i] );
         }
     }
 }

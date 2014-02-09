@@ -87,7 +87,7 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
     if( SOUND_ON && (rightKey || leftKey || upKey || downKey || strafeRight || strafeLeft ) && (hitpoints > 0) )
     {
         if(Mix_Playing(7) == 0 )
-            Mix_PlayChannel(7, sounds[THRUST], 0);
+            Mix_PlayChannel(7, g_sounds[THRUST], 0);
         else
             Mix_Resume(7);
     }
@@ -106,51 +106,51 @@ void Player::render( int x, int y, float ang, bool centered )
 
     //renders the thruster images according to which keys are pressed.
     if(upKey)
-        textures[PLAYER_THR_B].render_center( x, y, NULL, ang );
+        g_textures[PLAYER_THR_B].render_center( x, y, NULL, ang );
     if(leftKey && !downKey)
-        textures[PLAYER_THR_L].render_center( x, y, NULL, ang );
+        g_textures[PLAYER_THR_L].render_center( x, y, NULL, ang );
     if(rightKey && !downKey)
-        textures[PLAYER_THR_R].render_center( x, y, NULL, ang );
+        g_textures[PLAYER_THR_R].render_center( x, y, NULL, ang );
     if(downKey)
-        textures[PLAYER_THR_F].render_center( x, y, NULL, ang );
+        g_textures[PLAYER_THR_F].render_center( x, y, NULL, ang );
     if(rightKey && downKey)
-        textures[PLAYER_THR_R].render_center( x, y, NULL, ang );
+        g_textures[PLAYER_THR_R].render_center( x, y, NULL, ang );
     if(leftKey && downKey)
-        textures[PLAYER_THR_L].render_center( x, y, NULL, ang );
+        g_textures[PLAYER_THR_L].render_center( x, y, NULL, ang );
 
     //these conditionals draw different wing orentations depending on which direction the ship is turning.
     if(downKey && !upKey) {
-        textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_B].render_center(x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_B].render_center(x, y, NULL, ang);
     } else if(leftKey && !rightKey && !downKey) {
-        textures[TEX_TEAM_INDEX_L].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_L].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_L].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_L].render_center( x, y, NULL, ang);
     } else if(rightKey && !leftKey && !downKey) {
-        textures[TEX_TEAM_INDEX_R].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_R].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_R].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_R].render_center( x, y, NULL, ang);
     } else if(upKey && !downKey && !leftKey && !rightKey && !strafeLeft && !strafeRight) {
-        textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
     } else if(downKey && leftKey && rightKey) {
-        textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_B].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_B].render_center( x, y, NULL, ang);
     } else if(leftKey && rightKey && downKey) {
-        textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_B].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_B].render_center( x, y, NULL, ang);
     } else if((downKey && upKey) || (leftKey && rightKey)) {
-        textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
     } else if(strafeRight && !strafeLeft) {
-        textures[TEX_TEAM_INDEX_R].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_R].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
     } else if(strafeLeft && !strafeRight) {
-        textures[TEX_TEAM_INDEX_L].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_L].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
     } else if(upKey && !downKey && !leftKey && !rightKey && strafeLeft && strafeRight) {
-        textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
     } else if(!downKey && !upKey && !leftKey && !rightKey) {
-        textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
-        textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
+        g_textures[TEX_TEAM_INDEX_BODY].render_center( x, y, NULL, ang);
+        g_textures[PLAYER_WNG_NORM].render_center( x, y, NULL, ang);
     }
 }

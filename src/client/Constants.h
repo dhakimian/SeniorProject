@@ -35,10 +35,10 @@ const float rotDeccel_targ = 15.0;
 const float Deccel_targ = 10.0;
 const float Deccel_cam = 15.0;
 
-//speed at which objects that are overlapping move away from each other
+//speed at which g_objects that are overlapping move away from each other
 const float Separation_vel = 0.01;
 
-//how much the velocity of objects decays each cycle (as a percentage of current speed)
+//how much the velocity of g_objects decays each cycle (as a percentage of current speed)
 //you can think of this as the speed lost due to collisions with tiny particles of space debris
 const float Speed_Decay = 0.002;
 
@@ -183,15 +183,15 @@ enum SoundIndex
     GET_POWERUP
 };
 
-extern std::vector<std::string> imgfiles;
-extern std::vector<LTexture> textures;
+extern std::vector<std::string> g_imgfiles;
+extern std::vector<LTexture> g_textures;
 
 //class Mix_Chunk; //forward declaration for the following vector
-extern std::vector<std::string> sndfiles;
-extern std::vector<Mix_Chunk*> sounds;
+extern std::vector<std::string> g_sndfiles;
+extern std::vector<Mix_Chunk*> g_sounds;
 
 class Object; // forward declaration for the following vector
-extern std::vector<Object*> objects;
+extern std::vector<Object*> g_objects;
  
 enum ObjectType { // Constants for identifying object type, to avoid doing string compares
     T_OBJ,        // T_ stands for type_
