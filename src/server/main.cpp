@@ -606,10 +606,10 @@ void handle_keystate(const Uint8* currentKeyStates)
     }
 
     if(rotLeft)
-        g_Angle_camdest -= 1;
+        g_Angle_camdest -= 2;
 
     if(rotRight)
-        g_Angle_camdest += 1;
+        g_Angle_camdest += 2;
 
 }
 
