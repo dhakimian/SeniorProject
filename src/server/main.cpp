@@ -34,7 +34,7 @@
 #include "Laser.h"
 #include "Asteroid.h"
 #include "Explosion.h"
-//#include "Powerup.h"
+#include "Powerup.h"
 
 bool g_show_minimap = true;
 
@@ -249,13 +249,12 @@ bool loadMedia()
     return success;
 }
 
-//load initial map objects
-void loadObjects()
+void loadObjects() //load initial map objects
 {
     g_objects.push_back( new Planet(1350.0, 1350.0) );
     g_objects.push_back( new Alien(1000.0, 750.0, 1065.0) );
     //g_objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, rand()%7-3, 1) );
-    g_objects.push_back( new Asteroid(800.0, 800.0, 0.0, -1, -1, randBetween(-20,20)/10, 1) );
+    g_objects.push_back( new Asteroid(800.0, 800.0, 0.0, -1, -1, frandBetween(-20,20)/10, 1) );
     //g_objects.push_back( &player );
 
     g_players.push_back( new Player(1, 900, 1100, 0) );
@@ -266,11 +265,11 @@ void loadObjects()
     for( uint i=0; i<g_players.size(); i++ )
         g_objects.push_back( g_players[i] );
 
-    /* ROCKS EVERYWHERE!
-       for( int i=0; i<200; i++ )
-       g_objects.push_back( new Asteroid(randBetween(-500,2500), randBetween(-500,2500), rand()%360,
-       frandBetween(-10,10)/10, frandBetween(-10,10)/10, frandBetween(-20,20)/10, 1) );
-       */
+    ///* ROCKS EVERYWHERE!
+    for( int i=0; i<200; i++ )
+        g_objects.push_back( new Asteroid(randBetween(-500,2500), randBetween(-500,2500), rand()%360,
+                    frandBetween(-10,10)/10, frandBetween(-10,10)/10, frandBetween(-20,20)/10, 1) );
+    //*/
 
     /* EXPLOSION!
        for( int i=0; i<150; i++ )
@@ -322,7 +321,7 @@ void render_objects()
 {
     //loop through the list of currently present g_objects to render them
     for( uint i=0; i<g_objects.size(); i++ )
-        //for( int i=g_objects.size()-1; i>=0; i-- )
+    //for( int i=g_objects.size()-1; i>=0; i-- )
     {
         float xPos, yPos, Angle; 
         g_objects[i]->get_values(&xPos, &yPos, &Angle);
@@ -735,7 +734,8 @@ int main( int argc, char* args[] )
                 {
                     if( g_objects[i]->is_dead() )
                     {
-                        //delete g_objects[i]; //this currently causes bugs
+                        if( !g_objects[i]->is_persistent() )
+                            delete g_objects[i];
                         g_objects.erase( g_objects.begin()+i );
                         i--;
                     } else

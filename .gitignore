@@ -11,6 +11,7 @@
 our_game
 #server
 #client
+bin/*
 
 # Packages #
 ############

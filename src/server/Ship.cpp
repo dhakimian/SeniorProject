@@ -4,6 +4,7 @@
  * and may not be redistributed without written permission.*/
 
 #include "Ship.h"
+#include "Powerup.h"
 #include <iostream>
 
 Ship::Ship(float xp, float yp, float ang )
@@ -74,11 +75,18 @@ void Ship::update()
     }
 }
 
-/*
 void Ship::onCollide( Object* collided_with )
 {
+    if( collided_with->get_type() == T_POWERUP )
+    {
+        std::cout<<"ShipC"<<std::endl;
+        Powerup* powerup = (Powerup*)collided_with;
+        weapons_upgrade();
+        powerup->die();
+    }
+    else
+        MovingObject::onCollide( collided_with );
 }
-*/
 
 void Ship::thrust_b() // fire rear thrusters, moving the ship forward
 {

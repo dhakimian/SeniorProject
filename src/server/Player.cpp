@@ -20,6 +20,8 @@ Player::Player(int teamnumber, float xp, float yp, float ang )
     team = teamnumber;
     TEX_INDEX = PLAYER;
 
+    persistent = true;
+
     if (team == 2)
     {
         //TEX_INDEX = PLAYER_O;

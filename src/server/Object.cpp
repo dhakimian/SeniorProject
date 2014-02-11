@@ -21,9 +21,12 @@ Object::Object()
     mass = 30;
 
     dead = false;
+    persistent = false;
 
     animated = false;
     anim_loops = true;
+    frame_delay = 0;
+    frame_delay_left = frame_delay;
     frame_num = 0;
     num_frames = 0;
     frame_w = 0;
@@ -61,6 +64,10 @@ void Object::update()
 }
 
 void Object::onCollide( Object* collided_with )
+{
+}
+
+void Object::whenColliding( Object* colliding_with )
 {
 }
 
@@ -128,11 +135,17 @@ int Object::get_hitpoints()
 float Object::get_mass()
 { return mass; }
 
+bool Object::is_solid()
+{ return solid; }
+
 bool Object::is_dead()
 { return dead; }
 
-bool Object::is_solid()
-{ return solid; }
+void Object::die()
+{ dead = true; }
+
+bool Object::is_persistent()
+{ return persistent; }
 
 void Object::render( int x, int y, float ang, bool centered )
 {
@@ -187,7 +200,9 @@ void Object::render( int x, int y, float ang, bool centered )
         tex->render( x-frame.w/2, y-frame.h/2, &frame, ang );
 
         //if( (time % something) == 0 )
-        //{
+        if( frame_delay_left == 0 )
+        {
+            frame_delay_left = frame_delay;
             //frame_num = (frame_num + 1) % num_frames;
             frame_num++;
             if( frame_num >= num_frames )
@@ -197,7 +212,9 @@ void Object::render( int x, int y, float ang, bool centered )
                 else
                     frame_num--;
             }
-        //}
+        }
+        else
+            frame_delay_left--;
 
     } else {
         if( centered )
