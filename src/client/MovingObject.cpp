@@ -48,15 +48,9 @@ void MovingObject::update()
           )
         {
             overlapping = true;
-            if( (Collider.x - other_collider.x) < 0 )
-                xVel -= Separation_vel;
-            else
-                xVel += Separation_vel;
-
-            if( (Collider.y - other_collider.y) < 0 )
-                yVel -= Separation_vel;
-            else
-                yVel += Separation_vel;
+            //red = 155;
+            //green = 155;
+            whenColliding( g_objects[i] );
         }
     }
 
@@ -86,6 +80,8 @@ void MovingObject::update()
     //Next-frame collision checks
     if( !overlapping )
     {
+        //red = 255;
+        //green = 255;
         for( uint i=0; i<g_objects.size(); i++ )
         {
             Circle other_collider = g_objects[i]->get_collider();
@@ -93,6 +89,20 @@ void MovingObject::update()
                 onCollide( g_objects[i] );
         }
     }
+}
+
+void MovingObject::whenColliding( Object* colliding_with )
+{
+    Circle other_collider = colliding_with->get_collider();
+    if( (Collider.x - other_collider.x) < 0 )
+        xVel -= Separation_vel;
+    else
+        xVel += Separation_vel;
+
+    if( (Collider.y - other_collider.y) < 0 )
+        yVel -= Separation_vel;
+    else
+        yVel += Separation_vel;
 }
 
 void MovingObject::onCollide( Object* collided_with )
@@ -105,12 +115,34 @@ void MovingObject::onCollide( Object* collided_with )
         collided_with->get_values(&xPos_other, &yPos_other, &Angle_other,
                 &xVel_other, &yVel_other, &rotVel_other);
 
+        //float vel_old = sqrt( xVel_old*xVel_old + yVel_old*yVel_old );
+        //float vel_other = sqrt( xVel_other*xVel_other + yVel_other*yVel_other );
+
         float vel_old_squared = xVel_old*xVel_old + yVel_old*yVel_old;
         float vel_other_squared = xVel_other*xVel_other + yVel_other*yVel_other;
         float v1 = sqrt( vel_old_squared );
         float v2 = sqrt( vel_other_squared );
-        float m1 = get_mass();
-        float m2 = collided_with->get_mass();
+        //float m1 = get_mass();
+        //float m2 = collided_with->get_mass();
+
+        //std::cout<<get_team()<<" tA|tB "<<collided_with->get_team()<<std::endl;
+        //std::cout<<m1<<" m1|m2 "<<m2<<std::endl;
+
+        //////(m1*v1*v1 + m2*v2*v2)*loss_factor = m1*v1'*v1' + m2*v2'*v2'
+
+        //float v1_new = ((m1-m2)/(m1+m2))*v1 + ((m2+m2)/(m1+m2))*v2;
+        //float v2_new = ((m2-m1)/(m1+m2))*v2 + ((m1+m1)/(m1+m2))*v1;
+        //v1_new /= LOSS_FACTOR;
+        //v2_new /= LOSS_FACTOR;
+        //float A = atan2( yPos_old-yPos_other, xPos_old-xPos_other );
+        //float angle2_new = atan( (yPos_other-yPos_old)/(xPos_other-xPos_old) );
+        //float angle1_new = 0;
+        //float angle2_new = 0;
+
+        //std::cout<<angle1_new<<" a1|a2 "<<angle2_new<<"\n"<<std::endl;
+
+        //angle1_new -= M_PI/2;
+        //angle2_new -= M_PI/2;
 
         /////--------------------
         // Most of the following code is stolen/adapted from here:
@@ -121,19 +153,31 @@ void MovingObject::onCollide( Object* collided_with )
         float d = delta.get_length();
         Vec2D mtd = delta.multiply( ( (Collider.r + collided_with->get_collider().r) - d) / d );
 
-        float im1 = 1 / m1;
-        float im2 = 1 / m2;
+        float im1 = 1 / get_mass(); 
+        float im2 = 1 / collided_with->get_mass();
 
         Vec2D v;
         v.set(xVel_old - xVel_other, yVel_old - yVel_other);
         float vn = v.dot(mtd.normalize());
 
+        //float lf = LOSS_FACTOR;
+        //float res = .85;
         float res = 1;
+        /*
+        if( v1 < 1 )
+        {
+            res = 0.1;
+            lf = 1;
+        }
+        */
         float i = (-(1.0f + res) * vn) / (im1 + im2);
         //float i = (-(1.95) * vn) / (im1 + im2);
         //float i = -vn / (im1 + im2);
         Vec2D impulse = mtd.multiply(i);
 
+        //this.velocity = this.velocity.add(impulse.multiply(im1));
+        //ball.velocity = ball.velocity.subtract(impulse.multiply(im2));
+        
         xVel += (impulse.get_x()*im1);
         yVel += (impulse.get_y()*im1);
 
@@ -143,10 +187,10 @@ void MovingObject::onCollide( Object* collided_with )
         xVel2 -= (impulse.get_x()*im2);
         yVel2 -= (impulse.get_y()*im2);
 
-        //xVel /= LOSS_FACTOR;
-        //yVel /= LOSS_FACTOR;
-        //xVel2 /= LOSS_FACTOR;
-        //yVel2 /= LOSS_FACTOR;
+        //xVel /= lf;
+        //yVel /= lf;
+        //xVel2 /= lf;
+        //yVel2 /= lf;
 
         collided_with->set_values( xPos_other, yPos_other, Angle_other,
                 xVel2, yVel2, rotVel_other );
@@ -155,6 +199,13 @@ void MovingObject::onCollide( Object* collided_with )
         //
         //
         //////----------------------
+
+        /*
+        xVel = v1_new*cos(angle1_new);
+        yVel = v1_new*sin(angle1_new);
+        collided_with->set_values( xPos_other, yPos_other, Angle_other,
+                v2_new*cos(angle2_new), v2_new*sin(angle2_new), rotVel_other );
+        */
 
         //Undo move left or right
         xPos = xPos_old;
@@ -167,6 +218,7 @@ void MovingObject::onCollide( Object* collided_with )
         /////
 
         //damage the object depending on how fast it was moving when it collided
+        //int damage = abs( vel_old_squared - vel_other_squared ) * Collision_Damage_multiplier;
         int damage = abs( v1 - v2 ) * Collision_Damage_multiplier;
         //if( damage > 0 )
             //std::cout<<damage<<" collision damage"<<std::endl;

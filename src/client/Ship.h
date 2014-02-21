@@ -28,7 +28,7 @@ class Ship : public MovingObject
 
         void update();
 
-        //void onCollide( Object* collided_with );
+        void onCollide( Object* collided_with );
 
         int get_type();
 

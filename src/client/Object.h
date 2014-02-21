@@ -42,6 +42,7 @@ class Object
         virtual void render( int x, int y, float ang, bool centered=false );
 
         virtual void onCollide( Object* collided_with );
+        virtual void whenColliding( Object* colliding_with );
 
         virtual void takeDamage(int amount);
 
@@ -57,9 +58,13 @@ class Object
 
         float get_mass();
         
+        bool is_solid();
+
         bool is_dead();
 
-        bool is_solid();
+        void die();
+
+        bool is_persistent();
 
     protected:
 
@@ -69,18 +74,15 @@ class Object
         //amount of rgb in the image. defaults to full 255 for each, can be reduced to colorize image
         int red, green, blue;
 
-        //whether or not the image is to be animated
-        bool animated;
-        //whether the animation loops or not
-        bool anim_loops;
-        //if animated, which frame to render
-        int frame_num;
-        //how many frames in the animation; defaults frames_x*frames_y
-        int num_frames; //you would use this if you didn't have enough frames to fill their image
-        //how many frames of an animation are on each row and column of the image
-        int frames_x, frames_y;
-        //animation frame dimensions
-        int frame_w, frame_h;
+        bool animated; //whether or not the image is to be animated
+        bool anim_loops; //whether the animation loops or not
+        int frame_delay; //how many cycles to wait between frames
+        int frame_delay_left; //how many cycles to wait before going to the next frame
+        int frame_num; //if animated, which frame to render
+        int num_frames; //how many frames in the animation; defaults to frames_x*frames_y
+                        //(you would use this if you didn't have enough frames to fill their image)
+        int frames_x, frames_y; //how many frames of an animation are on each row and column of the image
+        int frame_w, frame_h; //animation frame dimensions
 
         //object's current position (represents the center of the ship, not the topleft corner)
         float xPos, yPos;
@@ -129,6 +131,10 @@ class Object
 
         //if this is true, the object will be removed from the objects vector next cycle
         bool dead;
+
+        //if this is true, the object will not be deleted when it is "dead".
+        //This is necessary for things like lasers, which are pooled and re-used
+        bool persistent;
 
 };
 

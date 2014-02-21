@@ -23,6 +23,7 @@ class Asteroid : public MovingObject
         //how many smaller asteroids a bigger one splits into
         int split_num;
         float mass_max; //the mass of the largest size of asteroid
+        int powerup_chance; //percentage chance that a powerup will spawn when the asteroid splits
 
 };
 

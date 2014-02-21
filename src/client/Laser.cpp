@@ -8,6 +8,7 @@ Laser::Laser()
     Collider.y = yPos;
 
     solid = false;
+    persistent = true;
 
     TEX_INDEX = LASER1;
     weapon_level = 1;

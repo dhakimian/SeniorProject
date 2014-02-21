@@ -11,7 +11,7 @@
 
 typedef unsigned int uint;
 
-const bool MUSIC_ON = true;
+const bool MUSIC_ON = false;
 const bool SOUND_ON = true;
 
 //Screen dimension constants
@@ -202,7 +202,8 @@ enum ObjectType { // Constants for identifying object type, to avoid doing strin
     T_LASER,
     T_PLANET,
     T_ASTEROID,
-    T_EXPLOSION
+    T_EXPLOSION,
+    T_POWERUP
 };
 
 struct Circle

@@ -20,6 +20,7 @@ class MovingObject : public Object
         void update();
 
         void onCollide( Object* collided_with );
+        void whenColliding( Object* colliding_with );
 
         int get_type();
 
