@@ -1,0 +1,6 @@
+Add a way to set a destination for a ship, and have the ship make its way to that point
+    (this will be valuable for implementing AI)
+
+Look up how to send C++ class objects as or in packets so we can send the g_objects vector, which is basically the majority of the gamestate.
+
+Handle Player death. Probably the simplest would be to just respawn somewhere random (might have to make sure the area is clear though), or set start points for players

@@ -721,6 +721,14 @@ int main( int argc, char* args[] )
                         cycle_player();
                         //sscanf("WOOparty!", "%s", (char *)p->data);
                         //p->len = strlen((char *)p->data) + 1;
+                    } else if (strcmp((char *)p->data, "l") == 0) {
+                        g_xPos_camdest -= 300;
+                    } else if (strcmp((char *)p->data, "r") == 0) {
+                        g_xPos_camdest += 300;
+                    } else if (strcmp((char *)p->data, "u") == 0) {
+                        g_yPos_camdest -= 300;
+                    } else if (strcmp((char *)p->data, "d") == 0) {
+                        g_yPos_camdest += 300;
                     }
                     SDLNet_UDP_Send(sd, -1, p);
                 }
