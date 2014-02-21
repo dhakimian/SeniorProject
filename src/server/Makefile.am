@@ -3,4 +3,4 @@ __top_builddir__bin_server_SOURCES = Alien.cpp Asteroid.cpp Collision.cpp Explos
 ##__top_builddir__bin_server_CPPFLAGS = -std=c++11 `sdl2-config --cflags`
 __top_builddir__bin_server_CPPFLAGS = -std=c++0x `sdl2-config --cflags`
 __top_builddir__bin_server_LDFLAGS = `sdl2-config --libs`
-__top_builddir__bin_server_LDADD = -lSDL2_image -lSDL2_mixer -lSDL2_net
+__top_builddir__bin_server_LDADD = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_net
