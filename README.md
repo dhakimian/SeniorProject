@@ -1,25 +1,31 @@
 Space Game
 ==========
 
-This Project requires SDL2, as well as the extension libraries SDL2\_image, SDL2\_mixer, and SDL2\_net. This project also requires automake for compilation, so if you don't have that installed already, you'll need to get it.
+__Requirements__
+
+* SDL2
+* SDL2\_image
+* SDL2\_mixer
+* SDL2\_net
+* GNU autotools (autoconf, automake)
 
 __Instructions:__
 
 In the top directory of the project type:
 
-./autogen.sh
+    ./autogen.sh
 
-./configure
+    ./configure
 
-make
+    make
 
 Then you can type either
 
-./bin/server
+    ./bin/server
 
-or 
+or
 
-./bin/client
+    ./bin/client
 
 to start the server or client.
 

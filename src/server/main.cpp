@@ -721,6 +721,8 @@ int main( int argc, char* args[] )
                         cycle_player();
                         //sscanf("WOOparty!", "%s", (char *)p->data);
                         //p->len = strlen((char *)p->data) + 1;
+                    } else if (strcmp((char *)p->data, "f") == 0) {
+                        g_Follow_Ship = !g_Follow_Ship;
                     } else if (strcmp((char *)p->data, "l") == 0) {
                         g_xPos_camdest -= 300;
                     } else if (strcmp((char *)p->data, "r") == 0) {
