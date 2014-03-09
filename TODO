@@ -1,6 +1,44 @@
-Add a way to set a destination for a ship, and have the ship make its way to that point
-    (this will be valuable for implementing AI)
++ Look up how to send C++ class objects in packets so we can send the g_objects vector, which makes up the game-state
 
-Look up how to send C++ class objects as or in packets so we can send the g_objects vector, which is basically the majority of the gamestate.
+Modify build system to eliminate need for two versions of the same code for classes shared by client and server
+Or maybe use symbolic links?
+
+Distinguish between aesthetic-only explosions and ones that have an effect on the world,
+like AOE damage. Make something like explosive debris to use latter; make ship explosions
+use latter.
+
+Milestone 3:
+============
+
+get the server to communicate game info to (and receive input from) a single client
+(Anyone and everyone who connects will be jointly controlling the same ship.)
+(I don't think sounds will work at this point)
+    - Make client request game-state from server, and render based on that.
+
+Distinguish between clients to allow more than one player (maybe Milestone 4)
+
+Add a way to set a destination for a ship, and have the ship make its way to that point
 
 Handle Player death. Probably the simplest would be to just respawn somewhere random (might have to make sure the area is clear though), or set start points for players
+
+Milestone 4:
+============
+
+Only send what's changed to reduce bandwidth usage
+
+(maybe) Make client predict motion to make things smoother in case of latency issues
+
+Add simple AI to alien ships: (shouldn't need server/client interaction, I don't think)
+    * Always go toward nearest ( only :P ) player
+        - if not within certain distance of player, thrust towards them (if they are
+          within radar range; if not, just go random direction)
+        - once close enough, it would slow down, and... <jump to next point>
+    * Shoot when in range (maybe try to make aiming smarter than just where the target
+      is at the time: decide where to shoot based on distance and speed of target. Maybe :P )
+
+Signal client to make a sound when it's supposed to
+
+Make aesthetic-only explosions happen client-side
+(right now technically I don't even have any aesthetic-only explosions. They basically are
+aesthetic, but they are objects just like everything else.)
+Revised: Make aesthetic explosions aesthetic.
