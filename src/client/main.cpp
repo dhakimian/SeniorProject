@@ -1,12 +1,12 @@
 /**
- * CS-195   Spring 2014
- * Software Development Project
- *** Spaceship Game ***
-
- * Group Members:
- *  Daniel Hakimian
- *  Tim Swanson
- *  Matt Johnston
+ *      CS-195   Spring 2014
+ *  Software Development Project
+ *     *** Spaceship Game ***
+ *
+ *        Group Members:
+ *     Daniel Hakimian (head)
+ *     Matt Johnston (helper)
+ *     Tim Swanson (helper)
  */
 
 #ifdef __APPLE__
@@ -23,6 +23,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
+#include <unistd.h>
 //#include <typeinfo>
 
 #include "Constants.h"
@@ -35,6 +37,8 @@
 #include "Asteroid.h"
 #include "Explosion.h"
 #include "Powerup.h"
+
+using namespace std;
 
 bool g_show_minimap = true;
 
@@ -78,27 +82,20 @@ float g_Angle_camdest = 0.0;
 bool g_targ_Follow_Rotation = true;
 bool g_targ_Ship_Centered = false;
 
-std::vector<std::string> g_imgfiles (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
-std::vector<LTexture> g_textures (g_imgfiles.size());
+vector<string> g_imgfiles (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
+vector<LTexture> g_textures (g_imgfiles.size());
 
-std::vector<std::string> g_sndfiles (sndarr, sndarr + sizeof(sndarr) / sizeof(sndarr[0]) );
-std::vector<Mix_Chunk*> g_sounds (g_sndfiles.size(), NULL );
+vector<string> g_sndfiles (sndarr, sndarr + sizeof(sndarr) / sizeof(sndarr[0]) );
+vector<Mix_Chunk*> g_sounds (g_sndfiles.size(), NULL );
 
-std::vector<Object*> g_objects; // list of all the g_objects currently in the level
+vector<Object*> g_objects; // list of all the objects currently in the level
 //Player player;
-int player = 0;
-
-std::vector<Player*> g_players;
-
-void cycle_player() {
-    player = fmod( player+1, g_players.size() );
-}
+Player* g_player = NULL;
 
 Mix_Music* g_music = NULL;
 
-UDPsocket sd;       /* Socket descriptor */
-UDPpacket *p;       /* Pointer to packet memory */
-int quit;
+UDPsocket g_sd;       /* Socket descriptor */
+IPaddress srvadd;
 
 bool init()
 {
@@ -127,8 +124,8 @@ bool init()
 
         //Create window
         //gWindow = SDL_CreateWindow( "Spaceship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        //gWindow = SDL_CreateWindow( "Spaceship Game", 400, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        gWindow = SDL_CreateWindow( "Spaceship Game", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow( "Spaceship Game", 400, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        //gWindow = SDL_CreateWindow( "Spaceship Game", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         if( gWindow == NULL )
         {
             printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -170,24 +167,28 @@ bool init()
             exit(EXIT_FAILURE);
         }
 
-        /* Open a socket */
-        if (!(sd = SDLNet_UDP_Open(2000)))
-        {
-            fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
-            exit(EXIT_FAILURE);
-        }
-
-        /* Make space for the packet */
-        if (!(p = SDLNet_AllocPacket(512)))
-        {
-            fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
-            exit(EXIT_FAILURE);
-        }
-
     }
 
     return success;
 }
+
+/*
+bool init_net()
+{
+    // Open a socket
+    if (!(g_sd = SDLNet_UDP_Open(0)))
+    {
+        fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+        exit(EXIT_FAILURE);
+    }
+
+    // Resolve server name
+    if (SDLNet_ResolveHost(&srvadd, argv[1], atoi(argv[2])) == -1)
+    {
+        fprintf(stderr, "SDLNet_ResolveHost(%s %d): %s\n", argv[1], atoi(argv[2]), SDLNet_GetError());
+        exit(EXIT_FAILURE);
+    }
+} */
 
 bool loadMedia()
 {
@@ -200,7 +201,7 @@ bool loadMedia()
         g_textures[i].setRenderer(gRenderer);
         if( !g_textures[i].loadFromFile( g_imgfiles[i] ) )
         {
-            std::cout << "Failed to load '" << g_imgfiles[i] << "'!" << std::endl;
+            cout << "Failed to load '" << g_imgfiles[i] << "'!" << endl;
             success = false;
         }
     }
@@ -211,7 +212,7 @@ bool loadMedia()
         g_sounds[i] = Mix_LoadWAV( g_sndfiles[i].c_str() );
         if( g_sounds[i] == NULL )
         {
-            std::cout << "Failed to load '" << g_sndfiles[i] << "'!" << std::endl;
+            cout << "Failed to load '" << g_sndfiles[i] << "'!" << endl;
             success = false;
         }
     }
@@ -249,32 +250,6 @@ bool loadMedia()
 
 void loadObjects() //load initial map objects
 {
-    g_objects.push_back( new Planet(1350.0, 1350.0) );
-    g_objects.push_back( new Alien(1000.0, 750.0, 1065.0) );
-    //g_objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, rand()%7-3, 1) );
-    g_objects.push_back( new Asteroid(800.0, 800.0, 0.0, -1, -1, frandBetween(-20,20)/10, 1) );
-    //g_objects.push_back( &player );
-
-    g_players.push_back( new Player(1, 900, 1100, 0) );
-    g_players.push_back( new Player(1, 900, 900, -45) );
-    g_players.push_back( new Player(2, 1100, 900, 180) );
-    g_players.push_back( new Player(2, 1100, 1100, 225) );
-
-    for( uint i=0; i<g_players.size(); i++ )
-        g_objects.push_back( g_players[i] );
-
-    ///* ROCKS EVERYWHERE!
-    for( int i=0; i<200; i++ )
-        g_objects.push_back( new Asteroid(randBetween(-500,2500), randBetween(-500,2500), rand()%360,
-                    frandBetween(-10,10)/10, frandBetween(-10,10)/10, frandBetween(-20,20)/10, 1) );
-    //*/
-
-    /* EXPLOSION!
-       for( int i=0; i<150; i++ )
-       g_objects.push_back( new Asteroid(700+frandBetween(-10,10)/10,800+frandBetween(-10,10)/10,rand()%360,0,0,0,1) );
-       */
-
-
 }
 
 void render_bg()
@@ -294,18 +269,18 @@ void render_bg()
             int tilePos_y = j + tile_h/2;
 
             // only render if within a certain radius
-            if( abs(tilePos_x - g_xPos_cam) < Render_Radius && abs(tilePos_y - g_yPos_cam) < Render_Radius )
+            if( fabs(tilePos_x - g_xPos_cam) < Render_Radius && fabs(tilePos_y - g_yPos_cam) < Render_Radius )
                 render = true;
             else { //image is not close enough, so don't render, but first...
                 //...check if the image would be close enough if the map literally wrapped, so...
                 //...we can render tiles from the other side of an edge-wrap to eliminate the void
-                if( abs(tilePos_x + LEVEL_WIDTH - g_xPos_cam) < Render_Radius ) {//r
+                if( fabs(tilePos_x + LEVEL_WIDTH - g_xPos_cam) < Render_Radius ) {//r
                     xrc += LEVEL_WIDTH; render = true;}
-                if( abs(tilePos_y + LEVEL_HEIGHT - g_yPos_cam) < Render_Radius ) {//b
+                if( fabs(tilePos_y + LEVEL_HEIGHT - g_yPos_cam) < Render_Radius ) {//b
                     yrc += LEVEL_HEIGHT; render = true;}
-                if( abs(tilePos_x - LEVEL_WIDTH - g_xPos_cam) < Render_Radius ) {//l
+                if( fabs(tilePos_x - LEVEL_WIDTH - g_xPos_cam) < Render_Radius ) {//l
                     xrc -= LEVEL_WIDTH; render = true;}
-                if( abs(tilePos_y - LEVEL_HEIGHT - g_yPos_cam) < Render_Radius ) {//t
+                if( fabs(tilePos_y - LEVEL_HEIGHT - g_yPos_cam) < Render_Radius ) {//t
                     yrc -= LEVEL_HEIGHT; render = true;}
             }
             if( render )
@@ -321,8 +296,9 @@ void render_objects()
     for( uint i=0; i<g_objects.size(); i++ )
     //for( int i=g_objects.size()-1; i>=0; i-- )
     {
-        float xPos, yPos, Angle; 
+        float xPos, yPos, Angle;
         g_objects[i]->get_values(&xPos, &yPos, &Angle);
+        //cout<<i<<": "<<xPos<<", "<<yPos<<", "<<Angle<<endl;
         //int tex_index = g_objects[i]->get_tex_index();
 
         bool render = false;
@@ -331,19 +307,19 @@ void render_objects()
         int yrc = yPos+TARG_cY-g_yPos_cam; // Y render coordinate
 
         // only render if within a certain radius
-        //if( abs( xPos - g_xPos_cam ) < Render_Radius && abs( yPos - g_yPos_cam ) < Render_Radius )
+        //if( fabs( xPos - g_xPos_cam ) < Render_Radius && fabs( yPos - g_yPos_cam ) < Render_Radius )
         if( distanceSquared(xPos, yPos, g_xPos_cam, g_yPos_cam) < Render_Radius*Render_Radius )
             render = true;
         else {//object is not close enough, so don't render, but first...
             //...check if the object would be close enough if the map literally wrapped, so we can...
             //...render g_objects from the other side of an edge-wrap so they don't disapper near edges
-            if( abs( xPos + LEVEL_WIDTH - g_xPos_cam ) < Render_Radius ) {//r
+            if( fabs( xPos + LEVEL_WIDTH - g_xPos_cam ) < Render_Radius ) {//r
                 xrc += LEVEL_WIDTH; render = true;}
-            if( abs( yPos + LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//b
+            if( fabs( yPos + LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//b
                 yrc += LEVEL_HEIGHT; render = true;}
-            if( abs( xPos - LEVEL_WIDTH - g_xPos_cam ) < Render_Radius ) {//l
+            if( fabs( xPos - LEVEL_WIDTH - g_xPos_cam ) < Render_Radius ) {//l
                 xrc -= LEVEL_WIDTH; render = true;}
-            if( abs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//t
+            if( fabs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//t
                 yrc -= LEVEL_HEIGHT; render = true;}
         }
         if( render )
@@ -359,7 +335,7 @@ void render_healthbar()
     xp = (SCREEN_WIDTH / 2) - 151;
     yp = 1;
     //code for drawing the right ammount of health increments depending on palyers health
-    int player_health = g_players[player]->get_hitpoints();
+    int player_health = g_player->get_hitpoints();
     if(player_health > 935)
         g_textures[HEALTH_15].render(xp, yp);
     else if(player_health > 870)
@@ -415,16 +391,16 @@ void render_minimap()
         int yrc = yPos-g_yPos_cam;
 
         //edgewrapping stuff
-        if( abs( xPos + LEVEL_WIDTH - g_xPos_cam ) < Minimap_Radius ) //r
+        if( fabs( xPos + LEVEL_WIDTH - g_xPos_cam ) < Minimap_Radius ) //r
             xrc += LEVEL_WIDTH;
-        if( abs( yPos + LEVEL_HEIGHT - g_yPos_cam ) < Minimap_Radius ) //b
+        if( fabs( yPos + LEVEL_HEIGHT - g_yPos_cam ) < Minimap_Radius ) //b
             yrc += LEVEL_HEIGHT;
-        if( abs( xPos - LEVEL_WIDTH - g_xPos_cam ) < Minimap_Radius ) //l
+        if( fabs( xPos - LEVEL_WIDTH - g_xPos_cam ) < Minimap_Radius ) //l
             xrc -= LEVEL_WIDTH;
-        if( abs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Minimap_Radius ) //t
+        if( fabs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Minimap_Radius ) //t
             yrc -= LEVEL_HEIGHT;
 
-        if( abs(distanceSquared(xrc+g_xPos_cam, yrc+g_yPos_cam, g_xPos_cam, g_yPos_cam))
+        if( fabs(distanceSquared(xrc+g_xPos_cam, yrc+g_yPos_cam, g_xPos_cam, g_yPos_cam))
                 < Minimap_Radius*Minimap_Radius )
         {
             xrc *= ( ( (float)g_textures[MAP].getWidth()/2 ) / (Minimap_Radius) ); //scale down the coords
@@ -435,8 +411,8 @@ void render_minimap()
 
             if( g_objects[i]->get_type() == T_PLAYER )
             {
-                if( g_players[player]->get_team() == g_objects[i]->get_team()
-                        && g_players[player]->get_team() >= 0 )
+                if( g_player->get_team() == g_objects[i]->get_team()
+                        && g_player->get_team() >= 0 )
                     g_textures[ICON_SHIP_FRIENDLY].render_center(xrc, yrc, NULL, Angle);
                 else
                     g_textures[ICON_SHIP_ENEMY].render_center(xrc, yrc, NULL, Angle);
@@ -480,7 +456,7 @@ void render()
     SDL_RenderClear( gRenderer );
 
     float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
-    g_players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
+    g_player->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
 
     g_xPos_camdest = xPos_pl;
     g_yPos_camdest = yPos_pl;
@@ -623,7 +599,8 @@ void close()
 }
 
 
-int main( int argc, char* args[] )
+//int main( int argc, char* args[] )
+int main( int argc, char** argv )
 {
     //Start up SDL and create window
     if( !init() )
@@ -632,6 +609,38 @@ int main( int argc, char* args[] )
     }
     else
     {
+        /* Initialize SDL_net */
+        if (SDLNet_Init() < 0)
+        {
+            fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
+            exit(EXIT_FAILURE);
+        }
+
+        if (argc == 3)
+        {
+            /* Resolve server name  */
+            if (SDLNet_ResolveHost(&srvadd, argv[1], atoi(argv[2])) == -1)
+            {
+                fprintf(stderr, "SDLNet_ResolveHost(%s %d): %s\n", argv[1], atoi(argv[2]), SDLNet_GetError());
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            fprintf(stdout, "%s localhost 2000\n", argv[0]);
+            /* Resolve server name  */
+            if (SDLNet_ResolveHost(&srvadd, "localhost", 2000) == -1)
+            {
+                fprintf(stderr, "SDLNet_ResolveHost(%s %d): %s\n", "localhost", atoi("2000"), SDLNet_GetError());
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        // Open a socket
+        if (!(g_sd = SDLNet_UDP_Open(0)))
+        {
+            fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+            exit(EXIT_FAILURE);
+        }
+
         //Load media
         if( !loadMedia() )
         {
@@ -642,16 +651,167 @@ int main( int argc, char* args[] )
             //Main loop flag
             bool quit = false;
 
+            int num_recvd = 0;
+
             //Event handler
             SDL_Event e;
 
-            loadObjects();
+            //loadObjects();
 
-            //While application is running
             if( MUSIC_ON )
                 Mix_PlayMusic(g_music, -1);
+
+            UDPpacket *pk;
+            if (!(pk = SDLNet_AllocPacket(64)))
+            {
+                fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+                exit(EXIT_FAILURE);
+            }
+            pk->address.host = srvadd.host;  /* Set the destination host */
+            pk->address.port = srvadd.port;  /* And destination port */
+            sscanf("experiment", "%s", (char *)pk->data);
+            pk->len = strlen((char *)pk->data) + 1;
+            SDLNet_UDP_Send(g_sd, -1, pk);
+            SDLNet_FreePacket(pk);
+
+            //While application is running
             while( !quit )
             {
+                UDPpacket** p_in;
+                if (!(p_in = SDLNet_AllocPacketV(MAX_OBJECTS, 1024)))
+                {
+                    fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
+                    exit(EXIT_FAILURE);
+                }
+
+                /* Wait a packet. UDP_Recv returns != 0 if a packet is coming */
+                //cout<<"udpRecvV->"<<endl;
+                num_recvd = SDLNet_UDP_RecvV(g_sd, p_in);
+                //cout<<"num_recvd: "<<num_recvd<<endl;
+                if (num_recvd > 0)
+                {
+                    //cout<<"got packet vector"<<endl;
+                    //cout<<"num_recvd: "<<num_recvd<<endl;
+                    //g_objects.clear();
+                    //cout<<g_objects.size()<<endl;
+                    g_objects.resize( num_recvd );
+                    //cout<<g_objects.size()<<endl;
+                    //cout<<"cleared"<<endl;
+                    //vector<Object*> tmpvec (num_recvd);
+                    //cout<<tmpvec.size()<<endl;
+                    for( int i=0; i<num_recvd; i++ )
+                    {
+                        //Object tmp = *(Object*)p_in[i]->data;
+                        Object tmp;
+                        memcpy( &tmp, p_in[i]->data, p_in[i]->len );
+                        //Object* tmp = (Object*)p_in[i]->data;
+                        //cout<<i<<" type: "<<tmp.get_type()<<endl;
+                        if( tmp.get_type() == 0) {
+                            Object foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Object(foo);
+                        } else if( tmp.get_type() == 1 ) {
+                            MovingObject foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new MovingObject(foo);
+                        } else if( tmp.get_type() == 2 ) {
+                            Ship foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Ship(foo);
+                        } else if( tmp.get_type() == 3 ) {
+                            Player foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Player(foo);
+                        } else if( tmp.get_type() == 4 ) {
+                            Alien foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Alien(foo);
+                        } else if( tmp.get_type() == 5 ) {
+                            Laser foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Laser(foo);
+                        } else if( tmp.get_type() == 6 ) {
+                            Planet foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Planet(foo);
+                        } else if( tmp.get_type() == 7 ) {
+                            Asteroid foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Asteroid(foo);
+                        } else if( tmp.get_type() == 8 ) {
+                            Explosion foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Explosion(foo);
+                        } else if( tmp.get_type() == 9 ) {
+                            Powerup foo;
+                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
+                            g_objects[i] = new Powerup(foo);
+                        }
+                        //memcpy( g_objects[i], p_in[i]->data, p_in[i]->len );
+
+                        //cout<<i<<" team: "<<tmp.get_team()<<endl;
+                        //cout<<i<<" mass: "<<tmp.get_mass()<<endl;
+                        //memcpy( g_objects[i], &tmp, sizeof(tmp) );
+                        //Object* tmp2 = &tmp;
+                        //cout<<"tmp2type: "<<tmp2->get_type()<<endl;
+                        //g_objects.push_back( &tmp );
+                        //cout<<i<<" copy"<<endl;
+                        //memcpy( g_objects[i], p_in[i]->data, p_in[i]->len );
+                        //g_objects.push_back( tmp.clone() );
+                        //g_objects.push_back( new Planet(tmp) );
+                        //cout<<"pushed"<<endl;
+                        //cout<<"Otype: "<<g_objects[i]->get_type()<<endl;
+                    }
+                    /*
+                    for( int i=0; i<g_objects.size(); i++ ) {
+                        cout<<i<<" Otype: "<<g_objects[i]->get_type()<<endl;
+                        g_objects[i]->clone();
+                    }
+                    */
+                    //cout<<"objects: "<<g_objects.size()<<endl;
+                    //cout<<"object 1 type: "<<g_objects[0]->get_type()<<endl;
+                    //cout<<"---"<<endl;
+
+                    /*
+                    if( g_player == NULL )
+                        cout<<"player is NULL"<<endl;
+                    else
+                        cout<<"player found"<<endl;
+                    */
+
+                    //{
+                        for( uint i=0; i<g_objects.size(); i++ )
+                        {
+                            if( g_objects[i]->get_type() == T_PLAYER )
+                            {
+                                g_player = (Player*)g_objects[i];
+                                break;
+                            }
+                        }
+                    //}
+
+                }
+                /*
+                else if( g_player != NULL )
+                {
+                    //cout<<"local update"<<endl;
+                    //Update objects locally based on current state.
+                    //Changes will be overwritten by next received state.
+                    for( uint i = 0; i<g_objects.size(); i++ )
+                    {
+                        if( g_objects[i]->is_dead() )
+                        {
+                            if( !g_objects[i]->is_persistent() )
+                                delete g_objects[i];
+                            g_objects.erase( g_objects.begin()+i );
+                            i--;
+                        } else
+                            g_objects[i]->update();
+                    }
+                }
+                */
+
+
                 //Handle events on queue
                 while( SDL_PollEvent( &e ) != 0 )
                 {
@@ -675,66 +835,53 @@ int main( int argc, char* args[] )
                                 break;
                             case SDLK_x:
                                 float xPos, yPos, Angle, xVel, yVel, rotVel; 
-                                g_players[player]->get_values(&xPos, &yPos, &Angle, &xVel, &yVel, &rotVel);
-                                std::cout << "x: " << xPos << " | y: " << yPos << std::endl;
-                                std::cout << "xv: " << xVel << " | yv: " << yVel << std::endl;
-                                std::cout << "vel: "<<sqrt( xVel*xVel + yVel*yVel )<<std::endl;
+                                g_player->get_values(&xPos, &yPos, &Angle, &xVel, &yVel, &rotVel);
+                                cout << "x: " << xPos << " | y: " << yPos << endl;
+                                cout << "xv: " << xVel << " | yv: " << yVel << endl;
+                                cout << "vel: "<<sqrt( xVel*xVel + yVel*yVel )<<endl;
                                 break;
                             case SDLK_h:
-                                std::cout<<g_players[player]->get_hitpoints()<<" HP"<<std::endl;
+                                cout<<g_player->get_hitpoints()<<" HP"<<endl;
                                 break;
                             case SDLK_c: //toggle camera mode
                                 g_targ_Follow_Rotation = !g_targ_Follow_Rotation;
                                 g_targ_Ship_Centered = !g_targ_Ship_Centered;
                                 break;
                                 //switch control between present Player ships
-                            case SDLK_p:
-                                cycle_player();
-                                break;
-                            //case SDLK_8:
+                                //case SDLK_p:
+                                //cycle_player();
+                                //break;
+                                //case SDLK_8:
                                 //SOUND_ON = !SOUND_ON;
                                 //break;
                             case SDLK_9:
                                 Mix_PlayMusic( g_music, -1);
                                 break;
-                            case SDLK_0:    
-                                Mix_PauseMusic(); 
+                            case SDLK_0:
+                                Mix_PauseMusic();
                                 break;
                         }
                     }
-                }
-                
-                if (SDLNet_UDP_Recv(sd, p)) {
-                    SDLNet_UDP_Send(sd, -1, p);
                 }
 
                 const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
                 //handle_keystate(currentKeyStates);
                 //handle actions based on current key state
-                g_players[player]->handle_keystate(currentKeyStates);
+                //TODO: send keyboard state to server
 
-                for( uint i = 0; i<g_objects.size(); i++ )
-                {
-                    if( g_objects[i]->is_dead() )
-                    {
-                        if( !g_objects[i]->is_persistent() )
-                            delete g_objects[i];
-                        g_objects.erase( g_objects.begin()+i );
-                        i--;
-                    } else
-                        g_objects[i]->update();
-                }
 
                 //Clear screen
                 SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
                 SDL_RenderClear( gRenderer );
 
                 //Render objects
-                render();
-                //render( g_objects );
+                if( g_player != NULL )
+                    render();
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
+
+                SDLNet_FreePacketV(p_in);
             }
         }
     }

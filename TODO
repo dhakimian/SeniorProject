@@ -12,10 +12,14 @@ Milestone 3:
 
 get the server to communicate game info to (and receive input from) a single client
 (Anyone and everyone who connects will be jointly controlling the same ship.)
-(I don't think sounds will work at this point)
-    - Make client request game-state from server, and render based on that.
+(I don't think sounds will work at this point (unless doing a local update?) )
+    - Make client get game-state from server (which constantly sends it), and render based on that.
+
+(?) Make client predict motion to make things smoother in case of latency issues
+   I think this might be implemented now. If it doesn't get a packet, it updates g_objects locally instead. (changes of course get overridden by next server state)
 
 Distinguish between clients to allow more than one player (maybe Milestone 4)
+    - Associate the right keyboard input with the right player
 
 Add a way to set a destination for a ship, and have the ship make its way to that point
 
@@ -26,8 +30,6 @@ Milestone 4:
 
 Only send what's changed to reduce bandwidth usage
 
-(maybe) Make client predict motion to make things smoother in case of latency issues
-
 Add simple AI to alien ships: (shouldn't need server/client interaction, I don't think)
     * Always go toward nearest ( only :P ) player
         - if not within certain distance of player, thrust towards them (if they are
@@ -37,6 +39,8 @@ Add simple AI to alien ships: (shouldn't need server/client interaction, I don't
       is at the time: decide where to shoot based on distance and speed of target. Maybe :P )
 
 Signal client to make a sound when it's supposed to
+
+Make game speed not dependent on computer speed.
 
 Make aesthetic-only explosions happen client-side
 (right now technically I don't even have any aesthetic-only explosions. They basically are
