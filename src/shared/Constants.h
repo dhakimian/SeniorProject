@@ -48,7 +48,13 @@ const float Collision_Damage_multiplier = 30;
 const float LOSS_FACTOR = 2;
 
 //Maximum number of objects (and consquently packets)
-const int MAX_OBJECTS = 1024;
+const int MAX_OBJECTS = 512;
+
+//how many consecutive local updates need to happen on the client before it considers the connection to the server lost
+const int CONNECTION_LOST_THRESHOLD = 10;
+
+//Whether client should update g_objects locally whenever it doesn't receive a new gamestate from server
+const bool g_LocalUpdates = true;
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
@@ -213,6 +219,11 @@ struct Circle
 {
     int x, y;
     int r;
+};
+
+struct Keystate
+{
+    bool upKey, downKey, leftKey, rightKey, strafeLeft, strafeRight, shootKey;
 };
 
 #endif

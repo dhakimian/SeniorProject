@@ -11,9 +11,12 @@ class Player : public Ship
 
         //handle actions based on current key state
         void handle_keystate( const Uint8* currentKeyStates );
+        void handle_keystate( Keystate keystate );
 
         //client code: render the ship
         void render( int x, int y, float ang, bool centered=true );
+
+        void update();
 
         Object* clone() { return new Player(*this); }
 

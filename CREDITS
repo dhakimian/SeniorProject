@@ -1,0 +1,24 @@
+Original Group
+ (created the initial (single player only) game from scratch (well, that and tutorials) as
+  a part of CS130 - Software Development)
+    * Daniel Hakimian
+    * Taylor Martin
+    * Mason Neal
+    * Rob Schneider
+
+Senior Sem. Group
+ (Current group. Porting game to multiplayer and adding things like AI)
+    * Daniel Hakimian (group leader)
+    * Matt Johnston (helper)
+    * Tim Swanson (helper)
+
+
+
+Sources of Help:
+ (tutorials, stack overflow, any place that provided significant help worthy of credit)
+
+ * lazyfoo.net (SDL2 game development tutorials)
+ * Twinklebear SDL tutorials <add link>
+ * http://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+ * (and others, which I need to find)
+

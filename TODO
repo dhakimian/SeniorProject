@@ -10,37 +10,58 @@ use latter.
 Milestone 3:
 ============
 
-get the server to communicate game info to (and receive input from) a single client
-(Anyone and everyone who connects will be jointly controlling the same ship.)
-(I don't think sounds will work at this point (unless doing a local update?) )
-    - Make client get game-state from server (which constantly sends it), and render based on that.
+ + get the server to communicate game info to (and receive input from) a single client
+ + Make client get game-state from server (which constantly sends it), and render based on that.
 
-(?) Make client predict motion to make things smoother in case of latency issues
-   I think this might be implemented now. If it doesn't get a packet, it updates g_objects locally instead. (changes of course get overridden by next server state)
+Currently, only one player can connect. Next up is to handle multiple connections (and
+reconnections from the same client). At first, this will probably take the form of everyone who
+connects controlling the same ship, but later we can actually try to get multiple players.
+
+ + Make client predict motion to make things smoother in case of latency issues
+   (If client doesn't get a packet, it updates g_objects locally instead. (changes will of
+    course get overridden by next server state) )
 
 Distinguish between clients to allow more than one player (maybe Milestone 4)
     - Associate the right keyboard input with the right player
+    - this should be possible by identifying the player by their host and port
 
 Add a way to set a destination for a ship, and have the ship make its way to that point
+    - for AI purposes
 
 Handle Player death. Probably the simplest would be to just respawn somewhere random (might have to make sure the area is clear though), or set start points for players
+
+Add a scoring system where you get points for destroying other ships
 
 Milestone 4:
 ============
 
+Try to find a way to prevent objects blinking out temporarily when the full state doesn't come
+(the following point will probably help with that)
+
 Only send what's changed to reduce bandwidth usage
 
-Add simple AI to alien ships: (shouldn't need server/client interaction, I don't think)
+Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * Always go toward nearest ( only :P ) player
         - if not within certain distance of player, thrust towards them (if they are
-          within radar range; if not, just go random direction)
+          within radar range; if not, just pick random destination until they are)
         - once close enough, it would slow down, and... <jump to next point>
     * Shoot when in range (maybe try to make aiming smarter than just where the target
       is at the time: decide where to shoot based on distance and speed of target. Maybe :P )
 
 Signal client to make a sound when it's supposed to
 
+(client) Display an icon or something whenever doing a local update, to let player know that
+their actions won't be reflected on the server. If the gamestate packets coming in are coming in
+at a high enough rate that the client doesn't do any local updates while connected normally, this
+icon can serve as a notification of connection problems.
+
 Make game speed not dependent on computer speed.
+
+Find and prevent/stop memory leaks
+
+Right now level size is constant and assumed to be the same on server and client. It's not
+sent as part of the initial gamestate or anything like that. If the client and server
+disagreed on level size right now, weird things would probably happen. Change this.
 
 Make aesthetic-only explosions happen client-side
 (right now technically I don't even have any aesthetic-only explosions. They basically are

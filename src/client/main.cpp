@@ -1,6 +1,6 @@
 /**
  *      CS-195   Spring 2014
- *  Software Development Project
+ *        Senior Project
  *     *** Spaceship Game ***
  *
  *        Group Members:
@@ -533,51 +533,20 @@ void render()
     render_overlay();
 }
 
-/*
-void handle_keystate(const Uint8* currentKeyStates)
+Keystate get_keystate(const Uint8* currentKeyStates)
 {
-    bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
-    bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
-    bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
-    bool rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
-    bool rotLeft = currentKeyStates[SDL_SCANCODE_Q];
-    bool rotRight = currentKeyStates[SDL_SCANCODE_E];
+    Keystate keystate;
 
-    double ang = M_PI * g_Angle_camdest;
-    ang = ang / 180;
+    keystate.upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
+    keystate.downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
+    keystate.leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
+    keystate.rightKey = currentKeyStates[SDL_SCANCODE_RIGHT] || currentKeyStates[SDL_SCANCODE_D];
+    keystate.strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
+    keystate.strafeRight = currentKeyStates[SDL_SCANCODE_E];
+    keystate.shootKey = currentKeyStates[SDL_SCANCODE_SPACE];
 
-    if(upKey)
-    {
-        g_xPos_camdest += 10 * sin(ang);
-        g_yPos_camdest -= 10 * cos(ang);
-    }
-
-    if(downKey)
-    {
-        g_xPos_camdest -= 10 * sin(ang);
-        g_yPos_camdest += 10 * cos(ang);
-    }
-
-    if(leftKey)
-    {
-        g_xPos_camdest -= 10 * cos(ang);
-        g_yPos_camdest -= 10 * sin(ang);
-    }
-
-    if(rightKey)
-    {
-        g_xPos_camdest += 10 * cos(ang);
-        g_yPos_camdest += 10 * sin(ang);
-    }
-
-    if(rotLeft)
-        g_Angle_camdest -= 2;
-
-    if(rotRight)
-        g_Angle_camdest += 2;
-
+    return keystate;
 }
-*/
 
 void close()
 {
@@ -599,7 +568,6 @@ void close()
 }
 
 
-//int main( int argc, char* args[] )
 int main( int argc, char** argv )
 {
     //Start up SDL and create window
@@ -616,22 +584,24 @@ int main( int argc, char** argv )
             exit(EXIT_FAILURE);
         }
 
+        char* host = (char*)"localhost";
+        int port = 2000;
+
         if (argc == 3)
         {
-            /* Resolve server name  */
-            if (SDLNet_ResolveHost(&srvadd, argv[1], atoi(argv[2])) == -1)
-            {
-                fprintf(stderr, "SDLNet_ResolveHost(%s %d): %s\n", argv[1], atoi(argv[2]), SDLNet_GetError());
-                exit(EXIT_FAILURE);
-            }
-        } else {
-            fprintf(stdout, "%s localhost 2000\n", argv[0]);
-            /* Resolve server name  */
-            if (SDLNet_ResolveHost(&srvadd, "localhost", 2000) == -1)
-            {
-                fprintf(stderr, "SDLNet_ResolveHost(%s %d): %s\n", "localhost", atoi("2000"), SDLNet_GetError());
-                exit(EXIT_FAILURE);
-            }
+            host = argv[1];
+            port = atoi(argv[2]);
+        }
+        else if (argc == 2)
+        {
+            host = argv[1];
+        }
+
+        /* Resolve server name  */
+        if (SDLNet_ResolveHost(&srvadd, host, port) == -1)
+        {
+            fprintf(stderr, "SDLNet_ResolveHost(%s %d): %s\n", host, port, SDLNet_GetError());
+            exit(EXIT_FAILURE);
         }
 
         // Open a socket
@@ -651,6 +621,11 @@ int main( int argc, char** argv )
             //Main loop flag
             bool quit = false;
 
+            bool connected = false;
+
+            //count consecutive local updates to determine whether connection has been lost
+            int consec_localupdates = 0;
+
             int num_recvd = 0;
 
             //Event handler
@@ -661,24 +636,31 @@ int main( int argc, char** argv )
             if( MUSIC_ON )
                 Mix_PlayMusic(g_music, -1);
 
-            UDPpacket *pk;
-            if (!(pk = SDLNet_AllocPacket(64)))
-            {
-                fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
-                exit(EXIT_FAILURE);
-            }
-            pk->address.host = srvadd.host;  /* Set the destination host */
-            pk->address.port = srvadd.port;  /* And destination port */
-            sscanf("experiment", "%s", (char *)pk->data);
-            pk->len = strlen((char *)pk->data) + 1;
-            SDLNet_UDP_Send(g_sd, -1, pk);
-            SDLNet_FreePacket(pk);
-
             //While application is running
             while( !quit )
             {
+                if( !connected && consec_localupdates%100 == 0 ) //only scan for server every 100 local updates
+                {                                               //assuming connection was established then lost
+                    printf("Looking for server at %s (port %d)...\n", host, port);
+                    UDPpacket *p;
+                    if (!(p = SDLNet_AllocPacket(64)))
+                    {
+                        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+                        exit(EXIT_FAILURE);
+                    }
+                    p->address.host = srvadd.host;  /* Set the destination host */
+                    p->address.port = srvadd.port;  /* And destination port */
+                    sscanf("hello", "%s", (char *)p->data);
+                    p->len = strlen((char *)p->data) + 1;
+                    SDLNet_UDP_Send(g_sd, -1, p);
+                    SDLNet_FreePacket(p);
+                    if( g_player == NULL )                        //if connection was never established,
+                        usleep(1000000);                         //consec_localupdates will == 0 always
+                }                                               //and g_player will be NULL, so in this case
+                                                               //only scan once every second.
+                //get gamestate
                 UDPpacket** p_in;
-                if (!(p_in = SDLNet_AllocPacketV(MAX_OBJECTS, 1024)))
+                if (!(p_in = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16)))
                 {
                     fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
                     exit(EXIT_FAILURE);
@@ -690,15 +672,16 @@ int main( int argc, char** argv )
                 //cout<<"num_recvd: "<<num_recvd<<endl;
                 if (num_recvd > 0)
                 {
+                    if( !connected ) {
+                        connected = true;
+                        printf("Connected to server at %s (port %d)\n", host, port);
+                    }
+
+                    consec_localupdates = 0;
+
                     //cout<<"got packet vector"<<endl;
                     //cout<<"num_recvd: "<<num_recvd<<endl;
-                    //g_objects.clear();
-                    //cout<<g_objects.size()<<endl;
                     g_objects.resize( num_recvd );
-                    //cout<<g_objects.size()<<endl;
-                    //cout<<"cleared"<<endl;
-                    //vector<Object*> tmpvec (num_recvd);
-                    //cout<<tmpvec.size()<<endl;
                     for( int i=0; i<num_recvd; i++ )
                     {
                         //Object tmp = *(Object*)p_in[i]->data;
@@ -747,39 +730,12 @@ int main( int argc, char** argv )
                             memcpy( &foo, p_in[i]->data, p_in[i]->len );
                             g_objects[i] = new Powerup(foo);
                         }
-                        //memcpy( g_objects[i], p_in[i]->data, p_in[i]->len );
-
-                        //cout<<i<<" team: "<<tmp.get_team()<<endl;
-                        //cout<<i<<" mass: "<<tmp.get_mass()<<endl;
-                        //memcpy( g_objects[i], &tmp, sizeof(tmp) );
-                        //Object* tmp2 = &tmp;
-                        //cout<<"tmp2type: "<<tmp2->get_type()<<endl;
-                        //g_objects.push_back( &tmp );
-                        //cout<<i<<" copy"<<endl;
-                        //memcpy( g_objects[i], p_in[i]->data, p_in[i]->len );
-                        //g_objects.push_back( tmp.clone() );
-                        //g_objects.push_back( new Planet(tmp) );
-                        //cout<<"pushed"<<endl;
-                        //cout<<"Otype: "<<g_objects[i]->get_type()<<endl;
                     }
-                    /*
-                    for( int i=0; i<g_objects.size(); i++ ) {
-                        cout<<i<<" Otype: "<<g_objects[i]->get_type()<<endl;
-                        g_objects[i]->clone();
-                    }
-                    */
-                    //cout<<"objects: "<<g_objects.size()<<endl;
-                    //cout<<"object 1 type: "<<g_objects[0]->get_type()<<endl;
-                    //cout<<"---"<<endl;
 
-                    /*
-                    if( g_player == NULL )
-                        cout<<"player is NULL"<<endl;
-                    else
-                        cout<<"player found"<<endl;
-                    */
-
+                    //if( g_player == NULL )
+                        //cout<<"PlayerNULL"<<endl;
                     //{
+                    /* --- find Player --- */
                         for( uint i=0; i<g_objects.size(); i++ )
                         {
                             if( g_objects[i]->get_type() == T_PLAYER )
@@ -790,13 +746,21 @@ int main( int argc, char** argv )
                         }
                     //}
 
-                }
-                /*
-                else if( g_player != NULL )
+                } //else means no gamestate was received
+                else if( g_LocalUpdates && g_player != NULL )
                 {
                     //cout<<"local update"<<endl;
                     //Update objects locally based on current state.
                     //Changes will be overwritten by next received state.
+
+                    consec_localupdates++;
+                    if( connected && consec_localupdates >= CONNECTION_LOST_THRESHOLD )
+                    {
+                        cout<<"Connection to server lost. (missed "<<CONNECTION_LOST_THRESHOLD
+                            <<" consecutive updates)"<<endl;
+                        connected = false;
+                    }
+
                     for( uint i = 0; i<g_objects.size(); i++ )
                     {
                         if( g_objects[i]->is_dead() )
@@ -809,7 +773,10 @@ int main( int argc, char** argv )
                             g_objects[i]->update();
                     }
                 }
-                */
+
+                //cout<<g_objects.size()<<endl;
+                //if( g_objects.size() == 0 )
+                    //cout<<"g_objects is empty!"<<endl;
 
 
                 //Handle events on queue
@@ -865,21 +832,40 @@ int main( int argc, char** argv )
                 }
 
                 const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-                //handle_keystate(currentKeyStates);
-                //handle actions based on current key state
-                //TODO: send keyboard state to server
 
-
-                //Clear screen
-                SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
-                SDL_RenderClear( gRenderer );
-
-                //Render objects
+                //handle keyboard state for things like rendering ship correctly based on keys pressed
                 if( g_player != NULL )
+                    g_player->handle_keystate(currentKeyStates);
+
+                if( connected )
+                {
+                    UDPpacket *kp;
+                    if (!(kp = SDLNet_AllocPacket(128)))
+                    {
+                        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+                        exit(EXIT_FAILURE);
+                    }
+                    kp->address.host = srvadd.host;  /* Set the destination host */
+                    kp->address.port = srvadd.port;  /* And destination port */
+                    Keystate keystate = get_keystate( currentKeyStates );
+                    memcpy( kp->data, &keystate, sizeof(keystate) );
+                    kp->len = sizeof(keystate);
+                    SDLNet_UDP_Send(g_sd, -1, kp);
+                    SDLNet_FreePacket(kp);
+                }
+
+                if( g_player != NULL )
+                {
+                    //Clear screen
+                    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+                    SDL_RenderClear( gRenderer );
+
+                    //Render objects
                     render();
 
-                //Update screen
-                SDL_RenderPresent( gRenderer );
+                    //Update screen
+                    SDL_RenderPresent( gRenderer );
+                }
 
                 SDLNet_FreePacketV(p_in);
             }

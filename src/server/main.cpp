@@ -1,6 +1,6 @@
 /**
  *      CS-195   Spring 2014
- *  Software Development Project
+ *        Senior Project
  *     *** Spaceship Game ***
  *
  *        Group Members:
@@ -98,14 +98,13 @@ int player = 0;
 vector<Player*> g_players;
 
 void cycle_player() {
-    if( g_Follow_Ship )
+    //if( g_Follow_Ship )
         player = fmod( player+1, g_players.size() );
 }
 
 Mix_Music* g_music = NULL;
 
 UDPsocket g_sd;       /* Socket descriptor */
-UDPpacket *p;       /* Pointer to packet memory */
 
 bool init()
 {
@@ -191,13 +190,6 @@ bool init_net()
     {
         fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
         success = false;
-    }
-
-    /* Make space for the packet */
-    if (!(p = SDLNet_AllocPacket(512)))
-    {
-        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
-        exit(EXIT_FAILURE);
     }
 
     return success;
@@ -750,53 +742,39 @@ int main( int argc, char** argv )
             }
         }
 
-        if (SDLNet_UDP_Recv(g_sd, p)) {
-            cout<<"got packet"<<endl;
-            if( !connected ) {
+        if( !connected )
+        {
+            UDPpacket *p;
+            if (!(p = SDLNet_AllocPacket(64)))
+            {
+                fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+                exit(EXIT_FAILURE);
+            }
+            if (SDLNet_UDP_Recv(g_sd, p))
+            {
                 SDLNet_UDP_Bind(g_sd, 0, &p->address);
                 connected = true;
-                cout<<"connected"<<endl;
+                //printf("Client connected from %s (port %d)\n", p->address.host, p->address.port);
+                //cout << "Client connected from "<<p->address.host<<" (port "<<p->address.port<<")"<<endl;
+                cout<<"Client connected"<<endl;
             }
+            SDLNet_FreePacket(p);
         }
 
         UDPpacket** p_out;
-        if (!(p_out = SDLNet_AllocPacketV(g_objects.size(), 1024)))
+        if (!(p_out = SDLNet_AllocPacketV(g_objects.size(), MAX_OBJECTS * 16)))
         {
             fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
         for( int i=0; i<g_objects.size(); i++ )
         {
-            //cout<<"object type: "<<g_objects[i]->get_type()<<endl;
-          //Object* tmp0 = g_objects[i]->clone();
-            //cout<<"tmp0 type: "<<tmp0->get_type()<<endl;
-            //Object tmp = *g_objects[i];
-          //Object tmp = *tmp0;
-            //cout<<i<<" tmp type: "<<tmp.get_type()<<endl;
-            //cout<<i<<" tmp team: "<<tmp.get_team()<<endl;
-            //cout<<i<<" tmp mass: "<<tmp.get_mass()<<endl;
             memcpy( p_out[i]->data, g_objects[i], sizeof(*g_objects[i]) );
             p_out[i]->len = sizeof(*g_objects[i]);
             p_out[i]->channel = 0;
         }
-        for( int i=0; i<g_objects.size(); i++ )
-        {
-            /*
-            //cout<<"test"<<endl;
-            Object tmp;
-            //cout<<i<<" pretype: "<<tmp->get_type()<<endl;
-            memcpy( &tmp, p_out[i]->data, p_out[i]->len );
-            cout<<i<<" type: "<<tmp.get_type()<<endl;
 
-            Object* cln = tmp.clone();
-            */
-
-            //Object foo = *(Object*)p_out[i]->data;
-            //Object* foo = (Object*)p_out[i]->data;
-            //cout<<i<<" foo type: "<<foo.get_type()<<endl;
-            //cout<<i<<" foo team: "<<foo.get_team()<<endl;
-            //cout<<i<<" foo mass: "<<foo.get_mass()<<endl;
-        }
+        //cout<<g_objects.size()<<endl;
 
         SDLNet_UDP_SendV(g_sd, p_out, g_objects.size() );
         //cout<<"sent packet"<<endl;
@@ -826,20 +804,14 @@ int main( int argc, char** argv )
         }
         */
 
-        if( RENDER )
+        /*
+        vector<const Uint8*> playerKeyStates ( g_connections.size() );
+        for( int i=0; i<playerKeyStates.size(); i++ )
         {
-        const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-        //const vector<Uint8*> currentKeyStates;
-        //currentKeyStates.push_back( ... );
-        handle_keystate(currentKeyStates);
-        //handle actions based on current key state
-        //for( int i=0; i<g_players.size(); i++ )
-        //{
-            //g_players[i]->handle_keystate(currentKeyStates[i]);
-        //}
+            g_players[i]->handle_keystate(playerKeyStates[i]);
         }
+        */
 
-        //cout<<"objects: "<<g_objects.size()<<endl;
         for( uint i = 0; i<g_objects.size(); i++ )
         {
             if( g_objects[i]->is_dead() )
@@ -851,6 +823,33 @@ int main( int argc, char** argv )
             } else
                 g_objects[i]->update();
         }
+
+        //handle input//
+        if( RENDER )
+        {
+            const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+            //handle spectator mode actions based on current key state of server
+            handle_keystate(currentKeyStates);
+        }
+
+        if( connected )
+        {
+            UDPpacket* kp;
+            if (!(kp = SDLNet_AllocPacket(128)))
+            {
+                fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+                exit(EXIT_FAILURE);
+            }
+            if (SDLNet_UDP_Recv(g_sd, kp))
+            {
+                //cout<<"got keystate"<<endl;
+                Keystate keystate;
+                memcpy( &keystate, kp->data, kp->len );
+                g_players[0]->handle_keystate(keystate);
+            }
+            SDLNet_FreePacket(kp);
+        }
+        //----//
 
         if( RENDER )
         {
@@ -867,9 +866,8 @@ int main( int argc, char** argv )
         }
 
         if (!RENDER)
-            usleep(50000);
+            usleep(15000);
 
-        //cout<<"loop"<<endl;
 
     }
 

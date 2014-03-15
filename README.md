@@ -23,14 +23,35 @@ Then you can type either
 
     ./bin/server
 
-or
+to start the server, or
 
-    ./bin/client
+    ./bin/client [host [port]]
 
-to start the server or client.
+to start the client, which looks for a server at localhost on port 2000 by default.
 
-You can't control a ship from the server, but you can follow their movement, or move the camera around with the arrow keys (press 'q' or 'e' to rotate camera). Press 'f' to toggle whether you are following a ship or moving the camera freely; press 'p' while following a ship to change which ship you are following.
+*WARNING:* The game will sometimes freeze and max out your computer's RAM. You will have to
+make it force quit or end task, or from the terminal started it in, you can press ctrl-z and
+then 'kill -9 %1' (ctrl-c doesn't seem to work when this happens). Yes, finding and fixing
+memory leaks is on the todo list... :P
 
-You can send packets to the server at port 2000 that contain certain strings to make the server do things. If you send "p", it does the same thing pressing 'p' does; "l", "r", "u", "d" will move the camera position a small distance to the left, right, up, or down respectively, assuming you are not currently following a ship.
+By default, the server doesn't render anything, but if you type anything (literally anything)
+after ./bin/server, it will turn on a sort of spectator mode, where you can see what is going
+on in the server.
 
-The client currently is pretty much just at the state the entire project was at before I started working on this as my senior project this semester, so you can fly around and shoot and do everything you could before, and not anything new. Well, there is some stuff that is new compared to the project's current state on masonnl's repo, but that is all stuff I worked on personally during Christmas that I never pushed up (until now, to this repo).
+Right now the game isn't really playable unless the server and client are going at the same
+speed, and the best way to get them to go at the same speed is to start the server in graphical
+mode. However, the sleep time between cycles on the server when not in graphical mode is close
+enough to the default client speed that it is playable.
+
+You can't control a ship in this mode, but you can follow their movement, or you can also
+move the camera around freely with the arrow keys ('q' or 'e' to rotate camera). Press 'f' to
+toggle whether you are following a ship or moving the camera around; press 'p' to change which
+ship you are following.
+
+The client won't do anything unless it finds a server at the place it's looking for one. Once
+it finds the server, it will begin receiving the server's game state broadcasts, and will send
+its keyboard input to the server to be interpreted. If the client loses its connection to the
+server after having previously established one, it will update the gamestate locally, which
+helps minimize jitter from dropped packets.
+
+Right now there is only support for one player, but that will change very soon. :)

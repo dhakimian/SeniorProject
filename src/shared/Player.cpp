@@ -53,7 +53,7 @@ Player::Player(int teamnumber, float xp, float yp, float ang )
     rightKey = false;
     strafeLeft = false;
     strafeRight = false;
-
+    shootKey = false;
 
     TYPE = T_PLAYER;
 }
@@ -67,7 +67,22 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
     strafeLeft = currentKeyStates[SDL_SCANCODE_Q];
     strafeRight = currentKeyStates[SDL_SCANCODE_E];
     shootKey = currentKeyStates[SDL_SCANCODE_SPACE];
+}
 
+void Player::handle_keystate(Keystate keystate)
+{
+    upKey = keystate.upKey;
+    downKey = keystate.downKey;
+    leftKey = keystate.leftKey;
+    rightKey = keystate.rightKey;
+    strafeLeft = keystate.strafeLeft;
+    strafeRight = keystate.strafeRight;
+    shootKey = keystate.shootKey;
+}
+
+void Player::update()
+{
+    Ship::update();
     if(upKey)
         thrust_b();
     if(downKey)
@@ -94,11 +109,8 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
     {
         Mix_Pause(7);
     }
-
-
 }
 
-//client side code
 void Player::render( int x, int y, float ang, bool centered )
 {
     // here is my(robs) added code that implements a cool ship that has some moving parts.
