@@ -59,7 +59,13 @@ void Laser::upgrade()
         TEX_INDEX = LASER3;
     else
         TEX_INDEX = LASER4;
-   //also change collider dimention depending on how the images change
+   //also change collider dimension depending on how the images change
+}
+
+void Laser::reset()
+{
+    weapon_level = 1;
+    TEX_INDEX = LASER1;
 }
 
 void Laser::onCollide( Object* collided_with )

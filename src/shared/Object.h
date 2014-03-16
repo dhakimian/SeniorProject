@@ -73,7 +73,7 @@ class Object
         //the index of the default image to render for instances of this object
         int TEX_INDEX;
 
-        //type identifier for this class (defined in Consatants)
+        //type identifier for this class (defined in Constants)
         int TYPE;
 
         //amount of rgb in the image. defaults to full 255 for each, can be reduced to colorize image

@@ -22,6 +22,8 @@ class Laser : public MovingObject
 
         void upgrade();
 
+        void reset();
+
         void onCollide( Object* collided_with );
 
         //void set_values(float x, float y, float ang, float xv, float yv, int time);

@@ -1,36 +1,52 @@
+ '+' means item is completed
+
+
 + Look up how to send C++ class objects in packets so we can send the g_objects vector, which makes up the game-state
 
 Modify build system to eliminate need for two versions of the same code for classes shared by client and server
-Or maybe use symbolic links?
-
-Distinguish between aesthetic-only explosions and ones that have an effect on the world,
-like AOE damage. Make something like explosive debris to use latter; make ship explosions
-use latter.
+ + Or maybe use symbolic links?
 
 Milestone 3:
 ============
 
  + get the server to communicate game info to (and receive input from) a single client
+
  + Make client get game-state from server (which constantly sends it), and render based on that.
 
-Currently, only one player can connect. Next up is to handle multiple connections (and
+ + Currently, only one player can connect. Next up is to handle multiple connections (and
 reconnections from the same client). At first, this will probably take the form of everyone who
 connects controlling the same ship, but later we can actually try to get multiple players.
+    * Distinguish between clients to allow more than one player
+        + store connections in a vector
+        + Associate the right keyboard input with the right player
+          (this should be possible by identifying the player by their host and port)
+    * Have server somehow tell client which ship it should be centering on
+        (currently, all players center on the first Player object in g_objects, even if that
+         isn't the ship they are controlling)
+
+(Priority) Make game speed not dependent on computer speed.
 
  + Make client predict motion to make things smoother in case of latency issues
    (If client doesn't get a packet, it updates g_objects locally instead. (changes will of
     course get overridden by next server state) )
 
-Distinguish between clients to allow more than one player (maybe Milestone 4)
-    - Associate the right keyboard input with the right player
-    - this should be possible by identifying the player by their host and port
-
 Add a way to set a destination for a ship, and have the ship make its way to that point
-    - for AI purposes
+    (for AI purposes)
 
-Handle Player death. Probably the simplest would be to just respawn somewhere random (might have to make sure the area is clear though), or set start points for players
+ + Handle Player death. Probably the simplest would be to just respawn somewhere random (might have to make sure the area is clear though), or set start points for players
 
 Add a scoring system where you get points for destroying other ships
+    - display that score somewhere/somehow (might require adding SDL_TTF to the requirements)
+
+Add a way for client to specify which team they want to join
+
+Add a way for client to specify which port they open
+    * right now it is random
+    * player identity on the server is a combination of host and port
+    * this will allow a player to quit, and then reconnect, and still be controlling the same ship
+
+ + Colorize player graphics based on team, to eliminate need for many differently colored images.
+     (req: Make player graphics work well with colorization)
 
 Milestone 4:
 ============
@@ -39,6 +55,8 @@ Try to find a way to prevent objects blinking out temporarily when the full stat
 (the following point will probably help with that)
 
 Only send what's changed to reduce bandwidth usage
+    * this may necessitate the use of unique identifiers for objects, so we know which ones
+      to update on the client when only a partial list is received
 
 Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * Always go toward nearest ( only :P ) player
@@ -56,15 +74,22 @@ Signal client to make a sound when it's supposed to (or change how/where sounds 
 loss, or just display it once the client considers the connection lost, to let player know
 that their actions aren't being reflected on the server.
 
-Make game speed not dependent on computer speed.
-
 Find and prevent/stop memory leaks
+
+Fix weird bug where objects will sometimes be duplicated when I think either the server or
+client is killed. Obviously, the bug will need to be tracked down first.
+(but it isn't super high priority, it doesn't even happen that often)
 
 Right now level size is constant and assumed to be the same on server and client. It's not
 sent as part of the initial gamestate or anything like that. If the client and server
 disagreed on level size right now, weird things would probably happen. Change this.
 
+Distinguish between aesthetic-only explosions and ones that have an effect on the world,
+like AOE damage. Make something like explosive debris to use latter; make ship explosions
+use latter.
+
 Make aesthetic-only explosions happen client-side
 (right now technically I don't even have any aesthetic-only explosions. They basically are
 aesthetic, but they are objects just like everything else.)
 Revised: Make aesthetic explosions aesthetic.
+

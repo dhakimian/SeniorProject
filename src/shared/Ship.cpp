@@ -41,7 +41,7 @@ Ship::Ship(float xp, float yp, float ang )
     for( int i=0; i<pool_size; i++ )
         laser_pool.push_back( new Laser() );
 
-    TEX_INDEX = PLAYER;
+    TEX_INDEX = PLAYER_BODY;
     soundindex = 0;
 
     TYPE = T_SHIP;

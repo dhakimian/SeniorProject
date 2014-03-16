@@ -58,5 +58,11 @@ connecting to it, and then killing the server. (But as soon as a server comes on
 the place the client is expecting, it will connect to it and have its state reset to that of
 the server's)
 
+The server seems to be able to support 4 different connections, and there are four different
+colors that your ship can be. Right now, every client centers on the first Player object they
+find in g\_objects, so this means that if you are the first client to connect, everything works
+as expected, but if you join after that, even though you are controlling a second ship, you are
+focused on the first one, which makes things rather difficult :)
 
-Right now there is only support for one player, but that will change very soon. :)
+This should hopefully be remedied soon, but until then, for all practical purposes the game
+still only supports one player :P

@@ -24,8 +24,8 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <ctime>
 #include <unistd.h>
-//#include <typeinfo>
 
 #include "Constants.h"
 #include "Util.h"
@@ -124,7 +124,7 @@ bool init()
 
         //Create window
         //gWindow = SDL_CreateWindow( "Spaceship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        gWindow = SDL_CreateWindow( "Spaceship Game", 400, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow( "Spaceship Game", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         //gWindow = SDL_CreateWindow( "Spaceship Game", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         if( gWindow == NULL )
         {
@@ -322,7 +322,7 @@ void render_objects()
             if( fabs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//t
                 yrc -= LEVEL_HEIGHT; render = true;}
         }
-        if( render )
+        if( render && !g_objects[i]->is_dead() )
             g_objects[i]->render(xrc, yrc, Angle, true);
         //else they are not close enough, so don't render them.
     }
@@ -384,7 +384,7 @@ void render_minimap()
 
     for( uint i=0; i<g_objects.size(); i++ )
     {
-        float xPos, yPos, Angle; 
+        float xPos, yPos, Angle;
         g_objects[i]->get_values(&xPos, &yPos, &Angle);
 
         int xrc = xPos-g_xPos_cam;
@@ -411,7 +411,9 @@ void render_minimap()
 
             if( g_objects[i]->get_type() == T_PLAYER )
             {
-                if( g_player->get_team() == g_objects[i]->get_team()
+                if( g_objects[i] == g_player )
+                    g_textures[ICON_SHIP_YOU].render_center(xrc, yrc, NULL, Angle);
+                else if( g_player->get_team() == g_objects[i]->get_team()
                         && g_player->get_team() >= 0 )
                     g_textures[ICON_SHIP_FRIENDLY].render_center(xrc, yrc, NULL, Angle);
                 else
@@ -424,7 +426,7 @@ void render_minimap()
             else if( g_objects[i]->get_type() == T_ASTEROID )
             {
                 Asteroid* ast = (Asteroid*) g_objects[i];
-                if( ast->get_size() == 1 ) 
+                if( ast->get_size() == 1 )
                     g_textures[ICON_ASTEROID].render_center(xrc, yrc, NULL, Angle);
                 else if( ast->get_size() == 2 )
                     g_textures[ICON_ASTEROIDMINI].render_center(xrc, yrc, NULL, Angle);
@@ -636,6 +638,8 @@ int main( int argc, char** argv )
             if( MUSIC_ON )
                 Mix_PlayMusic(g_music, -1);
 
+            srand( time(NULL) );
+
             //While application is running
             while( !quit )
             {
@@ -785,7 +789,7 @@ int main( int argc, char** argv )
 
                     for( uint i = 0; i<g_objects.size(); i++ )
                     {
-                        if( g_objects[i]->is_dead() )
+                        if( g_objects[i]->is_dead() && g_objects[i]->get_type() != T_PLAYER )
                         {
                             if( !g_objects[i]->is_persistent() )
                                 delete g_objects[i];
@@ -795,11 +799,6 @@ int main( int argc, char** argv )
                             g_objects[i]->update();
                     }
                 }
-
-                //cout<<g_objects.size()<<endl;
-                //if( g_objects.size() == 0 )
-                    //cout<<"g_objects is empty!"<<endl;
-
 
                 //Handle events on queue
                 while( SDL_PollEvent( &e ) != 0 )

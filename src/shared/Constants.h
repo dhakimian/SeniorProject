@@ -67,6 +67,7 @@ const int LEVEL_HEIGHT = 4000;
 static const std::string imgarr[] = {
     "media/bg_image.gif",
     "media/player/SF_Ship/ship_body.png",
+    "media/player/SF_Ship/ship_body_color.png",
     "media/player/SF_Ship/jet_forward.png",
     "media/player/SF_Ship/jet_reverse.png",
     "media/player/SF_Ship/jet_leftTurn.png",
@@ -77,7 +78,9 @@ static const std::string imgarr[] = {
     "media/player/SF_Ship/wings_leftTurn.png",
     "media/player/SF_Ship/wings_rightTurn.png",
     "media/player/SF_Ship/ship_body_Rtilt.png",
+    "media/player/SF_Ship/ship_body_Rtilt_color.png",
     "media/player/SF_Ship/ship_body_Ltilt.png",
+    "media/player/SF_Ship/ship_body_Ltilt_color.png",
     "media/lasers/laser1.png",
     "media/lasers/laser2.png",
     "media/lasers/laser3.png",
@@ -104,11 +107,9 @@ static const std::string imgarr[] = {
     "media/asteroids/Mini_Asteroid.png",
     "media/asteroids/Tiny_Asteroid.png",
     "media/explosions/explosion1.png",
-    "media/player/SF_Ship/ship_body_t2.png",
-    "media/player/SF_Ship/ship_body_Rtilt_t2.png",
-    "media/player/SF_Ship/ship_body_Ltilt_t2.png",
     "media/Powerup/powerup1.png",
     "media/minimap/minimap.png",
+    "media/minimap/minimap-shipyou.png",
     "media/minimap/minimap-shipfriendly.png",
     "media/minimap/minimap-shipenemy.png",
     "media/minimap/minimap-planet.png",
@@ -120,11 +121,12 @@ static const std::string imgarr[] = {
 
 // these must be in the same order as the above
 enum TextureIndex
-{                  // Constants containing the index numbers of the vector of images used by the program
-    BACKGROUND,    // 0
-    PLAYER,        // 1
-    PLAYER_THR_B,  // 2
-    PLAYER_THR_F,  // etc...   // a hash would probably work instead, but this works too.
+{                       // Constants containing the index numbers of the vector of images used by the program
+    BACKGROUND,         // 0
+    PLAYER_BODY,        // 1
+    PLAYER_BODY_COLOR,  // 2
+    PLAYER_THR_B,       // 3
+    PLAYER_THR_F,       // etc...   // a hash would probably work instead, but this works too.
     PLAYER_THR_L,
     PLAYER_THR_R,
     PLAYER_WNG_B,
@@ -133,7 +135,9 @@ enum TextureIndex
     PLAYER_WNG_L,
     PLAYER_WNG_R,
     PLAYER_Tlt_R,
+    PLAYER_Tlt_R_COLOR,
     PLAYER_Tlt_L,
+    PLAYER_Tlt_L_COLOR,
     LASER1,
     LASER2,
     LASER3,
@@ -160,11 +164,9 @@ enum TextureIndex
     MINI_ASTEROID,
     TINY_ASTEROID,
     EXPLOSION,
-    PLAYER_O,
-    PLAYER_O_Tlt_R,
-    PLAYER_O_Tlt_L,
     POWERUP,
     MAP,
+    ICON_SHIP_YOU,
     ICON_SHIP_FRIENDLY,
     ICON_SHIP_ENEMY,
     ICON_PLANET,
@@ -193,6 +195,23 @@ enum SoundIndex
     HIT,
     SHIP_EXPLODE,
     GET_POWERUP
+};
+
+struct RGB
+{
+    int r, g, b;
+    RGB(int r, int g, int b) {
+        this->r=r;
+        this->g=g;
+        this->b=b;
+    }
+};
+
+static const RGB TeamColors[] = {
+    RGB(0, 0, 255),   //blue
+    RGB(255, 155, 0), //orange
+    RGB(255, 0, 255), //purple
+    RGB(0, 255, 0)    //green
 };
 
 extern std::vector<std::string> g_imgfiles;

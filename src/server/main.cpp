@@ -25,8 +25,8 @@
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
+#include <ctime>
 #include <unistd.h>
-//#include <typeinfo>
 
 #include "Constants.h"
 #include "Util.h"
@@ -84,7 +84,7 @@ float g_Angle_camdest = 0.0;
 //boolean config options
 bool g_targ_Follow_Rotation = false;
 bool g_targ_Camera_Centered = true;
-bool g_Follow_Ship = true;
+bool g_Following_Ship = true;
 
 vector<string> g_imgfiles (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
 vector<LTexture> g_textures (g_imgfiles.size());
@@ -99,8 +99,15 @@ int player = 0;
 vector<Player*> g_players;
 
 void cycle_player() {
-    //if( g_Follow_Ship )
+    //if( g_Followng_Ship )
         player = fmod( player+1, g_players.size() );
+}
+void toggle_camera() {
+    if( g_Following_Ship )
+    {
+        g_targ_Follow_Rotation = !g_targ_Follow_Rotation;
+        g_targ_Camera_Centered = !g_targ_Camera_Centered;
+    }
 }
 
 Mix_Music* g_music = NULL;
@@ -117,9 +124,7 @@ bool init()
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         success = false;
-    }
-    else
-    {
+    } else {
         //Enable VSync
         if( !SDL_SetHint( SDL_HINT_RENDER_VSYNC, "1" ) )
         {
@@ -135,23 +140,19 @@ bool init()
         //Create window
         //gWindow = SDL_CreateWindow( "Spaceship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         //gWindow = SDL_CreateWindow( "Spaceship Game", 400, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        gWindow = SDL_CreateWindow( "Spaceship Game", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow( "Spaceship Game", 400, 100, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         if( gWindow == NULL )
         {
             printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
             success = false;
-        }
-        else
-        {
+        } else {
             //Create renderer for window
             gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
             if( gRenderer == NULL )
             {
                 printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
                 success = false;
-            }
-            else
-            {
+            } else {
                 //Initialize renderer color
                 SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 
@@ -262,7 +263,7 @@ void loadObjects() //load initial map objects
     g_objects.push_back( new Asteroid(800.0, 800.0, 0.0, -1, -1, frandBetween(-20,20)/10, 1) );
     //g_objects.push_back( &player );
 
-    g_players.push_back( new Player(1, 900, 1100, 0) );
+    //g_players.push_back( new Player(1, 900, 1100, 0) );
     //g_players.push_back( new Player(1, 900, 900, -45) );
     //g_players.push_back( new Player(2, 1100, 900, 180) );
     //g_players.push_back( new Player(2, 1100, 1100, 225) );
@@ -353,7 +354,7 @@ void render_objects()
             if( fabs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//t
                 yrc -= LEVEL_HEIGHT; render = true;}
         }
-        if( render )
+        if( render && !g_objects[i]->is_dead() )
             g_objects[i]->render(xrc, yrc, Angle, true);
         //else they are not close enough, so don't render them.
     }
@@ -415,7 +416,7 @@ void render_minimap()
 
     for( uint i=0; i<g_objects.size(); i++ )
     {
-        float xPos, yPos, Angle; 
+        float xPos, yPos, Angle;
         g_objects[i]->get_values(&xPos, &yPos, &Angle);
 
         int xrc = xPos-g_xPos_cam;
@@ -442,7 +443,9 @@ void render_minimap()
 
             if( g_objects[i]->get_type() == T_PLAYER )
             {
-                if( g_players[player]->get_team() == g_objects[i]->get_team()
+                if( g_objects[i] == g_players[player] )
+                    g_textures[ICON_SHIP_YOU].render_center(xrc, yrc, NULL, Angle);
+                else if( g_players[player]->get_team() == g_objects[i]->get_team()
                         && g_players[player]->get_team() >= 0 )
                     g_textures[ICON_SHIP_FRIENDLY].render_center(xrc, yrc, NULL, Angle);
                 else
@@ -474,7 +477,8 @@ void render_minimap()
 
 void render_overlay()
 {
-    render_healthbar();
+    if( g_players.size() > 0 )
+        render_healthbar();
     if( g_show_minimap )
         render_minimap();
 }
@@ -486,10 +490,18 @@ void render()
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( gRenderer );
 
-    float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
-    g_players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
+    if( g_players.size() == 0)
+    {
+        g_Following_Ship = false;
+        g_targ_Follow_Rotation = false;
+        g_targ_Camera_Centered = true;
+    }
 
-    if( g_Follow_Ship )
+    float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
+    if( g_players.size() > 0)
+        g_players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
+
+    if( g_Following_Ship )
     {
         g_xPos_camdest = xPos_pl;
         g_yPos_camdest = yPos_pl;
@@ -516,7 +528,7 @@ void render()
         diff_ang -= 360;
 
     g_rotVel_targ = diff_ang/rotDeccel_targ;
-    if( g_Follow_Ship && g_targ_Follow_Rotation )
+    if( g_Following_Ship && g_targ_Follow_Rotation )
             g_rotVel_targ += rotVel_pl;
 
     g_Angle_targ = fmod( (g_Angle_targ + g_rotVel_targ + 360), 360 );
@@ -528,7 +540,7 @@ void render()
     x_offset_dest = 2;
 
     if( g_targ_Camera_Centered )
-    //if( g_Follow_Ship && g_targ_Camera_Centered )
+    //if( g_Following_Ship && g_targ_Camera_Centered )
         y_offset_dest = 2;
     else
         y_offset_dest = 3;
@@ -558,7 +570,7 @@ void render()
     if( diff_y >= LEVEL_HEIGHT/2 )
         diff_y -= LEVEL_HEIGHT;
 
-    if( g_Follow_Ship )
+    if( g_Following_Ship )
     {
         g_xVel_cam = xVel_pl + diff_x/Deccel_cam;
         g_yVel_cam = yVel_pl + diff_y/Deccel_cam;
@@ -685,6 +697,8 @@ int main( int argc, char** argv )
     if( RENDER && MUSIC_ON )
         Mix_PlayMusic(g_music, -1);
 
+    srand( time(NULL) );
+
     //While application is running
     while( !quit )
     {
@@ -722,12 +736,15 @@ int main( int argc, char** argv )
                             cout<<g_players[player]->get_hitpoints()<<" HP"<<endl;
                             break;
                         case SDLK_c: //toggle camera mode
-                            g_targ_Follow_Rotation = !g_targ_Follow_Rotation;
-                            g_targ_Camera_Centered = !g_targ_Camera_Centered;
+                            toggle_camera();
                             break;
                             //switch control between present Player ships
                         case SDLK_f:
-                            g_Follow_Ship = !g_Follow_Ship;
+                            g_Following_Ship = !g_Following_Ship;
+                            if( !g_Following_Ship ) {
+                                g_targ_Follow_Rotation = false;
+                                g_targ_Camera_Centered = true;
+                            }
                             break;
                         case SDLK_p:
                             cycle_player();
@@ -762,16 +779,19 @@ int main( int argc, char** argv )
                 connections.push_back(p->address);
                 cout<<"Client connected\n";
                 cout<<"Current connections: "<<connections.size()<<endl;
-                //TODO: add Player ship when client connects (but the server should always start with one ship)
-                //      (unless I add checks in the rendering process to avoid crashes with no Player present)
-                //TODO: remove connections that have not been heard from in a while
+
+                Player* newplayer = new Player();
+                g_players.push_back( newplayer );
+                g_objects.push_back( newplayer );
+
+                //TODO: remove connections that have not been heard from in a while (and their ships?)
             }
             else //client is already connected. Read packet's keyboard state data
             {
                 Keystate keystate;
                 memcpy( &keystate, p->data, p->len );
-                g_players[0]->handle_keystate(keystate);
-                //g_players[it-connections.begin()]->handle_keystate(keystate);
+                //g_players[0]->handle_keystate(keystate);
+                g_players[it-connections.begin()]->handle_keystate(keystate);
             }
         }
         SDLNet_FreePacket(p);
@@ -809,7 +829,7 @@ int main( int argc, char** argv )
                 //sscanf("WOOparty!", "%s", (char *)p->data);
                 //p->len = strlen((char *)p->data) + 1;
             } else if (strcmp((char *)p->data, "f") == 0) {
-                g_Follow_Ship = !g_Follow_Ship;
+                g_Following_Ship = !g_Following_Ship;
             } else if (strcmp((char *)p->data, "l") == 0) {
                 g_xPos_camdest -= 300;
             } else if (strcmp((char *)p->data, "r") == 0) {
@@ -836,7 +856,7 @@ int main( int argc, char** argv )
 
         for( uint i = 0; i<g_objects.size(); i++ )
         {
-            if( g_objects[i]->is_dead() )
+            if( g_objects[i]->is_dead() && g_objects[i]->get_type() != T_PLAYER )
             {
                 if( !g_objects[i]->is_persistent() )
                     delete g_objects[i];

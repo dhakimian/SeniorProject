@@ -14,14 +14,20 @@ Senior Sem. Group
 
 
 
-Sources of Help:
+Major Sources of Help:
  (tutorials, stack overflow, any place that provided significant help worthy of credit)
 
  * lazyfoo.net (SDL2 game development tutorials)
  * Twinklebear SDL tutorials <add link>
- * www.cpluscplus.com
  * http://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
  * http://content.gpwiki.org/index.php/SDL:Tutorial:Using_SDL_net
  * ... (others, which I need to find)
 
+Sources of Smaller but Still Very Useful Help:
+ * www.cplusplus.com/reference/*
+ * http://www.libsdl.org/projects/SDL_net/docs/SDL_net.html
+ * http://www.cplusplus.com/forum/beginner/22286/
+ * http://stackoverflow.com/questions/2152986/best-way-to-get-the-index-of-an-iterator
+ * http://stackoverflow.com/questions/15888851/segfault-when-calling-virtual-function-of-derived-class
+ * ... (others, which I need to find)
 
