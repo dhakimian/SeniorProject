@@ -38,11 +38,6 @@ By default, the server doesn't render anything, but if you type anything (litera
 after ./bin/server, it will turn on a sort of spectator mode, where you can see what is going
 on in the server.
 
-Right now the game isn't really playable unless the server and client are going at the same
-speed, and the best way to get them to go at the same speed is to start the server in graphical
-mode. However, the sleep time between cycles on the server when not in graphical mode is close
-enough to the default client speed that it is playable.
-
 You can't control a ship in this mode, but you can follow their movement, or you can also
 move the camera around freely with the arrow keys ('q' or 'e' to rotate camera). Press 'f' to
 toggle whether you are following a ship or moving the camera around; press 'p' to change which
@@ -52,7 +47,7 @@ The client won't do anything unless it finds a server at the place it's looking 
 it finds the server, it will begin receiving the server's game state broadcasts, and will send
 its keyboard input to the server to be interpreted. If the client loses its connection to the
 server after having previously established one, it will update the gamestate locally, which
-helps minimize jitter from dropped packets.
+should help minimize jitter from dropped packets.
 This also means that you can play a client-side-only single player game by starting a server,
 connecting to it, and then killing the server. (But as soon as a server comes online again at
 the place the client is expecting, it will connect to it and have its state reset to that of

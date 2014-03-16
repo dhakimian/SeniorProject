@@ -13,16 +13,16 @@ Milestone 3:
 
  + Make client get game-state from server (which constantly sends it), and render based on that.
 
- + Currently, only one player can connect. Next up is to handle multiple connections (and
-reconnections from the same client). At first, this will probably take the form of everyone who
-connects controlling the same ship, but later we can actually try to get multiple players.
-    * Distinguish between clients to allow more than one player
+ + Handle multiple connections
+ (+/-) Handle multiple players
+    + Distinguish between clients to allow more than one player
         + store connections in a vector
         + Associate the right keyboard input with the right player
           (this should be possible by identifying the player by their host and port)
-    * Have server somehow tell client which ship it should be centering on
+    - Have server somehow tell client which ship it should be centering on
         (currently, all players center on the first Player object in g_objects, even if that
          isn't the ship they are controlling)
+    - remove dead connections from server's list
 
 (Priority) Make game speed not dependent on computer speed.
 
@@ -58,6 +58,8 @@ Only send what's changed to reduce bandwidth usage
     * this may necessitate the use of unique identifiers for objects, so we know which ones
       to update on the client when only a partial list is received
 
+Try make the client experience overall much smoother and less jumpy than it is now
+
 Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * Always go toward nearest ( only :P ) player
         - if not within certain distance of player, thrust towards them (if they are
@@ -70,15 +72,20 @@ Signal client to make a sound when it's supposed to (or change how/where sounds 
     (right now sounds are made inside update(), which happens on the server, so sounds are only
      made on the client when it is doing local updates)
 
+Decide whether or not to keep the behavior of being able to control the ship when the connection is lost
+
 (client) Display an icon or something whenever doing a local update, to notify player of packet
-loss, or just display it once the client considers the connection lost, to let player know
+loss, or just display it once the client considers the connection lost, to let the player know
 that their actions aren't being reflected on the server.
 
 Find and prevent/stop memory leaks
 
 Fix weird bug where objects will sometimes be duplicated when I think either the server or
 client is killed. Obviously, the bug will need to be tracked down first.
-(but it isn't super high priority, it doesn't even happen that often)
+(but it isn't super high priority, it doesn't even happen that often (like 2 or 3 times so far)
+
+Longer term goals
+=================
 
 Right now level size is constant and assumed to be the same on server and client. It's not
 sent as part of the initial gamestate or anything like that. If the client and server
