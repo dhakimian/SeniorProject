@@ -48,12 +48,13 @@ Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * Shoot when in range (maybe try to make aiming smarter than just where the target
       is at the time: decide where to shoot based on distance and speed of target. Maybe :P )
 
-Signal client to make a sound when it's supposed to
+Signal client to make a sound when it's supposed to (or change how/where sounds are made)
+    (right now sounds are made inside update(), which happens on the server, so sounds are only
+     made on the client when it is doing local updates)
 
-(client) Display an icon or something whenever doing a local update, to let player know that
-their actions won't be reflected on the server. If the gamestate packets coming in are coming in
-at a high enough rate that the client doesn't do any local updates while connected normally, this
-icon can serve as a notification of connection problems.
+(client) Display an icon or something whenever doing a local update, to notify player of packet
+loss, or just display it once the client considers the connection lost, to let player know
+that their actions aren't being reflected on the server.
 
 Make game speed not dependent on computer speed.
 

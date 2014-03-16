@@ -53,5 +53,10 @@ it finds the server, it will begin receiving the server's game state broadcasts,
 its keyboard input to the server to be interpreted. If the client loses its connection to the
 server after having previously established one, it will update the gamestate locally, which
 helps minimize jitter from dropped packets.
+This also means that you can play a client-side-only single player game by starting a server,
+connecting to it, and then killing the server. (But as soon as a server comes online again at
+the place the client is expecting, it will connect to it and have its state reset to that of
+the server's)
+
 
 Right now there is only support for one player, but that will change very soon. :)

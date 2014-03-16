@@ -639,25 +639,46 @@ int main( int argc, char** argv )
             //While application is running
             while( !quit )
             {
+                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
                 if( !connected && consec_localupdates%100 == 0 ) //only scan for server every 100 local updates
                 {                                               //assuming connection was established then lost
                     printf("Looking for server at %s (port %d)...\n", host, port);
                     UDPpacket *p;
-                    if (!(p = SDLNet_AllocPacket(64)))
+                    if (!(p = SDLNet_AllocPacket(128)))
                     {
                         fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
                         exit(EXIT_FAILURE);
                     }
                     p->address.host = srvadd.host;  /* Set the destination host */
                     p->address.port = srvadd.port;  /* And destination port */
-                    sscanf("hello", "%s", (char *)p->data);
-                    p->len = strlen((char *)p->data) + 1;
+                    Keystate keystate = get_keystate( currentKeyStates );
+                    memcpy( p->data, &keystate, sizeof(keystate) );
+                    p->len = sizeof(keystate);
                     SDLNet_UDP_Send(g_sd, -1, p);
                     SDLNet_FreePacket(p);
-                    if( g_player == NULL )                        //if connection was never established,
-                        usleep(1000000);                         //consec_localupdates will == 0 always
-                }                                               //and g_player will be NULL, so in this case
-                                                               //only scan once every second.
+                    if( g_player == NULL )                  //if connection was never established,
+                        usleep(1000000);                   //consec_localupdates will == 0 always and g_player
+                }                                         //will be NULL, so in this case scan once every
+                                                         //second since number of updates can't be used (since
+                                                        //they aren't happening because g_player is NULL)
+                if( connected )
+                {
+                    UDPpacket *kp;
+                    if (!(kp = SDLNet_AllocPacket(128)))
+                    {
+                        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+                        exit(EXIT_FAILURE);
+                    }
+                    kp->address.host = srvadd.host;  /* Set the destination host */
+                    kp->address.port = srvadd.port;  /* And destination port */
+                    Keystate keystate = get_keystate( currentKeyStates );
+                    memcpy( kp->data, &keystate, sizeof(keystate) );
+                    kp->len = sizeof(keystate);
+                    SDLNet_UDP_Send(g_sd, -1, kp);
+                    SDLNet_FreePacket(kp);
+                }
+
                 //get gamestate
                 UDPpacket** p_in;
                 if (!(p_in = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16)))
@@ -749,7 +770,8 @@ int main( int argc, char** argv )
                 } //else means no gamestate was received
                 else if( g_LocalUpdates && g_player != NULL )
                 {
-                    //cout<<"local update"<<endl;
+                    if( connected )
+                        cout<<"local update"<<endl;
                     //Update objects locally based on current state.
                     //Changes will be overwritten by next received state.
 
@@ -831,28 +853,9 @@ int main( int argc, char** argv )
                     }
                 }
 
-                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-
                 //handle keyboard state for things like rendering ship correctly based on keys pressed
                 if( g_player != NULL )
                     g_player->handle_keystate(currentKeyStates);
-
-                if( connected )
-                {
-                    UDPpacket *kp;
-                    if (!(kp = SDLNet_AllocPacket(128)))
-                    {
-                        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
-                        exit(EXIT_FAILURE);
-                    }
-                    kp->address.host = srvadd.host;  /* Set the destination host */
-                    kp->address.port = srvadd.port;  /* And destination port */
-                    Keystate keystate = get_keystate( currentKeyStates );
-                    memcpy( kp->data, &keystate, sizeof(keystate) );
-                    kp->len = sizeof(keystate);
-                    SDLNet_UDP_Send(g_sd, -1, kp);
-                    SDLNet_FreePacket(kp);
-                }
 
                 if( g_player != NULL )
                 {

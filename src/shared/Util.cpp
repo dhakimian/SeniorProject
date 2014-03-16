@@ -32,6 +32,19 @@ float frandBetween( int n1, int n2 )
     return (float)randBetween( n1, n2 );
 }
 
+std::vector<IPaddress>::iterator find(
+        std::vector<IPaddress>::iterator first,
+        std::vector<IPaddress>::iterator last,
+        const IPaddress& val
+        )
+{
+  while (first!=last) {
+    if ((*first).host==val.host && (*first).port==val.port) return first;
+    ++first;
+  }
+  return last;
+}
+
 /**
  * Log an SDL error with some error message to the output stream of our choice
  * @param os The output stream to write the message too

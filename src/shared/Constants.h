@@ -20,6 +20,7 @@ const int SCREEN_HEIGHT = 700;
 
 const int Render_Radius = 1000;
 
+// Should be <= min(LEVEL_WIDTH, LEVEL_HEIGHT)/2, or things will jump around
 const int Minimap_Radius = 2000;
 
 const int TARG_W = SCREEN_WIDTH + Render_Radius;
@@ -58,8 +59,10 @@ const bool g_LocalUpdates = true;
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
-const int LEVEL_WIDTH = 32000;
-const int LEVEL_HEIGHT = 32000;
+const int LEVEL_WIDTH = 4000;
+const int LEVEL_HEIGHT = 4000;
+//const int LEVEL_WIDTH = 32000;
+//const int LEVEL_HEIGHT = 32000;
 
 static const std::string imgarr[] = {
     "media/bg_image.gif",

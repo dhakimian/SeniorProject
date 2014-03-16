@@ -23,6 +23,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <cstdlib>
 #include <unistd.h>
 //#include <typeinfo>
@@ -81,8 +82,8 @@ float g_yPos_camdest = SCREEN_HEIGHT/2;
 float g_Angle_camdest = 0.0;
 
 //boolean config options
-bool g_targ_Follow_Rotation = true;
-bool g_targ_Ship_Centered = false;
+bool g_targ_Follow_Rotation = false;
+bool g_targ_Camera_Centered = true;
 bool g_Follow_Ship = true;
 
 vector<string> g_imgfiles (imgarr, imgarr + sizeof(imgarr) / sizeof(imgarr[0]) );
@@ -526,8 +527,8 @@ void render()
     //3->bottom or right
     x_offset_dest = 2;
 
-    if( g_targ_Ship_Centered )
-    //if( g_Follow_Ship && g_targ_Ship_Centered )
+    if( g_targ_Camera_Centered )
+    //if( g_Follow_Ship && g_targ_Camera_Centered )
         y_offset_dest = 2;
     else
         y_offset_dest = 3;
@@ -673,6 +674,9 @@ int main( int argc, char** argv )
 
     bool connected = false;
 
+    //list of unique host+port combinations that have connected to the server
+    vector<IPaddress> connections;
+
     //Event handler
     SDL_Event e;
 
@@ -719,7 +723,7 @@ int main( int argc, char** argv )
                             break;
                         case SDLK_c: //toggle camera mode
                             g_targ_Follow_Rotation = !g_targ_Follow_Rotation;
-                            g_targ_Ship_Centered = !g_targ_Ship_Centered;
+                            g_targ_Camera_Centered = !g_targ_Camera_Centered;
                             break;
                             //switch control between present Player ships
                         case SDLK_f:
@@ -742,23 +746,41 @@ int main( int argc, char** argv )
             }
         }
 
-        if( !connected )
+        UDPpacket *p;
+        if (!(p = SDLNet_AllocPacket(128)))
         {
-            UDPpacket *p;
-            if (!(p = SDLNet_AllocPacket(64)))
-            {
-                fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
-                exit(EXIT_FAILURE);
-            }
-            if (SDLNet_UDP_Recv(g_sd, p))
+            fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+            exit(EXIT_FAILURE);
+        }
+        if (SDLNet_UDP_Recv(g_sd, p))
+        {
+            //if packet's address is not in connections vector
+            vector<IPaddress>::iterator it = find( connections.begin(), connections.end(), p->address );
+            if( it == connections.end() )
             {
                 SDLNet_UDP_Bind(g_sd, 0, &p->address);
-                connected = true;
-                //printf("Client connected from %s (port %d)\n", p->address.host, p->address.port);
-                //cout << "Client connected from "<<p->address.host<<" (port "<<p->address.port<<")"<<endl;
-                cout<<"Client connected"<<endl;
+                connections.push_back(p->address);
+                cout<<"Client connected\n";
+                cout<<"Current connections: "<<connections.size()<<endl;
+                //TODO: add Player ship when client connects (but the server should always start with one ship)
+                //      (unless I add checks in the rendering process to avoid crashes with no Player present)
+                //TODO: remove connections that have not been heard from in a while
             }
-            SDLNet_FreePacket(p);
+            else //client is already connected. Read packet's keyboard state data
+            {
+                Keystate keystate;
+                memcpy( &keystate, p->data, p->len );
+                g_players[0]->handle_keystate(keystate);
+                //g_players[it-connections.begin()]->handle_keystate(keystate);
+            }
+        }
+        SDLNet_FreePacket(p);
+
+        if( RENDER )
+        {
+            //handle spectator mode actions based on current key state of server
+            const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+            handle_keystate(currentKeyStates);
         }
 
         UDPpacket** p_out;
@@ -823,33 +845,6 @@ int main( int argc, char** argv )
             } else
                 g_objects[i]->update();
         }
-
-        //handle input//
-        if( RENDER )
-        {
-            const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-            //handle spectator mode actions based on current key state of server
-            handle_keystate(currentKeyStates);
-        }
-
-        if( connected )
-        {
-            UDPpacket* kp;
-            if (!(kp = SDLNet_AllocPacket(128)))
-            {
-                fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
-                exit(EXIT_FAILURE);
-            }
-            if (SDLNet_UDP_Recv(g_sd, kp))
-            {
-                //cout<<"got keystate"<<endl;
-                Keystate keystate;
-                memcpy( &keystate, kp->data, kp->len );
-                g_players[0]->handle_keystate(keystate);
-            }
-            SDLNet_FreePacket(kp);
-        }
-        //----//
 
         if( RENDER )
         {
