@@ -23,8 +23,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
+//#include <type_traits>
 #include <cstdlib>
 #include <ctime>
+#include <cassert>
 #include <unistd.h>
 
 #include "Constants.h"
@@ -40,8 +43,14 @@
 
 using namespace std;
 
+int tick = 0;
+//int sleep_time = ;
+
 bool g_show_minimap = true;
 
+//Whether client should update g_objects locally whenever it doesn't receive a new gamestate from server
+const bool g_LocalUpdates = false; //TODO: deal better with objects added during local updates so this being
+                                   //true doesn't cause occaisonal segfaults (Laser::onCollide get_team)
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
@@ -89,7 +98,8 @@ vector<string> g_sndfiles (sndarr, sndarr + sizeof(sndarr) / sizeof(sndarr[0]) )
 vector<Mix_Chunk*> g_sounds (g_sndfiles.size(), NULL );
 
 vector<Object*> g_objects; // list of all the objects currently in the level
-//Player player;
+vector<const void*> g_ObjectIDs; // list of identifiers for objects. Must be in same order as g_objects
+
 Player* g_player = NULL;
 
 Mix_Music* g_music = NULL;
@@ -322,7 +332,7 @@ void render_objects()
             if( fabs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//t
                 yrc -= LEVEL_HEIGHT; render = true;}
         }
-        if( render && !g_objects[i]->is_dead() )
+        if( render )
             g_objects[i]->render(xrc, yrc, Angle, true);
         //else they are not close enough, so don't render them.
     }
@@ -458,12 +468,16 @@ void render()
     SDL_RenderClear( gRenderer );
 
     float xPos_pl, yPos_pl, Angle_pl, xVel_pl, yVel_pl, rotVel_pl; // pl -> player
-    g_player->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
+    if( g_player != NULL )
+        g_player->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
 
-    g_xPos_camdest = xPos_pl;
-    g_yPos_camdest = yPos_pl;
-    if( g_targ_Follow_Rotation )
-        g_Angle_camdest = Angle_pl;
+    if( g_player != NULL )
+    {
+        g_xPos_camdest = xPos_pl;
+        g_yPos_camdest = yPos_pl;
+        if( g_targ_Follow_Rotation )
+            g_Angle_camdest = Angle_pl;
+    }
 
     render_bg();
 
@@ -484,7 +498,7 @@ void render()
         diff_ang -= 360;
 
     g_rotVel_targ = diff_ang/rotDeccel_targ;
-    if( g_targ_Follow_Rotation )
+    if( g_targ_Follow_Rotation && g_player != NULL )
             g_rotVel_targ += rotVel_pl;
 
     g_Angle_targ = fmod( (g_Angle_targ + g_rotVel_targ + 360), 360 );
@@ -532,7 +546,8 @@ void render()
     g_xPos_cam = fmod( (g_xPos_cam + g_xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
     g_yPos_cam = fmod( (g_yPos_cam + g_yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
 
-    render_overlay();
+    if( g_player != NULL )
+        render_overlay();
 }
 
 Keystate get_keystate(const Uint8* currentKeyStates)
@@ -548,6 +563,26 @@ Keystate get_keystate(const Uint8* currentKeyStates)
     keystate.shootKey = currentKeyStates[SDL_SCANCODE_SPACE];
 
     return keystate;
+}
+
+template <typename T>
+void CopyObject( UDPpacket* p )
+{ //Either makes a new local object or updates the local object from the data in the packet
+    T foo;
+    memcpy( &foo, p->data, p->len );
+    vector<const void*>::iterator it = find( g_ObjectIDs.begin(), g_ObjectIDs.end(), foo.get_ID() );
+
+    if( it == g_ObjectIDs.end() ) //new object
+    {
+        g_ObjectIDs.push_back( foo.get_ID() );
+        g_objects.push_back( foo.clone() );
+        assert( g_ObjectIDs.size() == g_objects.size() );
+    }
+    else // object has been previously received: update it
+    {
+        *g_objects[it-g_ObjectIDs.begin()] = foo;
+    }
+
 }
 
 void close()
@@ -606,12 +641,25 @@ int main( int argc, char** argv )
             exit(EXIT_FAILURE);
         }
 
-        // Open a socket
+        // Open a socket on a random port
         if (!(g_sd = SDLNet_UDP_Open(0)))
         {
             fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
+
+        Uint16 myport;
+
+        IPaddress *address;
+        address=SDLNet_UDP_GetPeerAddress(g_sd, -1);
+        if(!address) {
+            fprintf(stderr, "SDLNet_UDP_GetPeerAddress: %s\n", SDLNet_GetError());
+        }
+        else {
+            myport = address->port;
+            cout<<"Opened socket on port "<<myport<<endl;
+        }
+
 
         //Load media
         if( !loadMedia() )
@@ -626,9 +674,9 @@ int main( int argc, char** argv )
             bool connected = false;
 
             //count consecutive local updates to determine whether connection has been lost
-            int consec_localupdates = 0;
+            int consec_missed_updates = 0;
 
-            int num_recvd = 0;
+            int prev_num_recvd = 0;
 
             //Event handler
             SDL_Event e;
@@ -645,8 +693,8 @@ int main( int argc, char** argv )
             {
                 const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
 
-                if( !connected && consec_localupdates%100 == 0 ) //only scan for server every 100 local updates
-                {                                               //assuming connection was established then lost
+                if( !connected && tick%100 == 0 ) //only scan for server every 100 cycles
+                {
                     printf("Looking for server at %s (port %d)...\n", host, port);
                     UDPpacket *p;
                     if (!(p = SDLNet_AllocPacket(128)))
@@ -661,11 +709,8 @@ int main( int argc, char** argv )
                     p->len = sizeof(keystate);
                     SDLNet_UDP_Send(g_sd, -1, p);
                     SDLNet_FreePacket(p);
-                    if( g_player == NULL )                  //if connection was never established,
-                        usleep(1000000);                   //consec_localupdates will == 0 always and g_player
-                }                                         //will be NULL, so in this case scan once every
-                                                         //second since number of updates can't be used (since
-                                                        //they aren't happening because g_player is NULL)
+                }
+
                 if( connected )
                 {
                     UDPpacket *kp;
@@ -693,112 +738,145 @@ int main( int argc, char** argv )
 
                 /* Wait a packet. UDP_Recv returns != 0 if a packet is coming */
                 //cout<<"udpRecvV->"<<endl;
-                num_recvd = SDLNet_UDP_RecvV(g_sd, p_in);
+                int num_recvd = SDLNet_UDP_RecvV(g_sd, p_in);
                 //cout<<"num_recvd: "<<num_recvd<<endl;
                 if (num_recvd > 0)
                 {
                     if( !connected ) {
                         connected = true;
-                        printf("Connected to server at %s (port %d)\n", host, port);
+                        tick = 0;
+                        g_objects.clear();
+                        g_ObjectIDs.clear();
+                        g_player = NULL;
+                        printf("Connected to server at %s (port %d)!\n", host, port);
                     }
 
-                    consec_localupdates = 0;
+                    //if( num_recvd == prev_num_recvd * 2 )
+                        //num_recvd /= 2;
+
+                    consec_missed_updates = 0;
 
                     //cout<<"got packet vector"<<endl;
                     //cout<<"num_recvd: "<<num_recvd<<endl;
-                    g_objects.resize( num_recvd );
+                    //g_objects.resize( num_recvd );
                     for( int i=0; i<num_recvd; i++ )
                     {
                         //Object tmp = *(Object*)p_in[i]->data;
                         Object tmp;
                         memcpy( &tmp, p_in[i]->data, p_in[i]->len );
+                        //memcpy( &tmp, p_in[i]->data, sizeof(tmp) );
+                        //cout<<"tmpmemcpy"<<endl;
                         //Object* tmp = (Object*)p_in[i]->data;
                         //cout<<i<<" type: "<<tmp.get_type()<<endl;
-                        if( tmp.get_type() == 0) {
-                            Object foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Object(foo);
-                        } else if( tmp.get_type() == 1 ) {
-                            MovingObject foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new MovingObject(foo);
-                        } else if( tmp.get_type() == 2 ) {
-                            Ship foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Ship(foo);
-                        } else if( tmp.get_type() == 3 ) {
-                            Player foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Player(foo);
-                        } else if( tmp.get_type() == 4 ) {
-                            Alien foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Alien(foo);
-                        } else if( tmp.get_type() == 5 ) {
-                            Laser foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Laser(foo);
-                        } else if( tmp.get_type() == 6 ) {
-                            Planet foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Planet(foo);
-                        } else if( tmp.get_type() == 7 ) {
-                            Asteroid foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Asteroid(foo);
-                        } else if( tmp.get_type() == 8 ) {
-                            Explosion foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Explosion(foo);
-                        } else if( tmp.get_type() == 9 ) {
-                            Powerup foo;
-                            memcpy( &foo, p_in[i]->data, p_in[i]->len );
-                            g_objects[i] = new Powerup(foo);
-                        }
+
+                        if( tmp.get_type() == 0)
+                            CopyObject<Object>( p_in[i] );
+                        else if( tmp.get_type() == 1 )
+                            CopyObject<MovingObject>( p_in[i] );
+                        else if( tmp.get_type() == 2 )
+                            CopyObject<Ship>( p_in[i] );
+                        else if( tmp.get_type() == 3 )
+                            CopyObject<Player>( p_in[i] );
+                        else if( tmp.get_type() == 4 )
+                            CopyObject<Alien>( p_in[i] );
+                        else if( tmp.get_type() == 5 )
+                            CopyObject<Laser>( p_in[i] );
+                        else if( tmp.get_type() == 6 )
+                            CopyObject<Planet>( p_in[i] );
+                        else if( tmp.get_type() == 7 )
+                            CopyObject<Asteroid>( p_in[i] );
+                        else if( tmp.get_type() == 8 )
+                            CopyObject<Explosion>( p_in[i] );
+                        else if( tmp.get_type() == 9 )
+                            CopyObject<Powerup>( p_in[i] );
+
                     }
 
-                    //if( g_player == NULL )
-                        //cout<<"PlayerNULL"<<endl;
-                    //{
                     /* --- find Player --- */
+                    if( g_player == NULL || g_player->is_dead() )
+                    {
                         for( uint i=0; i<g_objects.size(); i++ )
                         {
                             if( g_objects[i]->get_type() == T_PLAYER )
                             {
+                                //Player* player = new Player(*g_objects[i]);
                                 g_player = (Player*)g_objects[i];
-                                break;
+                                //g_player = g_objects[i]->clone();
+                                //cout<<player->get_controller()<<endl;
+                                //cout<<myport<<endl;
+                                if( g_player->get_controller() == myport )
+                                    break;
                             }
+                            g_player = NULL; //if here, none of objects were matching player objects
                         }
-                    //}
-
-                } //else means no gamestate was received
-                else if( g_LocalUpdates && g_player != NULL )
-                {
-                    if( connected )
-                        cout<<"local update"<<endl;
-                    //Update objects locally based on current state.
-                    //Changes will be overwritten by next received state.
-
-                    consec_localupdates++;
-                    if( connected && consec_localupdates >= CONNECTION_LOST_THRESHOLD )
-                    {
-                        cout<<"Connection to server lost. (missed "<<CONNECTION_LOST_THRESHOLD
-                            <<" consecutive updates)"<<endl;
-                        connected = false;
                     }
 
+                    //check for dead local objects and get rid of them
                     for( uint i = 0; i<g_objects.size(); i++ )
                     {
-                        if( g_objects[i]->is_dead() && g_objects[i]->get_type() != T_PLAYER )
+                        if( g_objects[i]->is_dead() )
                         {
                             if( !g_objects[i]->is_persistent() )
                                 delete g_objects[i];
                             g_objects.erase( g_objects.begin()+i );
+                            g_ObjectIDs.erase( g_ObjectIDs.begin()+i );
+                            assert( g_ObjectIDs.size() == g_objects.size() );
                             i--;
-                        } else
-                            g_objects[i]->update();
+                        }
+                    }
+                    //if( g_player != NULL && g_player->is_dead() )
+                        //delete g_player;
+                        //g_player = NULL;
+
+                    prev_num_recvd = num_recvd;
+
+                    SDLNet_FreePacketV(p_in);
+
+                } //else means no gamestate was received
+                else
+                {
+                    consec_missed_updates++;
+                    if( connected && consec_missed_updates >= SERVER_CONNECTION_LOST_THRESHOLD )
+                    {
+                        cout<<"Connection to server lost. (missed "<<SERVER_CONNECTION_LOST_THRESHOLD
+                            <<" consecutive updates)"<<endl;
+                        connected = false;
+                    }
+
+                    if( g_LocalUpdates && g_player != NULL )
+                    {   //Update objects locally based on current state.
+                        //Changes will be overwritten by next received state.
+                        if( connected )
+                            cout<<"local update"<<endl;
+
+                        auto size = g_objects.size();
+                        for( uint i = 0; i<g_objects.size(); i++ )
+                        {
+                            if( g_objects[i]->is_dead() )
+                            {
+                                if( !g_objects[i]->is_persistent() )
+                                    delete g_objects[i];
+                                g_objects.erase( g_objects.begin()+i );
+                                g_ObjectIDs.erase( g_ObjectIDs.begin()+i );
+                                assert( g_ObjectIDs.size() == g_objects.size() );
+                                i--;
+                            } else
+                                g_objects[i]->update();
+
+                            if( g_objects.size() > size )
+                                g_objects.resize( size );
+                            //local updates can add objects to g_objects, but won't add corresponding
+                            //entry to g_ObjectIDs, so undo any additions of objects by local updates
+                            //TODO: deal better with objects added during local updates so this being
+                            //true doesn't cause occaisonal segfaults (Laser::onCollide get_team)
+
+                        }
+                        //if( g_player->is_dead() )
+                        //g_player->update();
                     }
                 }
+
+                //cout<<"g_objects.size(): "<<g_objects.size()<<endl;
 
                 //Handle events on queue
                 while( SDL_PollEvent( &e ) != 0 )
@@ -853,23 +931,22 @@ int main( int argc, char** argv )
                 }
 
                 //handle keyboard state for things like rendering ship correctly based on keys pressed
-                if( g_player != NULL )
-                    g_player->handle_keystate(currentKeyStates);
+                //if( g_player != NULL )
+                    //g_player->handle_keystate(currentKeyStates);
 
-                if( g_player != NULL )
-                {
-                    //Clear screen
-                    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
-                    SDL_RenderClear( gRenderer );
+                //Clear screen
+                SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+                SDL_RenderClear( gRenderer );
 
-                    //Render objects
-                    render();
+                //Render objects
+                render();
 
-                    //Update screen
-                    SDL_RenderPresent( gRenderer );
-                }
+                //Update screen
+                SDL_RenderPresent( gRenderer );
 
-                SDLNet_FreePacketV(p_in);
+                //if( connected ) {
+                    //cout<<"Tick: "<<tick<<endl;
+                    tick++;// }
             }
         }
     }

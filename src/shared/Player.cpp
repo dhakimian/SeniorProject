@@ -5,7 +5,7 @@
 #include "Player.h"
 #include <iostream>
 
-Player::Player(int teamnumber, float xp, float yp, float ang )
+Player::Player(Uint16 controllerport, int teamnumber, float xp, float yp, float ang )
 {
     xPos = xp;
     yPos = yp;
@@ -20,6 +20,8 @@ Player::Player(int teamnumber, float xp, float yp, float ang )
 
     Respawn_time = 500;
     respawn_time_rem = Respawn_time;
+
+    controller = controllerport;
 
     team = teamnumber;
 
@@ -37,6 +39,9 @@ Player::Player(int teamnumber, float xp, float yp, float ang )
 
     TYPE = T_PLAYER;
 }
+
+Uint16 Player::get_controller()
+{ return controller; }
 
 void Player::handle_keystate(const Uint8* currentKeyStates)
 {
@@ -124,6 +129,7 @@ void Player::respawn()
     for( uint i=0; i<active_lasers.size(); i++ )
         active_lasers[i]->reset();
 
+    g_objects.push_back( this );
 }
 
 void Player::render( int x, int y, float ang, bool centered )

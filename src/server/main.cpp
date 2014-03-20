@@ -41,6 +41,9 @@
 
 using namespace std;
 
+int tick = 0;
+//int sleep_time = ;
+
 bool g_show_minimap = true;
 
 bool RENDER = false;
@@ -99,7 +102,7 @@ int player = 0;
 vector<Player*> g_players;
 
 void cycle_player() {
-    //if( g_Followng_Ship )
+    //if( g_Following_Ship )
         player = fmod( player+1, g_players.size() );
 }
 void toggle_camera() {
@@ -354,7 +357,7 @@ void render_objects()
             if( fabs( yPos - LEVEL_HEIGHT - g_yPos_cam ) < Render_Radius ) {//t
                 yrc -= LEVEL_HEIGHT; render = true;}
         }
-        if( render && !g_objects[i]->is_dead() )
+        if( render )
             g_objects[i]->render(xrc, yrc, Angle, true);
         //else they are not close enough, so don't render them.
     }
@@ -684,10 +687,14 @@ int main( int argc, char** argv )
     //Main loop flag
     bool quit = false;
 
-    bool connected = false;
-
     //list of unique host+port combinations that have connected to the server
-    vector<IPaddress> connections;
+    vector<Connection> connections;
+
+    //keep a list of connections that were established then lost to allow reconnections to the same ship
+    vector<IPaddress> lost_connections;
+
+    //corresponding list of number of times a packet was received from that client
+    //TODO: make struct with packets_recvd, prev_packets_recvd, num_missed
 
     //Event handler
     SDL_Event e;
@@ -764,40 +771,68 @@ int main( int argc, char** argv )
         }
 
         UDPpacket *p;
-        if (!(p = SDLNet_AllocPacket(128)))
-        {
+        if (!(p = SDLNet_AllocPacket(128))) {
             fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
         if (SDLNet_UDP_Recv(g_sd, p))
         {
-            //if packet's address is not in connections vector
-            vector<IPaddress>::iterator it = find( connections.begin(), connections.end(), p->address );
-            if( it == connections.end() )
+            vector<Connection>::iterator it;
+            it = find_if( connections.begin(), connections.end(), find_addr(p->address) );
+            if( it == connections.end() ) //packet's address is not in connections vector
             {
                 SDLNet_UDP_Bind(g_sd, 0, &p->address);
-                connections.push_back(p->address);
-                cout<<"Client connected\n";
+                connections.push_back( Connection(p->address, 1, 0, 0) );
+                cout<<"Client connected with port "<<p->address.port<<"\n";
+                //cout<<"host: "<<p->address.host <<"\nport: "<<p->address.port <<endl;
                 cout<<"Current connections: "<<connections.size()<<endl;
 
-                Player* newplayer = new Player();
+                if( connections.size() == 1 )
+                    tick = 0;
+
+                Player* newplayer = new Player(p->address.port);
                 g_players.push_back( newplayer );
                 g_objects.push_back( newplayer );
 
-                //TODO: remove connections that have not been heard from in a while (and their ships?)
+                //TODO: reconnect clients that have reconnected (from lost_connections)
             }
             else //client is already connected. Read packet's keyboard state data
             {
                 Keystate keystate;
                 memcpy( &keystate, p->data, p->len );
-                //g_players[0]->handle_keystate(keystate);
-                g_players[it-connections.begin()]->handle_keystate(keystate);
+                //if( connections.size() == g_players.size() )
+                    g_players[it-connections.begin()]->handle_keystate(keystate);
+                //else {
+                    //vector<Player*>::iterator it = 
+                it->packets_recvd++;
+                it->consec_missed = 0;
             }
         }
+
+        for( int i=0; i<connections.size(); i++ ) {
+            if( connections[i].packets_recvd == connections[i].prev_packets_recvd ) {
+                connections[i].consec_missed++;
+                if( connections[i].consec_missed >= CLIENT_CONNECTION_LOST_THRESHOLD ) {
+                    lost_connections.push_back( connections[i].address );
+                    Player* player = g_players[i];
+                    player->handle_keystate( Keystate() );
+                    g_players.erase( g_players.begin()+i );
+                    //g_players.push_back( player );
+                    cout<<"Lost connection to client with port "<<connections[i].address.port
+                        <<" (missed "<<CLIENT_CONNECTION_LOST_THRESHOLD<<" consecutive packets)"<<endl;
+                    SDLNet_UDP_Unbind( g_sd, 0 );
+                    connections.erase( connections.begin()+i );
+                    for( int i=0; i<connections.size(); i++ )
+                        SDLNet_UDP_Bind(g_sd, 0, &connections[i].address);
+                    continue;
+                }
+            }
+            connections[i].prev_packets_recvd = connections[i].packets_recvd;
+        }
+
         SDLNet_FreePacket(p);
 
-        if( RENDER )
-        {
+        if( RENDER ) {
             //handle spectator mode actions based on current key state of server
             const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
             handle_keystate(currentKeyStates);
@@ -805,12 +840,12 @@ int main( int argc, char** argv )
 
         UDPpacket** p_out;
         if (!(p_out = SDLNet_AllocPacketV(g_objects.size(), MAX_OBJECTS * 16)))
+        //if (!(p_out = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16)))
         {
             fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
-        for( int i=0; i<g_objects.size(); i++ )
-        {
+        for( int i=0; i<g_objects.size(); i++ ) {
             memcpy( p_out[i]->data, g_objects[i], sizeof(*g_objects[i]) );
             p_out[i]->len = sizeof(*g_objects[i]);
             p_out[i]->channel = 0;
@@ -820,6 +855,8 @@ int main( int argc, char** argv )
 
         SDLNet_UDP_SendV(g_sd, p_out, g_objects.size() );
         //cout<<"sent packet"<<endl;
+
+        SDLNet_FreePacketV(p_out);
 
         /*
         if (SDLNet_UDP_Recv(g_sd, p)) {
@@ -856,7 +893,7 @@ int main( int argc, char** argv )
 
         for( uint i = 0; i<g_objects.size(); i++ )
         {
-            if( g_objects[i]->is_dead() && g_objects[i]->get_type() != T_PLAYER )
+            if( g_objects[i]->is_dead() )
             {
                 if( !g_objects[i]->is_persistent() )
                     delete g_objects[i];
@@ -864,6 +901,11 @@ int main( int argc, char** argv )
                 i--;
             } else
                 g_objects[i]->update();
+        }
+        for( uint i = 0; i<g_players.size(); i++ )
+        {
+            if( g_players[i]->is_dead() )
+                g_players[i]->update();
         }
 
         if( RENDER )
@@ -883,7 +925,9 @@ int main( int argc, char** argv )
         if (!RENDER)
             usleep(15000);
 
-
+        //if ( connections.size() > 0 ) {
+            //cout<<"Tick: "<<tick<<endl;
+            tick++;// }
     }
 
     //Free resources and close SDL

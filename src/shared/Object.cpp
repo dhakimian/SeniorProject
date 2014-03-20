@@ -3,6 +3,8 @@
 
 Object::Object()
 {
+    ID = this;
+
     xPos = 1.0;
     yPos = 1.0;
     Angle = 0;
@@ -61,6 +63,29 @@ void Object::update()
             green = 255;
             blue = 255;
         }
+    }
+
+    if( animated )
+    {
+        if( num_frames == 0 )
+            num_frames = frames_x * frames_y;
+
+        //if( (time % something) == 0 )
+        if( frame_delay_left == 0 )
+        {
+            frame_delay_left = frame_delay;
+            //frame_num = (frame_num + 1) % num_frames;
+            frame_num++;
+            if( frame_num >= num_frames )
+            {
+                if( anim_loops )
+                    frame_num %= num_frames;
+                else
+                    frame_num--;
+            }
+        }
+        else
+            frame_delay_left--;
     }
 }
 
@@ -122,6 +147,9 @@ void Object::set_values(float xPos_in, float yPos_in, float Angle_in)
     Angle = Angle_in;
 }
 
+const void* Object::get_ID()
+{ return ID; }
+
 Circle Object::get_collider()
 { return Collider; }
 
@@ -166,6 +194,9 @@ void Object::render( int x, int y, float ang, bool centered )
 
     if( animated )
     {
+        //std::cout<<"animation"<<std::endl;
+        //std::cout<<this->frame_num<<"/"<<this->num_frames<<std::endl;
+
         SDL_Rect frame;
 
         if( frame_w == 0 )
@@ -194,32 +225,12 @@ void Object::render( int x, int y, float ang, bool centered )
         if( frames_y == 0 )
             frames_y = tex->getHeight()/frame_h;
 
-        if( num_frames == 0 )
-            num_frames = frames_x * frames_y;
-
         frame.w = frame_w;
         frame.h = frame_h;
         frame.x = (frame_num % frames_x) * frame_w;
         frame.y = (frame_num / frames_x) * frame_h;
 
         tex->render( x-frame.w/2, y-frame.h/2, &frame, ang );
-
-        //if( (time % something) == 0 )
-        if( frame_delay_left == 0 )
-        {
-            frame_delay_left = frame_delay;
-            //frame_num = (frame_num + 1) % num_frames;
-            frame_num++;
-            if( frame_num >= num_frames )
-            {
-                if( anim_loops )
-                    frame_num %= num_frames;
-                else
-                    frame_num--;
-            }
-        }
-        else
-            frame_delay_left--;
 
     } else {
         if( centered )

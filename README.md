@@ -34,6 +34,8 @@ make it force quit or end task, or from the terminal started it in, you can pres
 then 'kill -9 %1' (ctrl-c doesn't seem to work when this happens). Yes, finding and fixing
 memory leaks is on the todo list... :P
 
+(this hasn't happened in a while for me, but I also haven't been testing with Rocke Everywhere recently either...)
+
 By default, the server doesn't render anything, but if you type anything (literally anything)
 after ./bin/server, it will turn on a sort of spectator mode, where you can see what is going
 on in the server.
@@ -47,17 +49,11 @@ The client won't do anything unless it finds a server at the place it's looking 
 it finds the server, it will begin receiving the server's game state broadcasts, and will send
 its keyboard input to the server to be interpreted. If the client loses its connection to the
 server after having previously established one, it will update the gamestate locally, which
-should help minimize jitter from dropped packets.
-This also means that you can play a client-side-only single player game by starting a server,
-connecting to it, and then killing the server. (But as soon as a server comes online again at
-the place the client is expecting, it will connect to it and have its state reset to that of
-the server's)
+should help minimize jitter from dropped packets. If the client misses too many consecutive
+updates from the server, it will consider the connection lost, and start looking for the server
+again. Similarly, if the server misses too many consecutive packets from a client, it will
+consider the connection to that client lost, and stop sending updates to it.
 
-The server seems to be able to support 4 different connections, and there are four different
-colors that your ship can be. Right now, every client centers on the first Player object they
-find in g\_objects, so this means that if you are the first client to connect, everything works
-as expected, but if you join after that, even though you are controlling a second ship, you are
-focused on the first one, which makes things rather difficult :)
-
-This should hopefully be remedied soon, but until then, for all practical purposes the game
-still only supports one player :P
+The server seems to be able to support 4 different simultaneous connections, and there are four
+different colors that your ship can be. When you join, you get randomly assigned a team (and
+corresponding ship color). Later, there might be a way to specify what team you want to join.

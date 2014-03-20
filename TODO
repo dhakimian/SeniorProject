@@ -25,10 +25,41 @@ Milestone 3:
     - remove dead connections from server's list
 
 (Priority) Make game speed not dependent on computer speed.
+    - make server and client speed match
 
  + Make client predict motion to make things smoother in case of latency issues
    (If client doesn't get a packet, it updates g_objects locally instead. (changes will of
     course get overridden by next server state) )
+
+ + Fix weird bug where objects will sometimes be duplicated when the server is killed.
+    * I found it. The number of packets received from the server was sometimes getting doubled,
+      probably because they were coming faster than the client was grabbing them, and they
+      apparently get mushed together in the buffer or something. I don't know. This is just
+      part of the problem of client/server speeds not matching, but the other side of it. When
+      the server is slower than the client, the game just isn't playable because of the delay
+      between commands being sent and being interpreted. Now it's clear that when the server
+      is faster, the world objects will be duplicated every couple of cycles, kind of like
+      getting wrinkles in a longer piece of string when matching the ends to a shorter one.
+      This was also causing some other weird issues I was experiencing, like some of the
+      jitter on the player image (there were actually two ships there, and only one was being
+      rendered based on keyboard state (because that is currently happening client-side for the
+      client, because of another problem[1] I still need to fix...) and the player minimap icon
+      flashing between green and yellow. The times when I saw the objects duplicated after the
+      server was killed were the rare times when it was killed right when the last state
+      received by the client was one of the double ones.
+      At least in this case, the game is playable, and I've even hacked together a quick fix
+      (if the number of packets received is double the previous number, ignore the second half),
+      but the underlying problem of mismatched server/client speeds is still there, and needs to
+      be fixed. Fortunately, there are resources available to help in this process, like the
+      explanations I've found of how multiplayer works in games like Quake and the Source games.
+
+[1] Make it so that the client actually receives child class members that aren't inherited
+    from Object
+        * This will allow me to finish getting the client to focus on the right ship and have
+          the rendering of the player which is based on keyboard state be based off of the
+          keyboard state that the server has received, not local keyboard state
+        * Temporary workaround is to just put the members in Object.h, even if they don't really
+          belong there.
 
 Add a way to set a destination for a ship, and have the ship make its way to that point
     (for AI purposes)
@@ -48,17 +79,25 @@ Add a way for client to specify which port they open
  + Colorize player graphics based on team, to eliminate need for many differently colored images.
      (req: Make player graphics work well with colorization)
 
+ - fix bug in camera system that can be seen in server spectator mode when getting close to
+   edges sometimes.
+
 Milestone 4:
 ============
 
-Try to find a way to prevent objects blinking out temporarily when the full state doesn't come
+(+)Try to find a way to prevent objects blinking out temporarily when the full state doesn't come
 (the following point will probably help with that)
 
 Only send what's changed to reduce bandwidth usage
     * this may necessitate the use of unique identifiers for objects, so we know which ones
       to update on the client when only a partial list is received
+    + given a full state, the client will only allocate new local objects if they are new.
+      Otherwise it will copy the objects info to the existing local object
 
 Try make the client experience overall much smoother and less jumpy than it is now
+
+Display some sort of message when rendering while not connected to server
+    (like "Looking for server")
 
 Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * Always go toward nearest ( only :P ) player
@@ -80,10 +119,6 @@ that their actions aren't being reflected on the server.
 
 Find and prevent/stop memory leaks
 
-Fix weird bug where objects will sometimes be duplicated when I think either the server or
-client is killed. Obviously, the bug will need to be tracked down first.
-(but it isn't super high priority, it doesn't even happen that often (like 2 or 3 times so far)
-
 Longer term goals
 =================
 
@@ -100,3 +135,4 @@ Make aesthetic-only explosions happen client-side
 aesthetic, but they are objects just like everything else.)
 Revised: Make aesthetic explosions aesthetic.
 
+Create new graphics if somebody feels like it

@@ -50,6 +50,8 @@ class Object
 
         virtual Circle get_collider();
 
+        const void* get_ID();
+
         int get_tex_index();
 
         int get_type();
@@ -69,6 +71,9 @@ class Object
         bool is_persistent();
 
     protected:
+
+        //unique identifier (from object pointer)
+        const void* ID;
 
         //the index of the default image to render for instances of this object
         int TEX_INDEX;
@@ -140,6 +145,18 @@ class Object
         //if this is true, the object will not be deleted when it is "dead".
         //This is necessary for things like lasers, which are pooled and re-used
         bool persistent;
+
+        //port number (SDL_Net IPaddress.port) of client controlling this ship
+        Uint16 controller;
+
+        //variables telling whether certain keys are pushed. Includes both wasd and updownleftright.
+        bool upKey;
+        bool downKey;
+        bool leftKey;
+        bool rightKey;
+        bool strafeLeft;
+        bool strafeRight;
+        bool shootKey;
 
 };
 

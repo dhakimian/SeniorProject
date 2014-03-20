@@ -5,14 +5,16 @@
 #include "LTexture.h"
 #ifdef __APPLE__
 #include <SDL2_mixer/SDL_mixer.h>
+#include <SDL2_net/SDL_net.h>
 #else
 #include <SDL_mixer.h>
+#include <SDL_net.h>
 #endif
 
 typedef unsigned int uint;
 
 const bool MUSIC_ON = false;
-const bool SOUND_ON = true;
+const bool SOUND_ON = false;
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 900;
@@ -51,11 +53,11 @@ const float LOSS_FACTOR = 2;
 //Maximum number of objects (and consquently packets)
 const int MAX_OBJECTS = 512;
 
-//how many consecutive local updates need to happen on the client before it considers the connection to the server lost
-const int CONNECTION_LOST_THRESHOLD = 10;
+//how many consecutive updates need to be missed on the client before it considers the connection to the server lost
+const int SERVER_CONNECTION_LOST_THRESHOLD = 50;
 
-//Whether client should update g_objects locally whenever it doesn't receive a new gamestate from server
-const bool g_LocalUpdates = true;
+//how many consecutive updates from a client the server needs to miss before considering its connection to that client lost
+const int CLIENT_CONNECTION_LOST_THRESHOLD = 50;
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky
@@ -246,6 +248,32 @@ struct Circle
 struct Keystate
 {
     bool upKey, downKey, leftKey, rightKey, strafeLeft, strafeRight, shootKey;
+    Keystate() {
+        upKey = downKey = leftKey = rightKey = strafeLeft = strafeRight = shootKey = false;
+    }
+};
+
+struct Connection
+{
+    IPaddress address;
+    int packets_recvd, prev_packets_recvd, consec_missed;
+
+    Connection( IPaddress addr, int pr, int ppr, int cm ) {
+        address = addr;
+        packets_recvd = pr;
+        prev_packets_recvd = ppr;
+        consec_missed = cm;
+    }
+
+};
+
+// http://stackoverflow.com/questions/589985/vectors-structs-and-stdfind
+struct find_addr : std::unary_function<Connection, bool> {
+    IPaddress addr;
+    find_addr(IPaddress addr):addr(addr) { }
+    bool operator()(Connection const& c) const {
+        return (c.address.host == addr.host && c.address.port == addr.port );
+    }
 };
 
 #endif
