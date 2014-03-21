@@ -180,10 +180,12 @@ void Ship::shoot()
         //laser_pool.back()->set_values(this, xPos, yPos, Angle, xv, yv);
         laser_pool.back()->set_values(this, xp, yp, Angle, xv, yv);
 
+#ifdef _SERVER_
         active_lasers.push_back( laser_pool.back() );
         g_objects.push_back( laser_pool.back() );
         laser_pool.pop_back();
         cooldown_rem = Cooldown;
+#endif
     }
 
 }

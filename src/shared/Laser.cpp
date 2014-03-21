@@ -79,7 +79,9 @@ void Laser::onCollide( Object* collided_with )
             Mix_PlayChannel( 1, g_sounds[HIT], 0 );
         collided_with->takeDamage(100);
         //collided_with->takeDamage(65); //resulting explosion does 35 damage to equal 100
+#ifdef _SERVER_
         g_objects.push_back( new Explosion(xPos, yPos, xVel/10, yVel/10) );
+#endif
         dead = true;
     }
 }

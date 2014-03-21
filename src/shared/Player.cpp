@@ -129,7 +129,9 @@ void Player::respawn()
     for( uint i=0; i<active_lasers.size(); i++ )
         active_lasers[i]->reset();
 
+#ifdef _SERVER_
     g_objects.push_back( this );
+#endif
 }
 
 void Player::render( int x, int y, float ang, bool centered )

@@ -58,7 +58,7 @@ void Asteroid::update()
 
 void Asteroid::split()
 { 
-    if(size < 3){
+    if(size < 3) {
         set_size(size+1);
         float xva = 0; //x_vel accumulator
         float yva = 0; //y_vel accumulator
@@ -68,10 +68,15 @@ void Asteroid::split()
             float yVel_new = frandBetween(-15,15)/10;
             xva += xVel_new;
             yva += yVel_new;
+#ifdef _SERVER_
             g_objects.push_back( new Asteroid(xPos+randBetween(-3,3), yPos+randBetween(-3,3), Angle, xVel+xVel_new, yVel+yVel_new, frandBetween(-20,20)/10, size ) );
+#endif
         }
+#ifdef _SERVER_
         if( rand()%100 < powerup_chance )
             g_objects.push_back( new Powerup( xPos, yPos, Angle, xVel+frandBetween(-15,15)/10, yVel+frandBetween(-15,15)/10 ) );
+#endif
+
         xPos += randBetween(-3,3);
         yPos += randBetween(-3,3);
         xVel -= xva; //Ensure that the sum of all the velocities of the parts...

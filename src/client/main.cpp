@@ -49,8 +49,7 @@ int tick = 0;
 bool g_show_minimap = true;
 
 //Whether client should update g_objects locally whenever it doesn't receive a new gamestate from server
-const bool g_LocalUpdates = false; //TODO: deal better with objects added during local updates so this being
-                                   //true doesn't cause occasional segfaults (Laser::onCollide get_team)
+const bool g_LocalUpdates = true;
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
@@ -799,7 +798,7 @@ int main( int argc, char** argv ) {
                         if( connected )
                             cout<<"local update"<<endl;
 
-                        auto size = g_objects.size();
+                        //auto size = g_objects.size();
                         for( uint i = 0; i<g_objects.size(); i++ )
                         {
                             if( g_objects[i]->is_dead() ) {
@@ -811,17 +810,7 @@ int main( int argc, char** argv ) {
                                 i--;
                             } else
                                 g_objects[i]->update();
-
-                            if( g_objects.size() > size )
-                                g_objects.resize( size );
-                            //local updates can add objects to g_objects, but won't add corresponding
-                            //entry to g_ObjectIDs, so undo any additions of objects by local updates
-                            //TODO: deal better with objects added during local updates so this being
-                            //true doesn't cause occasional segfaults (Laser::onCollide get_team)
-
                         }
-                        //if( g_player->is_dead() )
-                        //g_player->update();
                     }
                 }
 
