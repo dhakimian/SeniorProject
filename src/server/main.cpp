@@ -20,6 +20,7 @@
 #include <SDL_mixer.h>
 #include <SDL_net.h>
 #endif
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -106,8 +107,7 @@ void cycle_player() {
         player = fmod( player+1, g_players.size() );
 }
 void toggle_camera() {
-    if( g_Following_Ship )
-    {
+    if( g_Following_Ship ) {
         g_targ_Follow_Rotation = !g_targ_Follow_Rotation;
         g_targ_Camera_Centered = !g_targ_Camera_Centered;
     }
@@ -117,26 +117,22 @@ Mix_Music* g_music = NULL;
 
 UDPsocket g_sd;       /* Socket descriptor */
 
-bool init()
-{
+bool init() {
     //Initialization flag
     bool success = true;
 
     //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-    {
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         success = false;
     } else {
         //Enable VSync
-        if( !SDL_SetHint( SDL_HINT_RENDER_VSYNC, "1" ) )
-        {
+        if( !SDL_SetHint( SDL_HINT_RENDER_VSYNC, "1" ) ) {
             printf( "Warning: VSync not enabled!" );
         }
 
         //Set texture filtering to linear
-        if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
-        {
+        if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) ) {
             printf( "Warning: Linear texture filtering not enabled!" );
         }
 
@@ -144,15 +140,13 @@ bool init()
         //gWindow = SDL_CreateWindow( "Spaceship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         //gWindow = SDL_CreateWindow( "Spaceship Game", 400, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         gWindow = SDL_CreateWindow( "Spaceship Game", 400, 100, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        if( gWindow == NULL )
-        {
+        if( gWindow == NULL ) {
             printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
             success = false;
         } else {
             //Create renderer for window
             gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
-            if( gRenderer == NULL )
-            {
+            if( gRenderer == NULL ) {
                 printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
                 success = false;
             } else {
@@ -161,15 +155,14 @@ bool init()
 
                 //Initialize PNG loading
                 int imgFlags = IMG_INIT_PNG;
-                if( !( IMG_Init( imgFlags ) & imgFlags ) )
-                {
+                if( !( IMG_Init( imgFlags ) & imgFlags ) ) {
                     printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
                     success = false;
                 }
             }
         }
 
-        if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ){
+        if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ) {
             printf( "SDL could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
             success = false;
         }
@@ -179,20 +172,17 @@ bool init()
     return success;
 }
 
-bool init_net()
-{
+bool init_net() {
     bool success = true;
 
     /* Initialize SDL_net */
-    if (SDLNet_Init() < 0)
-    {
+    if (SDLNet_Init() < 0) {
         fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
         success = false;
     }
 
     /* Open a socket */
-    if (!(g_sd = SDLNet_UDP_Open(2000)))
-    {
+    if (!(g_sd = SDLNet_UDP_Open(2000))) {
         fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
         success = false;
     }
@@ -209,8 +199,7 @@ bool loadMedia()
     for( uint i=0; i<g_imgfiles.size(); i++ )
     {
         g_textures[i].setRenderer(gRenderer);
-        if( !g_textures[i].loadFromFile( g_imgfiles[i] ) )
-        {
+        if( !g_textures[i].loadFromFile( g_imgfiles[i] ) ) {
             cout << "Failed to load '" << g_imgfiles[i] << "'!" << endl;
             success = false;
         }
@@ -220,8 +209,7 @@ bool loadMedia()
     for( uint i=0; i<g_sounds.size(); i++ )
     {
         g_sounds[i] = Mix_LoadWAV( g_sndfiles[i].c_str() );
-        if( g_sounds[i] == NULL )
-        {
+        if( g_sounds[i] == NULL ) {
             cout << "Failed to load '" << g_sndfiles[i] << "'!" << endl;
             success = false;
         }
@@ -229,16 +217,14 @@ bool loadMedia()
 
     //Load texture target
     gTargetTexture.setRenderer(gRenderer);
-    if( !gTargetTexture.createBlank( TARG_W, TARG_H, SDL_TEXTUREACCESS_TARGET ) )
-    {
+    if( !gTargetTexture.createBlank( TARG_W, TARG_H, SDL_TEXTUREACCESS_TARGET ) ) {
         printf( "Failed to create main target texture!\n" );
         success = false;
     }
 
     //Load minimap target tex
     gMinimap.setRenderer(gRenderer);
-    if( !gMinimap.createBlank( g_textures[MAP].getWidth(), g_textures[MAP].getHeight(), SDL_TEXTUREACCESS_TARGET ) )
-    {
+    if( !gMinimap.createBlank( g_textures[MAP].getWidth(), g_textures[MAP].getHeight(), SDL_TEXTUREACCESS_TARGET ) ) {
         printf( "Failed to create minimap target texture!\n" );
         success = false;
     }
@@ -248,9 +234,8 @@ bool loadMedia()
     }
 
     //load music
-    g_music = Mix_LoadMUS( "media/sounds/Amb.wav" );
-    if( g_music == NULL )
-    {
+    g_music = Mix_LoadMUS( "media/sounds/Amb.mp3" );
+    if( g_music == NULL ) {
         printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
         success = false;
     }
@@ -258,8 +243,7 @@ bool loadMedia()
     return success;
 }
 
-void loadObjects() //load initial map objects
-{
+void loadObjects() { //load initial map objects
     g_objects.push_back( new Planet(1350.0, 1350.0) );
     g_objects.push_back( new Alien(1000.0, 750.0, 1065.0) );
     //g_objects.push_back( new Asteroid(-200.0, -200.0, 0.0, ((double) rand()/RAND_MAX)-0.5, ((double) rand()/RAND_MAX)-0.5, rand()%7-3, 1) );
@@ -288,15 +272,13 @@ void loadObjects() //load initial map objects
 
 }
 
-void render_bg()
-{   //render the background tiles that are within a certain radius of the camera, and also...
+void render_bg() {
+    //render the background tiles that are within a certain radius of the camera, and also...
     //...render tiles on the other side of a wrap to replace the void
     int tile_w = g_textures[BACKGROUND].getWidth();
     int tile_h = g_textures[BACKGROUND].getHeight();
-    for( int i=0; i<LEVEL_WIDTH; i+= tile_w )
-    {
-        for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
-        {
+    for( int i=0; i<LEVEL_WIDTH; i+= tile_w ) {
+        for( int j=0; j<LEVEL_HEIGHT; j+=tile_h ) {
             bool render = false;
             int xrc = i+TARG_cX-g_xPos_cam; // X render coordinate
             int yrc = j+TARG_cY-g_yPos_cam; // Y render coordinate
@@ -326,8 +308,7 @@ void render_bg()
     }
 }
 
-void render_objects()
-{
+void render_objects() {
     //loop through the list of currently present g_objects to render them
     for( uint i=0; i<g_objects.size(); i++ )
     //for( int i=g_objects.size()-1; i>=0; i-- )
@@ -363,8 +344,7 @@ void render_objects()
     }
 }
 
-void render_healthbar()
-{
+void render_healthbar() {
     //this code is the health bar
     float xp, yp;
     xp = (SCREEN_WIDTH / 2) - 151;
@@ -406,8 +386,7 @@ void render_healthbar()
 
 }
 
-void render_minimap()
-{
+void render_minimap() {
     gMinimap.setAsRenderTarget();
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( gRenderer );
@@ -436,16 +415,14 @@ void render_minimap()
             yrc -= LEVEL_HEIGHT;
 
         if( fabs(distanceSquared(xrc+g_xPos_cam, yrc+g_yPos_cam, g_xPos_cam, g_yPos_cam))
-                < Minimap_Radius*Minimap_Radius )
-        {
+                < Minimap_Radius*Minimap_Radius ) {
             xrc *= ( ( (float)g_textures[MAP].getWidth()/2 ) / (Minimap_Radius) ); //scale down the coords
             yrc *= ( ( (float)g_textures[MAP].getHeight()/2 ) / (Minimap_Radius) ); //to fit on the minimap
 
             xrc += g_textures[MAP].getWidth()/2;  //shift the coords so that they are centered on
             yrc += g_textures[MAP].getHeight()/2; //the center of the minimap, not 0,0
 
-            if( g_objects[i]->get_type() == T_PLAYER )
-            {
+            if( g_objects[i]->get_type() == T_PLAYER ) {
                 if( g_objects[i] == g_players[player] )
                     g_textures[ICON_SHIP_YOU].render_center(xrc, yrc, NULL, Angle);
                 else if( g_players[player]->get_team() == g_objects[i]->get_team()
@@ -458,8 +435,7 @@ void render_minimap()
                 g_textures[ICON_PLANET].render_center(xrc, yrc, NULL, Angle);
             else if( g_objects[i]->get_type() == T_ALIEN )
                 g_textures[ICON_SHIP_ENEMY].render_center(xrc, yrc, NULL, Angle);
-            else if( g_objects[i]->get_type() == T_ASTEROID )
-            {
+            else if( g_objects[i]->get_type() == T_ASTEROID ) {
                 Asteroid* ast = (Asteroid*) g_objects[i];
                 if( ast->get_size() == 1 ) 
                     g_textures[ICON_ASTEROID].render_center(xrc, yrc, NULL, Angle);
@@ -478,8 +454,7 @@ void render_minimap()
     gMinimap.render( 5, 5, NULL, -g_Angle_targ );
 }
 
-void render_overlay()
-{
+void render_overlay() {
     if( g_players.size() > 0 )
         render_healthbar();
     if( g_show_minimap )
@@ -493,8 +468,7 @@ void render()
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( gRenderer );
 
-    if( g_players.size() == 0)
-    {
+    if( g_players.size() == 0) {
         g_Following_Ship = false;
         g_targ_Follow_Rotation = false;
         g_targ_Camera_Centered = true;
@@ -504,8 +478,7 @@ void render()
     if( g_players.size() > 0)
         g_players[player]->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
 
-    if( g_Following_Ship )
-    {
+    if( g_Following_Ship ) {
         g_xPos_camdest = xPos_pl;
         g_yPos_camdest = yPos_pl;
         if( g_targ_Follow_Rotation )
@@ -573,8 +546,7 @@ void render()
     if( diff_y >= LEVEL_HEIGHT/2 )
         diff_y -= LEVEL_HEIGHT;
 
-    if( g_Following_Ship )
-    {
+    if( g_Following_Ship ) {
         g_xVel_cam = xVel_pl + diff_x/Deccel_cam;
         g_yVel_cam = yVel_pl + diff_y/Deccel_cam;
     } else {
@@ -588,8 +560,7 @@ void render()
     render_overlay();
 }
 
-void handle_keystate(const Uint8* currentKeyStates)
-{
+void handle_keystate(const Uint8* currentKeyStates) {
     bool upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
     bool downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
     bool leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
@@ -600,26 +571,22 @@ void handle_keystate(const Uint8* currentKeyStates)
     double ang = M_PI * g_Angle_camdest;
     ang = ang / 180;
 
-    if(upKey)
-    {
+    if(upKey) {
         g_xPos_camdest += 10 * sin(ang);
         g_yPos_camdest -= 10 * cos(ang);
     }
 
-    if(downKey)
-    {
+    if(downKey) {
         g_xPos_camdest -= 10 * sin(ang);
         g_yPos_camdest += 10 * cos(ang);
     }
 
-    if(leftKey)
-    {
+    if(leftKey) {
         g_xPos_camdest -= 10 * cos(ang);
         g_yPos_camdest -= 10 * sin(ang);
     }
 
-    if(rightKey)
-    {
+    if(rightKey) {
         g_xPos_camdest += 10 * cos(ang);
         g_yPos_camdest += 10 * sin(ang);
     }
@@ -632,11 +599,9 @@ void handle_keystate(const Uint8* currentKeyStates)
 
 }
 
-void close()
-{
+void close() {
     //Free loaded images
-    for( uint i=0; i<g_textures.size(); i++ )
-    {
+    for( uint i=0; i<g_textures.size(); i++ ) {
         g_textures[i].free();
     }
 
@@ -653,33 +618,27 @@ void close()
 
 
 //int main( int argc, char* args[] )
-int main( int argc, char** argv )
-{
+int main( int argc, char** argv ) {
     cout<<"Starting server"<<endl;
 
-    if( argc == 2 )
-    {
+    if( argc == 2 ) {
         RENDER = (bool)argv[1];
     }
 
-    if( RENDER )
-    {
+    if( RENDER ) {
         //Start up SDL and create window
-        if( !init() )
-        {
+        if( !init() ) {
             printf( "Failed to initialize!\n" );
             exit(EXIT_FAILURE);
         }
         //Load media
-        if( !loadMedia() )
-        {
+        if( !loadMedia() ) {
             printf( "Failed to load media!\n" );
             exit(EXIT_FAILURE);
         }
     }
 
-    if( !init_net() )
-    {
+    if( !init_net() ) {
         printf( "Failed to initialize net!\n" );
         exit(EXIT_FAILURE);
     }
@@ -707,20 +666,15 @@ int main( int argc, char** argv )
     srand( time(NULL) );
 
     //While application is running
-    while( !quit )
-    {
-        if( RENDER )
-        {
+    while( !quit ) {
+        if( RENDER ) {
             //Handle events on queue
-            while( SDL_PollEvent( &e ) != 0 )
-            {
+            while( SDL_PollEvent( &e ) != 0 ) {
                 //User requests quit
-                if( e.type == SDL_QUIT )
-                {
+                if( e.type == SDL_QUIT ) {
                     quit = true;
                 }
-                if( e.type == SDL_KEYDOWN )
-                {
+                if( e.type == SDL_KEYDOWN ) {
                     switch( e.key.keysym.sym ) {
                         case SDLK_F11:
                             toggle_fullscreen(gWindow);
@@ -775,12 +729,10 @@ int main( int argc, char** argv )
             fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
-        if (SDLNet_UDP_Recv(g_sd, p))
-        {
+        if (SDLNet_UDP_Recv(g_sd, p)) {
             vector<Connection>::iterator it;
             it = find_if( connections.begin(), connections.end(), find_addr(p->address) );
-            if( it == connections.end() ) //packet's address is not in connections vector
-            {
+            if( it == connections.end() ) { //packet's address is not in connections vector
                 SDLNet_UDP_Bind(g_sd, 0, &p->address);
                 connections.push_back( Connection(p->address, 1, 0, 0) );
                 cout<<"Client connected with port "<<p->address.port<<"\n";
@@ -839,9 +791,8 @@ int main( int argc, char** argv )
         }
 
         UDPpacket** p_out;
-        if (!(p_out = SDLNet_AllocPacketV(g_objects.size(), MAX_OBJECTS * 16)))
-        //if (!(p_out = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16)))
-        {
+        if (!(p_out = SDLNet_AllocPacketV(g_objects.size(), MAX_OBJECTS * 16))) {
+        //if (!(p_out = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16))) {
             fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
@@ -893,8 +844,7 @@ int main( int argc, char** argv )
 
         for( uint i = 0; i<g_objects.size(); i++ )
         {
-            if( g_objects[i]->is_dead() )
-            {
+            if( g_objects[i]->is_dead() ) {
                 if( !g_objects[i]->is_persistent() )
                     delete g_objects[i];
                 g_objects.erase( g_objects.begin()+i );
@@ -908,8 +858,7 @@ int main( int argc, char** argv )
                 g_players[i]->update();
         }
 
-        if( RENDER )
-        {
+        if( RENDER ) {
             //Clear screen
             SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
             SDL_RenderClear( gRenderer );

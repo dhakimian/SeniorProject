@@ -122,8 +122,7 @@ static const std::string imgarr[] = {
 };
 
 // these must be in the same order as the above
-enum TextureIndex
-{                       // Constants containing the index numbers of the vector of images used by the program
+enum TextureIndex {     // Constants containing the index numbers of the vector of images used by the program
     BACKGROUND,         // 0
     PLAYER_BODY,        // 1
     PLAYER_BODY_COLOR,  // 2
@@ -188,8 +187,7 @@ static const std::string sndarr[] = {
     "media/sounds/Powerup.wav"
 };
 
-enum SoundIndex
-{
+enum SoundIndex {
     THRUST,
     SINGLE_LASER,
     DOUBLE_LASER,
@@ -199,8 +197,7 @@ enum SoundIndex
     GET_POWERUP
 };
 
-struct RGB
-{
+struct RGB {
     int r, g, b;
     RGB(int r, int g, int b) {
         this->r=r;

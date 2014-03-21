@@ -20,11 +20,11 @@
 #include <SDL_mixer.h>
 #include <SDL_net.h>
 #endif
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>
-//#include <type_traits>
 #include <cstdlib>
 #include <ctime>
 #include <cassert>
@@ -50,7 +50,7 @@ bool g_show_minimap = true;
 
 //Whether client should update g_objects locally whenever it doesn't receive a new gamestate from server
 const bool g_LocalUpdates = false; //TODO: deal better with objects added during local updates so this being
-                                   //true doesn't cause occaisonal segfaults (Laser::onCollide get_team)
+                                   //true doesn't cause occasional segfaults (Laser::onCollide get_team)
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
@@ -107,28 +107,24 @@ Mix_Music* g_music = NULL;
 UDPsocket g_sd;       /* Socket descriptor */
 IPaddress srvadd;
 
-bool init()
-{
+bool init() {
     //Initialization flag
     bool success = true;
 
     //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-    {
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
     else
     {
         //Enable VSync
-        if( !SDL_SetHint( SDL_HINT_RENDER_VSYNC, "1" ) )
-        {
+        if( !SDL_SetHint( SDL_HINT_RENDER_VSYNC, "1" ) ) {
             printf( "Warning: VSync not enabled!" );
         }
 
         //Set texture filtering to linear
-        if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
-        {
+        if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) ) {
             printf( "Warning: Linear texture filtering not enabled!" );
         }
 
@@ -136,43 +132,37 @@ bool init()
         //gWindow = SDL_CreateWindow( "Spaceship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         gWindow = SDL_CreateWindow( "Spaceship Game", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         //gWindow = SDL_CreateWindow( "Spaceship Game", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        if( gWindow == NULL )
-        {
+        if( gWindow == NULL ) {
             printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
             success = false;
         }
-        else
-        {
+        else {
             //Create renderer for window
             gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
-            if( gRenderer == NULL )
-            {
+            if( gRenderer == NULL ) {
                 printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
                 success = false;
             }
-            else
-            {
+            else {
                 //Initialize renderer color
                 SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 
                 //Initialize PNG loading
                 int imgFlags = IMG_INIT_PNG;
-                if( !( IMG_Init( imgFlags ) & imgFlags ) )
-                {
+                if( !( IMG_Init( imgFlags ) & imgFlags ) ) {
                     printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
                     success = false;
                 }
             }
         }
 
-        if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ){
+        if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ) {
             printf( "SDL could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
             success = false;
         }
 
         /* Initialize SDL_net */
-        if (SDLNet_Init() < 0)
-        {
+        if (SDLNet_Init() < 0) {
             fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
@@ -183,8 +173,7 @@ bool init()
 }
 
 /*
-bool init_net()
-{
+bool init_net() {
     // Open a socket
     if (!(g_sd = SDLNet_UDP_Open(0)))
     {
@@ -200,8 +189,7 @@ bool init_net()
     }
 } */
 
-bool loadMedia()
-{
+bool loadMedia() {
     //Loading success flag
     bool success = true;
 
@@ -209,8 +197,7 @@ bool loadMedia()
     for( uint i=0; i<g_imgfiles.size(); i++ )
     {
         g_textures[i].setRenderer(gRenderer);
-        if( !g_textures[i].loadFromFile( g_imgfiles[i] ) )
-        {
+        if( !g_textures[i].loadFromFile( g_imgfiles[i] ) ) {
             cout << "Failed to load '" << g_imgfiles[i] << "'!" << endl;
             success = false;
         }
@@ -220,8 +207,7 @@ bool loadMedia()
     for( uint i=0; i<g_sounds.size(); i++ )
     {
         g_sounds[i] = Mix_LoadWAV( g_sndfiles[i].c_str() );
-        if( g_sounds[i] == NULL )
-        {
+        if( g_sounds[i] == NULL ) {
             cout << "Failed to load '" << g_sndfiles[i] << "'!" << endl;
             success = false;
         }
@@ -229,16 +215,14 @@ bool loadMedia()
 
     //Load texture target
     gTargetTexture.setRenderer(gRenderer);
-    if( !gTargetTexture.createBlank( TARG_W, TARG_H, SDL_TEXTUREACCESS_TARGET ) )
-    {
+    if( !gTargetTexture.createBlank( TARG_W, TARG_H, SDL_TEXTUREACCESS_TARGET ) ) {
         printf( "Failed to create main target texture!\n" );
         success = false;
     }
 
     //Load minimap target tex
     gMinimap.setRenderer(gRenderer);
-    if( !gMinimap.createBlank( g_textures[MAP].getWidth(), g_textures[MAP].getHeight(), SDL_TEXTUREACCESS_TARGET ) )
-    {
+    if( !gMinimap.createBlank( g_textures[MAP].getWidth(), g_textures[MAP].getHeight(), SDL_TEXTUREACCESS_TARGET ) ) {
         printf( "Failed to create minimap target texture!\n" );
         success = false;
     }
@@ -248,7 +232,7 @@ bool loadMedia()
     }
 
     //load music
-    g_music = Mix_LoadMUS( "media/sounds/Amb.wav" );
+    g_music = Mix_LoadMUS( "media/sounds/Amb.mp3" );
     if( g_music == NULL )
     {
         printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
@@ -258,19 +242,16 @@ bool loadMedia()
     return success;
 }
 
-void loadObjects() //load initial map objects
-{
+void loadObjects() { //load initial map objects
 }
 
-void render_bg()
-{   //render the background tiles that are within a certain radius of the camera, and also...
+void render_bg() {
+    //render the background tiles that are within a certain radius of the camera, and also...
     //...render tiles on the other side of a wrap to replace the void
     int tile_w = g_textures[BACKGROUND].getWidth();
     int tile_h = g_textures[BACKGROUND].getHeight();
-    for( int i=0; i<LEVEL_WIDTH; i+= tile_w )
-    {
-        for( int j=0; j<LEVEL_HEIGHT; j+=tile_h )
-        {
+    for( int i=0; i<LEVEL_WIDTH; i+= tile_w ) {
+        for( int j=0; j<LEVEL_HEIGHT; j+=tile_h ) {
             bool render = false;
             int xrc = i+TARG_cX-g_xPos_cam; // X render coordinate
             int yrc = j+TARG_cY-g_yPos_cam; // Y render coordinate
@@ -300,8 +281,7 @@ void render_bg()
     }
 }
 
-void render_objects()
-{
+void render_objects() {
     //loop through the list of currently present g_objects to render them
     for( uint i=0; i<g_objects.size(); i++ )
     //for( int i=g_objects.size()-1; i>=0; i-- )
@@ -338,8 +318,7 @@ void render_objects()
     }
 }
 
-void render_healthbar()
-{
+void render_healthbar() {
     //this code is the health bar
     float xp, yp;
     xp = (SCREEN_WIDTH / 2) - 151;
@@ -381,8 +360,7 @@ void render_healthbar()
 
 }
 
-void render_minimap()
-{
+void render_minimap() {
     gMinimap.setAsRenderTarget();
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( gRenderer );
@@ -411,16 +389,14 @@ void render_minimap()
             yrc -= LEVEL_HEIGHT;
 
         if( fabs(distanceSquared(xrc+g_xPos_cam, yrc+g_yPos_cam, g_xPos_cam, g_yPos_cam))
-                < Minimap_Radius*Minimap_Radius )
-        {
+                < Minimap_Radius*Minimap_Radius ) {
             xrc *= ( ( (float)g_textures[MAP].getWidth()/2 ) / (Minimap_Radius) ); //scale down the coords
             yrc *= ( ( (float)g_textures[MAP].getHeight()/2 ) / (Minimap_Radius) ); //to fit on the minimap
 
             xrc += g_textures[MAP].getWidth()/2;  //shift the coords so that they are centered on
             yrc += g_textures[MAP].getHeight()/2; //the center of the minimap, not 0,0
 
-            if( g_objects[i]->get_type() == T_PLAYER )
-            {
+            if( g_objects[i]->get_type() == T_PLAYER ) {
                 if( g_objects[i] == g_player )
                     g_textures[ICON_SHIP_YOU].render_center(xrc, yrc, NULL, Angle);
                 else if( g_player->get_team() == g_objects[i]->get_team()
@@ -433,8 +409,7 @@ void render_minimap()
                 g_textures[ICON_PLANET].render_center(xrc, yrc, NULL, Angle);
             else if( g_objects[i]->get_type() == T_ALIEN )
                 g_textures[ICON_SHIP_ENEMY].render_center(xrc, yrc, NULL, Angle);
-            else if( g_objects[i]->get_type() == T_ASTEROID )
-            {
+            else if( g_objects[i]->get_type() == T_ASTEROID ) {
                 Asteroid* ast = (Asteroid*) g_objects[i];
                 if( ast->get_size() == 1 )
                     g_textures[ICON_ASTEROID].render_center(xrc, yrc, NULL, Angle);
@@ -453,15 +428,13 @@ void render_minimap()
     gMinimap.render( 5, 5, NULL, -g_Angle_targ );
 }
 
-void render_overlay()
-{
+void render_overlay() {
     render_healthbar();
     if( g_show_minimap )
         render_minimap();
 }
 
-void render()
-{
+void render() {
     //set the image as the render target
     gTargetTexture.setAsRenderTarget();
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
@@ -471,8 +444,7 @@ void render()
     if( g_player != NULL )
         g_player->get_values(&xPos_pl, &yPos_pl, &Angle_pl, &xVel_pl, &yVel_pl, &rotVel_pl);
 
-    if( g_player != NULL )
-    {
+    if( g_player != NULL ) {
         g_xPos_camdest = xPos_pl;
         g_yPos_camdest = yPos_pl;
         if( g_targ_Follow_Rotation )
@@ -550,8 +522,7 @@ void render()
         render_overlay();
 }
 
-Keystate get_keystate(const Uint8* currentKeyStates)
-{
+Keystate get_keystate(const Uint8* currentKeyStates) {
     Keystate keystate;
 
     keystate.upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
@@ -566,8 +537,8 @@ Keystate get_keystate(const Uint8* currentKeyStates)
 }
 
 template <typename T>
-void CopyObject( UDPpacket* p )
-{ //Either makes a new local object or updates the local object from the data in the packet
+void CopyObject( UDPpacket* p ) {
+  //Either makes a new local object or updates the local object from the data in the packet
     T foo;
     memcpy( &foo, p->data, p->len );
     vector<const void*>::iterator it = find( g_ObjectIDs.begin(), g_ObjectIDs.end(), foo.get_ID() );
@@ -585,8 +556,7 @@ void CopyObject( UDPpacket* p )
 
 }
 
-void close()
-{
+void close() {
     //Free loaded images
     for( uint i=0; i<g_textures.size(); i++ )
     {
@@ -605,18 +575,14 @@ void close()
 }
 
 
-int main( int argc, char** argv )
-{
+int main( int argc, char** argv ) {
     //Start up SDL and create window
-    if( !init() )
-    {
+    if( !init() ) {
         printf( "Failed to initialize!\n" );
     }
-    else
-    {
+    else {
         /* Initialize SDL_net */
-        if (SDLNet_Init() < 0)
-        {
+        if (SDLNet_Init() < 0) {
             fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
@@ -624,26 +590,22 @@ int main( int argc, char** argv )
         char* host = (char*)"localhost";
         int port = 2000;
 
-        if (argc == 3)
-        {
+        if (argc == 3) {
             host = argv[1];
             port = atoi(argv[2]);
         }
-        else if (argc == 2)
-        {
+        else if (argc == 2) {
             host = argv[1];
         }
 
         /* Resolve server name  */
-        if (SDLNet_ResolveHost(&srvadd, host, port) == -1)
-        {
+        if (SDLNet_ResolveHost(&srvadd, host, port) == -1) {
             fprintf(stderr, "SDLNet_ResolveHost(%s %d): %s\n", host, port, SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
 
         // Open a socket on a random port
-        if (!(g_sd = SDLNet_UDP_Open(0)))
-        {
+        if (!(g_sd = SDLNet_UDP_Open(0))) {
             fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
@@ -662,12 +624,10 @@ int main( int argc, char** argv )
 
 
         //Load media
-        if( !loadMedia() )
-        {
+        if( !loadMedia() ) {
             printf( "Failed to load media!\n" );
         }
-        else
-        {
+        else {
             //Main loop flag
             bool quit = false;
 
@@ -689,8 +649,7 @@ int main( int argc, char** argv )
             srand( time(NULL) );
 
             //While application is running
-            while( !quit )
-            {
+            while( !quit ) {
                 const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
 
                 if( !connected && tick%100 == 0 ) //only scan for server every 100 cycles
@@ -711,8 +670,7 @@ int main( int argc, char** argv )
                     SDLNet_FreePacket(p);
                 }
 
-                if( connected )
-                {
+                if( connected ) {
                     UDPpacket *kp;
                     if (!(kp = SDLNet_AllocPacket(128)))
                     {
@@ -730,8 +688,7 @@ int main( int argc, char** argv )
 
                 //get gamestate
                 UDPpacket** p_in;
-                if (!(p_in = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16)))
-                {
+                if (!(p_in = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16))) {
                     fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
                     exit(EXIT_FAILURE);
                 }
@@ -740,8 +697,7 @@ int main( int argc, char** argv )
                 //cout<<"udpRecvV->"<<endl;
                 int num_recvd = SDLNet_UDP_RecvV(g_sd, p_in);
                 //cout<<"num_recvd: "<<num_recvd<<endl;
-                if (num_recvd > 0)
-                {
+                if (num_recvd > 0) {
                     if( !connected ) {
                         connected = true;
                         tick = 0;
@@ -759,8 +715,7 @@ int main( int argc, char** argv )
                     //cout<<"got packet vector"<<endl;
                     //cout<<"num_recvd: "<<num_recvd<<endl;
                     //g_objects.resize( num_recvd );
-                    for( int i=0; i<num_recvd; i++ )
-                    {
+                    for( int i=0; i<num_recvd; i++ ) {
                         //Object tmp = *(Object*)p_in[i]->data;
                         Object tmp;
                         memcpy( &tmp, p_in[i]->data, p_in[i]->len );
@@ -793,12 +748,10 @@ int main( int argc, char** argv )
                     }
 
                     /* --- find Player --- */
-                    if( g_player == NULL || g_player->is_dead() )
-                    {
+                    if( g_player == NULL || g_player->is_dead() ) {
                         for( uint i=0; i<g_objects.size(); i++ )
                         {
-                            if( g_objects[i]->get_type() == T_PLAYER )
-                            {
+                            if( g_objects[i]->get_type() == T_PLAYER ) {
                                 //Player* player = new Player(*g_objects[i]);
                                 g_player = (Player*)g_objects[i];
                                 //g_player = g_objects[i]->clone();
@@ -814,8 +767,7 @@ int main( int argc, char** argv )
                     //check for dead local objects and get rid of them
                     for( uint i = 0; i<g_objects.size(); i++ )
                     {
-                        if( g_objects[i]->is_dead() )
-                        {
+                        if( g_objects[i]->is_dead() ) {
                             if( !g_objects[i]->is_persistent() )
                                 delete g_objects[i];
                             g_objects.erase( g_objects.begin()+i );
@@ -833,18 +785,16 @@ int main( int argc, char** argv )
                     SDLNet_FreePacketV(p_in);
 
                 } //else means no gamestate was received
-                else
-                {
+                else {
                     consec_missed_updates++;
-                    if( connected && consec_missed_updates >= SERVER_CONNECTION_LOST_THRESHOLD )
-                    {
+                    if( connected && consec_missed_updates >= SERVER_CONNECTION_LOST_THRESHOLD ) {
                         cout<<"Connection to server lost. (missed "<<SERVER_CONNECTION_LOST_THRESHOLD
                             <<" consecutive updates)"<<endl;
                         connected = false;
                     }
 
-                    if( g_LocalUpdates && g_player != NULL )
-                    {   //Update objects locally based on current state.
+                    if( g_LocalUpdates && g_player != NULL ) {
+                        //Update objects locally based on current state.
                         //Changes will be overwritten by next received state.
                         if( connected )
                             cout<<"local update"<<endl;
@@ -852,8 +802,7 @@ int main( int argc, char** argv )
                         auto size = g_objects.size();
                         for( uint i = 0; i<g_objects.size(); i++ )
                         {
-                            if( g_objects[i]->is_dead() )
-                            {
+                            if( g_objects[i]->is_dead() ) {
                                 if( !g_objects[i]->is_persistent() )
                                     delete g_objects[i];
                                 g_objects.erase( g_objects.begin()+i );
@@ -868,7 +817,7 @@ int main( int argc, char** argv )
                             //local updates can add objects to g_objects, but won't add corresponding
                             //entry to g_ObjectIDs, so undo any additions of objects by local updates
                             //TODO: deal better with objects added during local updates so this being
-                            //true doesn't cause occaisonal segfaults (Laser::onCollide get_team)
+                            //true doesn't cause occasional segfaults (Laser::onCollide get_team)
 
                         }
                         //if( g_player->is_dead() )
@@ -879,15 +828,12 @@ int main( int argc, char** argv )
                 //cout<<"g_objects.size(): "<<g_objects.size()<<endl;
 
                 //Handle events on queue
-                while( SDL_PollEvent( &e ) != 0 )
-                {
+                while( SDL_PollEvent( &e ) != 0 ) {
                     //User requests quit
-                    if( e.type == SDL_QUIT )
-                    {
+                    if( e.type == SDL_QUIT ) {
                         quit = true;
                     }
-                    if( e.type == SDL_KEYDOWN )
-                    {
+                    if( e.type == SDL_KEYDOWN ) {
                         switch( e.key.keysym.sym ) {
                             case SDLK_F11:
                                 toggle_fullscreen(gWindow);
