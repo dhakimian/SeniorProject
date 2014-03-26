@@ -25,9 +25,10 @@ Then you can type either
 
 to start the server, or
 
-    ./bin/client [host [port]]
+    ./bin/client [hostname/ip [port]]
 
 to start the client, which looks for a server at localhost on port 2000 by default.
+( the []s mean the arg inside them is optional )
 
 *WARNING:* The game will sometimes freeze and max out your computer's RAM. You will have to
 make it force quit or end task, or from the terminal started it in, you can press ctrl-z and
@@ -37,8 +38,8 @@ memory leaks is on the todo list... :P
 (this hasn't happened in a while for me, but I also haven't been testing with Rocke Everywhere recently either...)
 
 By default, the server doesn't render anything, but if you type anything (literally anything)
-after ./bin/server, it will turn on a sort of spectator mode, where you can see what is going
-on in the server.
+after ./bin/server (with a space in between of course), it will start the server in a sort of
+spectator mode, where you can see what is going on in the server.
 
 You can't control a ship in this mode, but you can follow their movement, or you can also
 move the camera around freely with the arrow keys ('q' or 'e' to rotate camera). Press 'f' to

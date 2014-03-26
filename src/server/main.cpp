@@ -104,7 +104,7 @@ vector<Player*> g_players;
 
 void cycle_player() {
     //if( g_Following_Ship )
-        player = fmod( player+1, g_players.size() );
+        player = fmod( (float)player+1, g_players.size() );
 }
 void toggle_camera() {
     if( g_Following_Ship ) {
@@ -190,14 +190,12 @@ bool init_net() {
     return success;
 }
 
-bool loadMedia()
-{
+bool loadMedia() {
     //Loading success flag
     bool success = true;
 
     //load textures
-    for( uint i=0; i<g_imgfiles.size(); i++ )
-    {
+    for( uint i=0; i<g_imgfiles.size(); i++ ) {
         g_textures[i].setRenderer(gRenderer);
         if( !g_textures[i].loadFromFile( g_imgfiles[i] ) ) {
             cout << "Failed to load '" << g_imgfiles[i] << "'!" << endl;
@@ -205,13 +203,14 @@ bool loadMedia()
         }
     }
 
-    //load sounds
-    for( uint i=0; i<g_sounds.size(); i++ )
-    {
-        g_sounds[i] = Mix_LoadWAV( g_sndfiles[i].c_str() );
-        if( g_sounds[i] == NULL ) {
-            cout << "Failed to load '" << g_sndfiles[i] << "'!" << endl;
-            success = false;
+    if( SOUND_ON ) {
+        //load sounds
+        for( uint i=0; i<g_sounds.size(); i++ ) {
+            g_sounds[i] = Mix_LoadWAV( g_sndfiles[i].c_str() );
+            if( g_sounds[i] == NULL ) {
+                cout << "Failed to load '" << g_sndfiles[i] << "'!" << endl;
+                success = false;
+            }
         }
     }
 
@@ -233,11 +232,13 @@ bool loadMedia()
         gMinimap.setBlendMode( SDL_BLENDMODE_BLEND );
     }
 
-    //load music
-    g_music = Mix_LoadMUS( "media/sounds/Amb.mp3" );
-    if( g_music == NULL ) {
-        printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
+    if( MUSIC_ON ) {
+        //load music
+        g_music = Mix_LoadMUS( "media/sounds/Amb.mp3" );
+        if( g_music == NULL ) {
+            printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
+            success = false;
+        }
     }
 
     return success;
@@ -650,7 +651,8 @@ int main( int argc, char** argv ) {
     vector<Connection> connections;
 
     //keep a list of connections that were established then lost to allow reconnections to the same ship
-    vector<IPaddress> lost_connections;
+    //vector<IPaddress> lost_connections;
+    vector<Player*> lost_connections;
 
     //corresponding list of number of times a packet was received from that client
     //TODO: make struct with packets_recvd, prev_packets_recvd, num_missed
@@ -732,21 +734,31 @@ int main( int argc, char** argv ) {
         if (SDLNet_UDP_Recv(g_sd, p)) {
             vector<Connection>::iterator it;
             it = find_if( connections.begin(), connections.end(), find_addr(p->address) );
+            vector<Player*>::iterator it2;
             if( it == connections.end() ) { //packet's address is not in connections vector
-                SDLNet_UDP_Bind(g_sd, 0, &p->address);
-                connections.push_back( Connection(p->address, 1, 0, 0) );
-                cout<<"Client connected with port "<<p->address.port<<"\n";
-                //cout<<"host: "<<p->address.host <<"\nport: "<<p->address.port <<endl;
-                cout<<"Current connections: "<<connections.size()<<endl;
+                it2 = find_if( lost_connections.begin(), lost_connections.end(), find_controller(p->address) );
+                if( it2 == lost_connections.end() ) { //this is a new player
+                    SDLNet_UDP_Bind(g_sd, 0, &p->address);
+                    connections.push_back( Connection(p->address, 1, 0, 0) );
+                    cout<<"Client connected with port "<<p->address.port<<"\n";
+                    //cout<<"host: "<<p->address.host <<"\nport: "<<p->address.port <<endl;
+                    cout<<"Current connections: "<<connections.size()<<endl;
 
-                if( connections.size() == 1 )
-                    tick = 0;
-
-                Player* newplayer = new Player(p->address.port);
-                g_players.push_back( newplayer );
-                g_objects.push_back( newplayer );
-
-                //TODO: reconnect clients that have reconnected (from lost_connections)
+                    Player* newplayer = new Player(p->address.port);
+                    g_players.push_back( newplayer );
+                    g_objects.push_back( newplayer );
+                }
+                else { //this is a reconnecting client
+                    SDLNet_UDP_Bind(g_sd, 0, &p->address);
+                    //connections.insert( connections.begin(), Connection(p->address, 1, 0, 0) );
+                    //connections.insert( connections.begin() + (it2-lost_connections.begin()), Connection(p->address, 1, 0, 0) );
+                    connections.push_back( Connection(p->address, 1, 0, 0) );
+                    g_players.push_back( *it2 );
+                    cout<<"Client reconnected with port "<<p->address.port<<"\n";
+                    //cout<<"host: "<<p->address.host <<"\nport: "<<p->address.port <<endl;
+                    cout<<"Current connections: "<<connections.size()<<endl;
+                    lost_connections.erase( it2 );
+                }
             }
             else //client is already connected. Read packet's keyboard state data
             {
@@ -754,7 +766,7 @@ int main( int argc, char** argv ) {
                 memcpy( &keystate, p->data, p->len );
                 //if( connections.size() == g_players.size() )
                     g_players[it-connections.begin()]->handle_keystate(keystate);
-                //else {
+                //else
                     //vector<Player*>::iterator it = 
                 it->packets_recvd++;
                 it->consec_missed = 0;
@@ -765,7 +777,7 @@ int main( int argc, char** argv ) {
             if( connections[i].packets_recvd == connections[i].prev_packets_recvd ) {
                 connections[i].consec_missed++;
                 if( connections[i].consec_missed >= CLIENT_CONNECTION_LOST_THRESHOLD ) {
-                    lost_connections.push_back( connections[i].address );
+                    lost_connections.push_back( g_players[i] );
                     Player* player = g_players[i];
                     player->handle_keystate( Keystate() );
                     g_players.erase( g_players.begin()+i );
@@ -792,7 +804,6 @@ int main( int argc, char** argv ) {
 
         UDPpacket** p_out;
         if (!(p_out = SDLNet_AllocPacketV(g_objects.size(), MAX_OBJECTS * 16))) {
-        //if (!(p_out = SDLNet_AllocPacketV(MAX_OBJECTS, MAX_OBJECTS * 16))) {
             fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
@@ -874,9 +885,7 @@ int main( int argc, char** argv ) {
         if (!RENDER)
             usleep(15000);
 
-        //if ( connections.size() > 0 ) {
-            //cout<<"Tick: "<<tick<<endl;
-            tick++;// }
+            tick++;
     }
 
     //Free resources and close SDL

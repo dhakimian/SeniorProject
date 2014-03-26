@@ -43,7 +43,7 @@ const float Separation_vel = 0.01;
 
 //how much the velocity of g_objects decays each cycle (as a percentage of current speed)
 //you can think of this as the speed lost due to collisions with tiny particles of space debris
-const float Speed_Decay = 0.002;
+const float Speed_Decay = 0.0005;
 
 //This number is multiplied by an object's velocity to calculate collision damage
 const float Collision_Damage_multiplier = 30;
@@ -57,7 +57,7 @@ const int MAX_OBJECTS = 512;
 const int SERVER_CONNECTION_LOST_THRESHOLD = 50;
 
 //how many consecutive updates from a client the server needs to miss before considering its connection to that client lost
-const int CLIENT_CONNECTION_LOST_THRESHOLD = 50;
+const int CLIENT_CONNECTION_LOST_THRESHOLD = 20;
 
 //must be a multiple of bg tile dimensions (currently 800x800)
 //otherwise edge-wrapping will be funky

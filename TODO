@@ -14,15 +14,15 @@ Milestone 3:
  + Make client get game-state from server (which constantly sends it), and render based on that.
 
  + Handle multiple connections
- (+/-) Handle multiple players
+ + Handle multiple players
     + Distinguish between clients to allow more than one player
         + store connections in a vector
         + Associate the right keyboard input with the right player
           (this should be possible by identifying the player by their host and port)
-    - Have server somehow tell client which ship it should be centering on
-        (currently, all players center on the first Player object in g_objects, even if that
-         isn't the ship they are controlling)
-    - remove dead connections from server's list
+    + Have server tell client which ship it should be centering on
+    + remove dead connections from server's list
+        + but store them, so a client can reconnect to the same ship if they get disconnected
+        + check new connections to see if they are reconnecting clients, and handle accordingly
 
 (Priority) Make game speed not dependent on computer speed.
     - make server and client speed match
@@ -64,7 +64,9 @@ Milestone 3:
 Add a way to set a destination for a ship, and have the ship make its way to that point
     (for AI purposes)
 
- + Handle Player death. Probably the simplest would be to just respawn somewhere random (might have to make sure the area is clear though), or set start points for players
+ + Handle Player death. Players both spawn and respawn in random locations.
+    * Current collision handling takes care of players spawned in the middle of something else.
+      (slowly moves them apart)
 
 Add a scoring system where you get points for destroying other ships
     - display that score somewhere/somehow (might require adding SDL_TTF to the requirements)
@@ -88,7 +90,7 @@ Milestone 4:
 (+)Try to find a way to prevent objects blinking out temporarily when the full state doesn't come
 (the following point will probably help with that)
 
-Only send what's changed to reduce bandwidth usage
+ - Only send what's changed to reduce bandwidth usage
     * this may necessitate the use of unique identifiers for objects, so we know which ones
       to update on the client when only a partial list is received
     + given a full state, the client will only allocate new local objects if they are new.
@@ -97,7 +99,7 @@ Only send what's changed to reduce bandwidth usage
 Try make the client experience overall much smoother and less jumpy than it is now
 
 Display some sort of message when rendering while not connected to server
-    (like "Looking for server")
+    (like "Looking for server") (in window; this is already printed in console)
 
 Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * Always go toward nearest ( only :P ) player
@@ -110,8 +112,6 @@ Add simple AI to alien ships: (shouldn't need any server/client interaction)
 Signal client to make a sound when it's supposed to (or change how/where sounds are made)
     (right now sounds are made inside update(), which happens on the server, so sounds are only
      made on the client when it is doing local updates)
-
-Decide whether or not to keep the behavior of being able to control the ship when the connection is lost
 
 (client) Display an icon or something whenever doing a local update, to notify player of packet
 loss, or just display it once the client considers the connection lost, to let the player know

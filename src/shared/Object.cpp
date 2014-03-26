@@ -1,8 +1,7 @@
 #include "Object.h"
 #include <iostream>
 
-Object::Object()
-{
+Object::Object() {
     ID = this;
 
     xPos = 1.0;
@@ -46,38 +45,31 @@ Object::Object()
     TYPE = T_OBJ;
 }
 
-void Object::update()
-{
-    if( can_take_damage )
-    {
-        if( dmg_flash_rem > 0 )
-        {
+void Object::update() {
+    if( can_take_damage ) {
+        if( dmg_flash_rem > 0 ) {
             dmg_flash_rem--;
             uint diff = 255 - green;
             green += diff/4;
             blue += diff/4;
         }
-        if( dmg_flash_rem <= 0 )
-        {
+        if( dmg_flash_rem <= 0 ) {
             red = 255;
             green = 255;
             blue = 255;
         }
     }
 
-    if( animated )
-    {
+    if( animated ) {
         if( num_frames == 0 )
             num_frames = frames_x * frames_y;
 
         //if( (time % something) == 0 )
-        if( frame_delay_left == 0 )
-        {
+        if( frame_delay_left == 0 ) {
             frame_delay_left = frame_delay;
             //frame_num = (frame_num + 1) % num_frames;
             frame_num++;
-            if( frame_num >= num_frames )
-            {
+            if( frame_num >= num_frames ) {
                 if( anim_loops )
                     frame_num %= num_frames;
                 else
@@ -89,22 +81,17 @@ void Object::update()
     }
 }
 
-Object* Object::clone()
-{
+Object* Object::clone() {
 }
 
-void Object::onCollide( Object* collided_with )
-{
+void Object::onCollide( Object* collided_with ) {
 }
 
-void Object::whenColliding( Object* colliding_with )
-{
+void Object::whenColliding( Object* colliding_with ) {
 }
 
-void Object::takeDamage( int amount )
-{
-    if( can_take_damage && amount > 0 )
-    {
+void Object::takeDamage( int amount ) {
+    if( can_take_damage && amount > 0 ) {
         hitpoints -= amount;
         dmg_flash_rem = Dmg_flash_dur;
         red = 255;
@@ -113,8 +100,7 @@ void Object::takeDamage( int amount )
     }
 }
 
-void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out)
-{
+void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out, float* xVel_out, float* yVel_out, float* rotVel_out) {
     *xPos_out = xPos;
     *yPos_out = yPos;
     *Angle_out = Angle;
@@ -123,15 +109,13 @@ void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out, floa
     *rotVel_out = rotVel;
 }
 
-void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out)
-{
+void Object::get_values(float* xPos_out, float* yPos_out, float* Angle_out) {
     *xPos_out = xPos;
     *yPos_out = yPos;
     *Angle_out = Angle;
 }
 
-void Object::set_values(float xPos_in, float yPos_in, float Angle_in, float xVel_in, float yVel_in, float rotVel_in)
-{
+void Object::set_values(float xPos_in, float yPos_in, float Angle_in, float xVel_in, float yVel_in, float rotVel_in) {
     xPos = xPos_in;
     yPos = yPos_in;
     Angle = Angle_in;
@@ -140,8 +124,7 @@ void Object::set_values(float xPos_in, float yPos_in, float Angle_in, float xVel
     rotVel = rotVel_in;
 }
 
-void Object::set_values(float xPos_in, float yPos_in, float Angle_in)
-{
+void Object::set_values(float xPos_in, float yPos_in, float Angle_in) {
     xPos = xPos_in;
     yPos = yPos_in;
     Angle = Angle_in;
@@ -180,8 +163,7 @@ void Object::die()
 bool Object::is_persistent()
 { return persistent; }
 
-void Object::render( int x, int y, float ang, bool centered )
-{
+void Object::render( int x, int y, float ang, bool centered ) {
     LTexture* tex = &g_textures[TEX_INDEX];
     tex->setColor( red, green, blue );
     /*
@@ -192,30 +174,26 @@ void Object::render( int x, int y, float ang, bool centered )
     }
     */
 
-    if( animated )
-    {
+    if( animated ) {
         //std::cout<<"animation"<<std::endl;
         //std::cout<<this->frame_num<<"/"<<this->num_frames<<std::endl;
 
         SDL_Rect frame;
 
-        if( frame_w == 0 )
-        {
-            if( frames_x == 0 )
-            {
+        if( frame_w == 0 ) {
+            if( frames_x == 0 ) {
                 std::cerr<<"Either frame_w or frames_x must be defined for animated textures"<<std::endl;
                 return;
             } else {
                 frame_w = tex->getWidth()/frames_x;
             }
         }
-        if( frame_h == 0 )
-        {
-            if( frames_y == 0 )
-            {
+        if( frame_h == 0 ) {
+            if( frames_y == 0 ) {
                 std::cerr<<"Either frame_h or frames_y must be defined for animated textures"<<std::endl;
                 return;
-            } else {
+            }
+            else {
                 frame_h = tex->getHeight()/frames_y;
             }
         }
@@ -231,8 +209,8 @@ void Object::render( int x, int y, float ang, bool centered )
         frame.y = (frame_num / frames_x) * frame_h;
 
         tex->render( x-frame.w/2, y-frame.h/2, &frame, ang );
-
-    } else {
+    }
+    else {
         if( centered )
             g_textures[TEX_INDEX].render_center( x, y, NULL, ang );
         else

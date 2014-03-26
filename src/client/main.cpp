@@ -49,7 +49,7 @@ int tick = 0;
 bool g_show_minimap = true;
 
 //Whether client should update g_objects locally whenever it doesn't receive a new gamestate from server
-const bool g_LocalUpdates = true;
+const bool g_LocalUpdates = false;
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
@@ -203,12 +203,14 @@ bool loadMedia() {
     }
 
     //load sounds
-    for( uint i=0; i<g_sounds.size(); i++ )
-    {
-        g_sounds[i] = Mix_LoadWAV( g_sndfiles[i].c_str() );
-        if( g_sounds[i] == NULL ) {
-            cout << "Failed to load '" << g_sndfiles[i] << "'!" << endl;
-            success = false;
+    if( SOUND_ON ) {
+        for( uint i=0; i<g_sounds.size(); i++ )
+        {
+            g_sounds[i] = Mix_LoadWAV( g_sndfiles[i].c_str() );
+            if( g_sounds[i] == NULL ) {
+                cout << "Failed to load '" << g_sndfiles[i] << "'!" << endl;
+                success = false;
+            }
         }
     }
 
@@ -231,11 +233,13 @@ bool loadMedia() {
     }
 
     //load music
-    g_music = Mix_LoadMUS( "media/sounds/Amb.mp3" );
-    if( g_music == NULL )
-    {
-        printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
+    if( MUSIC_ON ) {
+        g_music = Mix_LoadMUS( "media/sounds/Amb.mp3" );
+        if( g_music == NULL )
+        {
+            printf( "Failed to load game music! SDL_mixer Error: %s\n", Mix_GetError() );
+            success = false;
+        }
     }
 
     return success;

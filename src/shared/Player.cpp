@@ -5,8 +5,8 @@
 #include "Player.h"
 #include <iostream>
 
-Player::Player(Uint16 controllerport, int teamnumber, float xp, float yp, float ang )
-{
+Player::Player(Uint16 controllerport, int teamnumber, float xp, float yp, float ang ) {
+
     xPos = xp;
     yPos = yp;
 
@@ -43,8 +43,7 @@ Player::Player(Uint16 controllerport, int teamnumber, float xp, float yp, float 
 Uint16 Player::get_controller()
 { return controller; }
 
-void Player::handle_keystate(const Uint8* currentKeyStates)
-{
+void Player::handle_keystate(const Uint8* currentKeyStates) {
     upKey = currentKeyStates[SDL_SCANCODE_UP] || currentKeyStates[SDL_SCANCODE_W];
     downKey = currentKeyStates[SDL_SCANCODE_DOWN] || currentKeyStates[SDL_SCANCODE_S];
     leftKey = currentKeyStates[SDL_SCANCODE_LEFT] || currentKeyStates[SDL_SCANCODE_A];
@@ -54,8 +53,7 @@ void Player::handle_keystate(const Uint8* currentKeyStates)
     shootKey = currentKeyStates[SDL_SCANCODE_SPACE];
 }
 
-void Player::handle_keystate(Keystate keystate)
-{
+void Player::handle_keystate(Keystate keystate) {
     upKey = keystate.upKey;
     downKey = keystate.downKey;
     leftKey = keystate.leftKey;
@@ -65,21 +63,18 @@ void Player::handle_keystate(Keystate keystate)
     shootKey = keystate.shootKey;
 }
 
-void Player::update()
-{
-    if ( this->is_dead() )
-    {
+void Player::update() {
+    //Ship::update();
+    if ( this->is_dead() ) {
         respawn_time_rem--;
         //std::cout<<"Respawn in: "<<respawn_time_rem<<std::endl;
-        if( respawn_time_rem <= 0 )
-        {
+        if( respawn_time_rem <= 0 ) {
             respawn_time_rem = Respawn_time;
             //std::cout<<"Respawning"<<std::endl;
             respawn();
         }
     }
-    else
-    {
+    else {
         //std::cout<<"updateteam: "<<team;
         //std::cout<<" | TEX_INDEX: "<<TEX_INDEX<<std::endl;
         Ship::update();
@@ -98,22 +93,19 @@ void Player::update()
         if(shootKey)
             shoot();
 
-        if( SOUND_ON && (rightKey || leftKey || upKey || downKey || strafeRight || strafeLeft ) && (hitpoints > 0) )
-        {
+        if( SOUND_ON && (rightKey || leftKey || upKey || downKey || strafeRight || strafeLeft ) && (hitpoints > 0) ) {
             if(Mix_Playing(7) == 0 )
                 Mix_PlayChannel(7, g_sounds[THRUST], 0);
             else
                 Mix_Resume(7);
         }
-        if(!(rightKey || leftKey || upKey || downKey || strafeRight || strafeLeft) && SOUND_ON)
-        {
+        if(!(rightKey || leftKey || upKey || downKey || strafeRight || strafeLeft) && SOUND_ON) {
             Mix_Pause(7);
         }
     }
 }
 
-void Player::respawn()
-{
+void Player::respawn() {
     set_values( frandBetween(0,LEVEL_WIDTH),
             frandBetween(0,LEVEL_HEIGHT),
             frandBetween(0,360),
@@ -134,8 +126,7 @@ void Player::respawn()
 #endif
 }
 
-void Player::render( int x, int y, float ang, bool centered )
-{
+void Player::render( int x, int y, float ang, bool centered ) {
 
     // here is my(robs) added code that implements a cool ship that has some moving parts.
 

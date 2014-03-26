@@ -7,8 +7,7 @@
 #include "Powerup.h"
 #include <iostream>
 
-Ship::Ship(float xp, float yp, float ang )
-{
+Ship::Ship(float xp, float yp, float ang ) {
     // acceleration rates
     SHIP_ACCEL = 0.07;
     SHIP_REV_ACCEL = 0.04;
@@ -47,12 +46,15 @@ Ship::Ship(float xp, float yp, float ang )
     TYPE = T_SHIP;
 }
 
-void Ship::update()
-{
-    if( hitpoints <= 0 )
+void Ship::update() {
+    if( hitpoints <= 0 ) {
+#ifdef _SERVER_
+        //if( dead == false )
+            g_objects.push_back( new Powerup( xPos, yPos, Angle, xVel+frandBetween(-15,15)/10, yVel+frandBetween(-15,15)/10 ) );
+#endif
         dead = true;
-    else
-    {
+    }
+    else {
         MovingObject::update();
 
         if( cooldown_rem > 0 )
@@ -62,8 +64,7 @@ void Ship::update()
 
         for( uint i=0; i<active_lasers.size(); i++ )
         {
-            if( active_lasers[i]->is_dead() )
-            {
+            if( active_lasers[i]->is_dead() ) {
                 laser_pool.push_back( active_lasers[i] );
                 active_lasers.erase( active_lasers.begin()+i );
                 i--;
@@ -72,10 +73,8 @@ void Ship::update()
     }
 }
 
-void Ship::onCollide( Object* collided_with )
-{
-    if( collided_with->get_type() == T_POWERUP )
-    {
+void Ship::onCollide( Object* collided_with ) {
+    if( collided_with->get_type() == T_POWERUP ) {
         std::cout<<"ShipC"<<std::endl;
         Powerup* powerup = (Powerup*)collided_with;
         weapons_upgrade();
@@ -85,50 +84,43 @@ void Ship::onCollide( Object* collided_with )
         MovingObject::onCollide( collided_with );
 }
 
-void Ship::thrust_b() // fire rear thrusters, moving the ship forward
-{
+void Ship::thrust_b() { // fire rear thrusters, moving the ship forward
     double ang = M_PI * Angle;
     ang = ang / 180;
     xVel += SHIP_ACCEL * sin(ang);
     yVel -= SHIP_ACCEL * cos(ang);
 }
 
-void Ship::thrust_f() // fire forward thrusters, moving the ship backwards
-{
+void Ship::thrust_f() { // fire forward thrusters, moving the ship backwards
     double ang = M_PI * Angle;
     ang = ang / 180;
     xVel -= SHIP_REV_ACCEL * sin(ang);
     yVel += SHIP_REV_ACCEL * cos(ang);
 }
 
-void Ship::rot_l()
-{
+void Ship::rot_l() {
     rotVel -= SHIP_ROT_ACCEL;
 }
 
-void Ship::rot_r()
-{
+void Ship::rot_r() {
     rotVel += SHIP_ROT_ACCEL;
 }
 
-void Ship::thrust_l() // fire port-side thrusters, moving the ship right
-{
+void Ship::thrust_l() { // fire port-side thrusters, moving the ship right
     double ang = M_PI * Angle;
     ang = ang / 180;
     xVel += SHIP_REV_ACCEL * cos(ang);
     yVel += SHIP_REV_ACCEL * sin(ang);
 }
 
-void Ship::thrust_r() // fire starboard thrusters, moving the ship left
-{
+void Ship::thrust_r() { // fire starboard thrusters, moving the ship left
     double ang = M_PI * Angle;
     ang = ang / 180;
     xVel -= SHIP_REV_ACCEL * cos(ang);
     yVel -= SHIP_REV_ACCEL * sin(ang);
 }
 
-void Ship::weapons_upgrade()
-{
+void Ship::weapons_upgrade() {
     if (upgrade_cooldown_rem == 0) {
         upgrade_cooldown_rem = Upgrade_cooldown;
         if( SOUND_ON )

@@ -146,6 +146,10 @@ class Object
         //This is necessary for things like lasers, which are pooled and re-used
         bool persistent;
 
+
+
+        int size;
+
         //port number (SDL_Net IPaddress.port) of client controlling this ship
         Uint16 controller;
 

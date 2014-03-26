@@ -2,6 +2,12 @@
 #define _PLAYER_H
 #include "Ship.h"
 
+#ifdef __APPLE__
+#include <SDL2_net/SDL_net.h>
+#else
+#include <SDL_net.h>
+#endif
+
 class Player : public Ship
 {
     public:
@@ -60,5 +66,14 @@ class Player : public Ship
         bool shootKey;
         */
 
+};
+
+// http://stackoverflow.com/questions/589985/vectors-structs-and-stdfind
+struct find_controller : std::unary_function<Player*, bool> {
+    IPaddress addr;
+    find_controller(IPaddress addr):addr(addr) { }
+    bool operator()(Player* const& p) const {
+        return (p->get_controller() == addr.port );
+    }
 };
 #endif

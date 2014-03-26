@@ -1,8 +1,7 @@
 #include "Laser.h"
 #include <iostream>
 
-Laser::Laser()
-{
+Laser::Laser() {
     Collider.r = 2;
     Collider.x = xPos;
     Collider.y = yPos;
@@ -16,13 +15,11 @@ Laser::Laser()
     TYPE = T_LASER;
 }
 
-Object* Laser::get_owner()
-{
+Object* Laser::get_owner() {
     return owner;
 }
 
-void Laser::set_values(Object* ship, float x, float y, float ang, float xv, float yv)
-{
+void Laser::set_values(Object* ship, float x, float y, float ang, float xv, float yv) {
     owner = ship;
     xPos = x;
     yPos = y;
@@ -33,13 +30,11 @@ void Laser::set_values(Object* ship, float x, float y, float ang, float xv, floa
     dead = false;
 }
 
-int Laser::get_time_left()
-{
+int Laser::get_time_left() {
     return time_left;
 }
 
-void Laser::update()
-{
+void Laser::update() {
     time_left--;
     if( time_left <= 0 ) {
         dead = true;
@@ -47,8 +42,7 @@ void Laser::update()
         MovingObject::update();
 }
 
-void Laser::upgrade()
-{
+void Laser::upgrade() {
     weapon_level++;
     //std::cout<<"UPGRADE! "<<weapon_level<<std::endl;
     if (weapon_level == 1)
@@ -62,14 +56,12 @@ void Laser::upgrade()
    //also change collider dimension depending on how the images change
 }
 
-void Laser::reset()
-{
+void Laser::reset() {
     weapon_level = 1;
     TEX_INDEX = LASER1;
 }
 
-void Laser::onCollide( Object* collided_with )
-{
+void Laser::onCollide( Object* collided_with ) {
     //if( collided_with->is_solid() && collided_with != owner )
     if( collided_with->is_solid() && collided_with != owner
             && ( collided_with->get_team() != owner->get_team()
