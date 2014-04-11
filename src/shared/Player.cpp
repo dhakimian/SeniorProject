@@ -64,7 +64,6 @@ void Player::handle_keystate(Keystate keystate) {
 }
 
 void Player::update() {
-    //Ship::update();
     if ( this->is_dead() ) {
         respawn_time_rem--;
         //std::cout<<"Respawn in: "<<respawn_time_rem<<std::endl;

@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "LTexture.h"
-#ifdef __APPLE__
+#ifdef __clang__
 #include <SDL2_mixer/SDL_mixer.h>
 #include <SDL2_net/SDL_net.h>
 #else

@@ -9,20 +9,23 @@
  *     Tim Swanson (helper)
  */
 
-#ifdef __APPLE__
+#ifdef __clang__
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
 #include <SDL2_mixer/SDL_mixer.h>
+#include <SDL2_ttf/SDL_ttf.h>
 #include <SDL2_net/SDL_net.h>
 #else
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
+#include <SDL_ttf.h>
 #include <SDL_net.h>
 #endif
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
@@ -32,6 +35,7 @@
 #include "Constants.h"
 #include "Util.h"
 #include "LTexture.h"
+#include "LTimer.h"
 #include "Player.h"
 #include "Alien.h"
 #include "Planet.h"
@@ -42,9 +46,6 @@
 
 using namespace std;
 
-int tick = 0;
-//int sleep_time = ;
-
 bool g_show_minimap = true;
 
 bool RENDER = false;
@@ -54,6 +55,9 @@ SDL_Window* gWindow = NULL;
 
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
+
+//Globally used font
+TTF_Font* gFont = NULL;
 
 //The texture that everything adjacent will be rendered to before being rotated relative to the ship
 LTexture gTargetTexture;
@@ -115,6 +119,12 @@ void toggle_camera() {
 
 Mix_Music* g_music = NULL;
 
+TTF_Font* g_font = NULL;
+SDL_Color g_font_color = { 255, 0, 0, 255 };
+LTexture g_fps_text;
+stringstream g_ss_fps;
+float g_fps;
+
 UDPsocket g_sd;       /* Socket descriptor */
 
 bool init() {
@@ -157,6 +167,13 @@ bool init() {
                 int imgFlags = IMG_INIT_PNG;
                 if( !( IMG_Init( imgFlags ) & imgFlags ) ) {
                     printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+                    success = false;
+                }
+
+                //Initialize SDL_ttf
+                if( TTF_Init() == -1 )
+                {
+                    printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
                     success = false;
                 }
             }
@@ -240,6 +257,20 @@ bool loadMedia() {
             success = false;
         }
     }
+
+    gFont = TTF_OpenFont( "media/fonts/courier_new.ttf", 14 );
+    if( gFont == NULL )
+    {
+        printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+        success = false;
+    }
+    else
+    {
+        g_fps_text.setRenderer(gRenderer);
+        g_fps_text.setFont(gFont);
+    }
+
+
 
     return success;
 }
@@ -455,15 +486,22 @@ void render_minimap() {
     gMinimap.render( 5, 5, NULL, -g_Angle_targ );
 }
 
+void render_fps() {
+    if( !g_fps_text.loadFromRenderedText( g_ss_fps.str().c_str(), g_font_color ) ) {
+        printf( "Unable to render FPS texture!\n" );
+    }
+    g_fps_text.render( ( SCREEN_WIDTH - 110 ), 10 );
+}
+
 void render_overlay() {
     if( g_players.size() > 0 )
         render_healthbar();
     if( g_show_minimap )
         render_minimap();
+    render_fps();
 }
 
-void render()
-{
+void render() {
     //set the image as the render target
     gTargetTexture.setAsRenderTarget();
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
@@ -606,6 +644,10 @@ void close() {
         g_textures[i].free();
     }
 
+    //Free global font
+    TTF_CloseFont( gFont );
+    gFont = NULL;
+
     //Destroy window
     SDL_DestroyRenderer( gRenderer );
     SDL_DestroyWindow( gWindow );
@@ -620,7 +662,7 @@ void close() {
 
 //int main( int argc, char* args[] )
 int main( int argc, char** argv ) {
-    cout<<"Starting server"<<endl;
+    cout<<"Starting server (Ctrl-C to stop)"<<endl;
 
     if( argc == 2 ) {
         RENDER = (bool)argv[1];
@@ -632,8 +674,7 @@ int main( int argc, char** argv ) {
             printf( "Failed to initialize!\n" );
             exit(EXIT_FAILURE);
         }
-        //Load media
-        if( !loadMedia() ) {
+        if( !loadMedia() ) { //Load media
             printf( "Failed to load media!\n" );
             exit(EXIT_FAILURE);
         }
@@ -646,6 +687,13 @@ int main( int argc, char** argv ) {
 
     //Main loop flag
     bool quit = false;
+
+    int cycle = 0;
+
+    int sleep_time = 15000;
+
+    LTimer fps_timer;
+    fps_timer.start();
 
     //list of unique host+port combinations that have connected to the server
     vector<Connection> connections;
@@ -665,7 +713,7 @@ int main( int argc, char** argv ) {
     if( RENDER && MUSIC_ON )
         Mix_PlayMusic(g_music, -1);
 
-    srand( time(NULL) );
+    srand( time(NULL) ); // seed the random number generator with the current time
 
     //While application is running
     while( !quit ) {
@@ -869,7 +917,18 @@ int main( int argc, char** argv ) {
                 g_players[i]->update();
         }
 
+        //Calculate and correct fps
+        g_fps = cycle / ( fps_timer.getTicks() / 1000.f );
+        if( g_fps > 2000000 )
+            g_fps = 0;
+
+        cout << g_fps << endl;
+
         if( RENDER ) {
+            //Set text to be rendered
+            g_ss_fps.str( "" );
+            g_ss_fps << "FPS: " << g_fps;
+
             //Clear screen
             SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
             SDL_RenderClear( gRenderer );
@@ -883,9 +942,9 @@ int main( int argc, char** argv ) {
         }
 
         if (!RENDER)
-            usleep(15000);
+            usleep(sleep_time);
 
-            tick++;
+        cycle++;
     }
 
     //Free resources and close SDL

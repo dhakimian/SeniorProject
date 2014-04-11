@@ -4,35 +4,105 @@
 + Look up how to send C++ class objects in packets so we can send the g_objects vector, which makes up the game-state
 
 Modify build system to eliminate need for two versions of the same code for classes shared by client and server
- + Or maybe use symbolic links?
+ + /*Or maybe*/ use symbolic links//?
 
 Milestone 3:
 ============
 
- + get the server to communicate game info to (and receive input from) a single client
+ + get the server to communicate game info to a single client
 
- + Make client get game-state from server (which constantly sends it), and render based on that.
+ + Make client get game-state from server (which constantly sends it to connected clients),
+    and render based on that.
+
+ + get the server to receive input from a single client
 
  + Handle multiple connections
+
  + Handle multiple players
     + Distinguish between clients to allow more than one player
         + store connections in a vector
         + Associate the right keyboard input with the right player
-          (this should be possible by identifying the player by their host and port)
     + Have server tell client which ship it should be centering on
+        (the port of the client who should be controlling a ship is stored in the ship object)
     + remove dead connections from server's list
         + but store them, so a client can reconnect to the same ship if they get disconnected
         + check new connections to see if they are reconnecting clients, and handle accordingly
-
-(Priority) Make game speed not dependent on computer speed.
-    - make server and client speed match
 
  + Make client predict motion to make things smoother in case of latency issues
    (If client doesn't get a packet, it updates g_objects locally instead. (changes will of
     course get overridden by next server state) )
 
  + Fix weird bug where objects will sometimes be duplicated when the server is killed.
-    * I found it. The number of packets received from the server was sometimes getting doubled,
+    * I found it. See [1] for an explanation.
+
+Add a way to set a destination for a ship, and have the ship make its way to that point
+    (for AI purposes)
+
+ + Handle Player death. Players both spawn and respawn in random locations.
+    * Current collision handling takes care of players spawned in the middle of something else.
+      (slowly moves them apart)
+
+ + Colorize player graphics based on team, to eliminate need for many differently colored images
+     + (req: Make player graphics work well with colorization)
+
+Milestone 4:
+============
+
+(Priority) Make game speed not dependent on computer speed.
+    - make server and client speed match
+
+Do some testing with connecting to a host besides localhost
+
+ - Only send what's changed to reduce bandwidth usage
+    + this may necessitate the use of unique identifiers for objects, so we know which ones
+      to update on the client when only a partial list is received
+    + given a full state, the client will only allocate new local objects if they are new.
+      Otherwise it will copy the object's info into the existing local object
+    - Now only send what's changed
+        * maybe this will require a different type of object that only contains certain things
+        * or a delta system that given an objects vector and a diff, will update it accordingly
+
+Try make the client experience overall much smoother and less jumpy/jittery than it is now
+
+Display some sort of message when rendering while not connected to server
+    (like "Looking for server") (in window; this is already printed in console)
+
+Add simple AI to alien ships: (shouldn't need any server/client interaction)
+    * Always go toward nearest player
+        - if not within certain distance of player, thrust towards them (if they are
+          within radar range; if not, just pick random destination until they are)
+        - once close enough, it would slow down, and... <jump to next point>
+    * Shoot when in range (maybe try to make aiming smarter than just where the target
+      is at the time: decide where to shoot based on distance and speed of target. Maybe :P )
+    * I think this should all be able to be completed within Alien.h and Alien.cpp
+      (maybe some changes in Ship.[h|cpp] if needed)
+
+- Add a scoring system where you get points for destroying other ships
+    - display that score somewhere/somehow (might require adding SDL_TTF to the requirements)
+
+- Add a way for client to specify which team they want to join
+
+- Add a way for client to specify which port they open
+    * right now it is random
+    * player identity on the server is a combination of host and port
+    * this will allow a player to quit, and then reconnect, and still be controlling the same ship
+
+ - fix bug in camera system that can be seen in server spectator mode when getting close to
+   edges sometimes.
+
+ - Signal client to make a sound when it's supposed to (or change how/where sounds are made)
+    (right now sounds are made inside update(), which happens on the server, so sounds are only
+     made on the client when it is doing local updates)
+
+(client) Display an icon or something whenever doing a local update, to notify player of packet
+loss, or just display it once the client considers the connection lost, to let the player know
+that their actions aren't being reflected on the server.
+
+Update project portfolio page (add github link but also more info to the page itself)
+
+Find and prevent/stop memory leaks
+
+[1]   The number of packets received from the server was sometimes getting doubled,
       probably because they were coming faster than the client was grabbing them, and they
       apparently get mushed together in the buffer or something. I don't know. This is just
       part of the problem of client/server speeds not matching, but the other side of it. When
@@ -43,7 +113,7 @@ Milestone 3:
       This was also causing some other weird issues I was experiencing, like some of the
       jitter on the player image (there were actually two ships there, and only one was being
       rendered based on keyboard state (because that is currently happening client-side for the
-      client, because of another problem[1] I still need to fix...) and the player minimap icon
+      client, because of another problem[2] I still need to fix...) and the player minimap icon
       flashing between green and yellow. The times when I saw the objects duplicated after the
       server was killed were the rare times when it was killed right when the last state
       received by the client was one of the double ones.
@@ -53,7 +123,7 @@ Milestone 3:
       be fixed. Fortunately, there are resources available to help in this process, like the
       explanations I've found of how multiplayer works in games like Quake and the Source games.
 
-[1] Make it so that the client actually receives child class members that aren't inherited
+ - [2]Make it so that the client actually receives child class members that aren't inherited
     from Object
         * This will allow me to finish getting the client to focus on the right ship and have
           the rendering of the player which is based on keyboard state be based off of the
@@ -61,63 +131,6 @@ Milestone 3:
         * Temporary workaround is to just put the members in Object.h, even if they don't really
           belong there.
 
-Add a way to set a destination for a ship, and have the ship make its way to that point
-    (for AI purposes)
-
- + Handle Player death. Players both spawn and respawn in random locations.
-    * Current collision handling takes care of players spawned in the middle of something else.
-      (slowly moves them apart)
-
-Add a scoring system where you get points for destroying other ships
-    - display that score somewhere/somehow (might require adding SDL_TTF to the requirements)
-
-Add a way for client to specify which team they want to join
-
-Add a way for client to specify which port they open
-    * right now it is random
-    * player identity on the server is a combination of host and port
-    * this will allow a player to quit, and then reconnect, and still be controlling the same ship
-
- + Colorize player graphics based on team, to eliminate need for many differently colored images.
-     (req: Make player graphics work well with colorization)
-
- - fix bug in camera system that can be seen in server spectator mode when getting close to
-   edges sometimes.
-
-Milestone 4:
-============
-
-(+)Try to find a way to prevent objects blinking out temporarily when the full state doesn't come
-(the following point will probably help with that)
-
- - Only send what's changed to reduce bandwidth usage
-    * this may necessitate the use of unique identifiers for objects, so we know which ones
-      to update on the client when only a partial list is received
-    + given a full state, the client will only allocate new local objects if they are new.
-      Otherwise it will copy the objects info to the existing local object
-
-Try make the client experience overall much smoother and less jumpy than it is now
-
-Display some sort of message when rendering while not connected to server
-    (like "Looking for server") (in window; this is already printed in console)
-
-Add simple AI to alien ships: (shouldn't need any server/client interaction)
-    * Always go toward nearest ( only :P ) player
-        - if not within certain distance of player, thrust towards them (if they are
-          within radar range; if not, just pick random destination until they are)
-        - once close enough, it would slow down, and... <jump to next point>
-    * Shoot when in range (maybe try to make aiming smarter than just where the target
-      is at the time: decide where to shoot based on distance and speed of target. Maybe :P )
-
-Signal client to make a sound when it's supposed to (or change how/where sounds are made)
-    (right now sounds are made inside update(), which happens on the server, so sounds are only
-     made on the client when it is doing local updates)
-
-(client) Display an icon or something whenever doing a local update, to notify player of packet
-loss, or just display it once the client considers the connection lost, to let the player know
-that their actions aren't being reflected on the server.
-
-Find and prevent/stop memory leaks
 
 Longer term goals
 =================

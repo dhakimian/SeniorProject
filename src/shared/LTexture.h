@@ -6,12 +6,14 @@
 #define _LTEXTURE_H
 
 #include <string>
-#ifdef __APPLE__
+#ifdef __clang__
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <SDL2_ttf/SDL_ttf.h>
 #else
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #endif
 
 //Texture wrapper class
@@ -24,8 +26,11 @@ class LTexture
         //Deallocates memory
         ~LTexture();
 
-        //Necessary: sets the render that will be used
+        //Necessary: sets the renderer that will be used
         void setRenderer( SDL_Renderer* ren );
+
+        //sets the font that will be used
+        void setFont( TTF_Font* font );
 
         //Loads image at specified path
         bool loadFromFile( std::string path );
@@ -70,6 +75,7 @@ class LTexture
         int getPitch();
         Uint32 getPixel32( unsigned int x, unsigned int y );
         SDL_Renderer* gRenderer;
+        TTF_Font* gFont;
 
     private:
         //The actual hardware texture

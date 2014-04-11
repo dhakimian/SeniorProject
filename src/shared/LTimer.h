@@ -6,6 +6,12 @@
 #ifndef _LTIMER_H
 #define _LTIMER_H
 
+#ifdef __clang__
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
+
 class LTimer
 {
     public:

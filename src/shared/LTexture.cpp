@@ -9,6 +9,7 @@ LTexture::LTexture()
 {
     //Initialize
     gRenderer = NULL;
+    gFont = NULL;
     mTexture = NULL;
     mWidth = 0;
     mHeight = 0;
@@ -25,6 +26,11 @@ LTexture::~LTexture()
 void LTexture::setRenderer( SDL_Renderer* ren)
 {
     gRenderer = ren;
+}
+
+void LTexture::setFont( TTF_Font* font)
+{
+    gFont = font;
 }
 
 bool LTexture::loadFromFile( std::string path )
@@ -138,12 +144,12 @@ bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColo
         printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
     }
 
-    
+
     //Return success
     return mTexture != NULL;
 }
 #endif
-        
+
 bool LTexture::createBlank( int width, int height, SDL_TextureAccess access )
 {
     //Create uninitialized texture
