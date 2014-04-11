@@ -53,6 +53,7 @@ void Ship::update() {
             g_objects.push_back( new Powerup( xPos, yPos, Angle, xVel+frandBetween(-15,15)/10, yVel+frandBetween(-15,15)/10 ) );
 #endif
         dead = true;
+        score = 0;
     }
     else {
         MovingObject::update();

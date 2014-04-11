@@ -821,7 +821,15 @@ int main( int argc, char** argv ) {
             }
         }
 
+        //Calculate and correct fps
+        g_fps = cycle / ( fps_timer.getTicks() / 1000.f );
+        if( g_fps > 2000000 )
+            g_fps = 0;
+
+        //cout << g_fps << endl;
+
         for( int i=0; i<connections.size(); i++ ) {
+            //connections[i].server_fps = g_fps;
             if( connections[i].packets_recvd == connections[i].prev_packets_recvd ) {
                 connections[i].consec_missed++;
                 if( connections[i].consec_missed >= CLIENT_CONNECTION_LOST_THRESHOLD ) {
@@ -851,11 +859,19 @@ int main( int argc, char** argv ) {
         }
 
         UDPpacket** p_out;
-        if (!(p_out = SDLNet_AllocPacketV(g_objects.size(), MAX_OBJECTS * 16))) {
+        if (!(p_out = SDLNet_AllocPacketV(g_objects.size()+1, MAX_OBJECTS * 16))) {
             fprintf(stderr, "SDLNet_AllocPacketV: %s\n", SDLNet_GetError());
             exit(EXIT_FAILURE);
         }
+        //memcpy( p_out[0]->data, &connections, sizeof(connections) );
+        //p_out[0]->len = sizeof(connections);
+        //p_out[0]->channel = 0;
+        //
+        //memcpy( p_out[0]->data, fpsobj, sizeof(*fpsobj) );
+        //p_out[0]->len = sizeof(*fpsobj);
+        //p_out[0]->channel = 0;
         for( int i=0; i<g_objects.size(); i++ ) {
+            g_objects[i]->fps = g_fps;
             memcpy( p_out[i]->data, g_objects[i], sizeof(*g_objects[i]) );
             p_out[i]->len = sizeof(*g_objects[i]);
             p_out[i]->channel = 0;
@@ -893,13 +909,6 @@ int main( int argc, char** argv ) {
         }
         */
 
-        /*
-        vector<const Uint8*> playerKeyStates ( g_connections.size() );
-        for( int i=0; i<playerKeyStates.size(); i++ )
-        {
-            g_players[i]->handle_keystate(playerKeyStates[i]);
-        }
-        */
 
         for( uint i = 0; i<g_objects.size(); i++ )
         {
@@ -917,12 +926,10 @@ int main( int argc, char** argv ) {
                 g_players[i]->update();
         }
 
-        //Calculate and correct fps
-        g_fps = cycle / ( fps_timer.getTicks() / 1000.f );
-        if( g_fps > 2000000 )
-            g_fps = 0;
-
-        cout << g_fps << endl;
+        if( g_fps < 62 )
+            sleep_time -= 50;
+        else
+            sleep_time += 50;
 
         if( RENDER ) {
             //Set text to be rendered
@@ -941,8 +948,10 @@ int main( int argc, char** argv ) {
             SDL_RenderPresent( gRenderer );
         }
 
-        if (!RENDER)
+        if (!RENDER) {
+            //cout << g_fps << endl;
             usleep(sleep_time);
+        }
 
         cycle++;
     }

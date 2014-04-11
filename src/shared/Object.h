@@ -47,28 +47,20 @@ class Object
         virtual void whenColliding( Object* colliding_with );
 
         virtual void takeDamage(int amount);
-
         virtual Circle get_collider();
-
         const void* get_ID();
-
         int get_tex_index();
-
         int get_type();
-
         int get_team();
-
+        int get_score();
+        void add_score(int amount);
         int get_hitpoints();
-
         float get_mass();
-
         bool is_solid();
-
         bool is_dead();
-
         void die();
-
         bool is_persistent();
+        float fps;
 
     protected:
 
@@ -148,10 +140,14 @@ class Object
 
 
 
+
+
         int size;
 
         //port number (SDL_Net IPaddress.port) of client controlling this ship
         Uint16 controller;
+
+        int score;
 
         //variables telling whether certain keys are pushed. Includes both wasd and updownleftright.
         bool upKey;

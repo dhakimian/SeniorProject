@@ -51,7 +51,7 @@ Milestone 4:
 (Priority) Make game speed not dependent on computer speed.
     - make server and client speed match
 
-Do some testing with connecting to a host besides localhost
+ - Do some testing with connecting to a host besides localhost
 
  - Only send what's changed to reduce bandwidth usage
     + this may necessitate the use of unique identifiers for objects, so we know which ones
@@ -62,9 +62,9 @@ Do some testing with connecting to a host besides localhost
         * maybe this will require a different type of object that only contains certain things
         * or a delta system that given an objects vector and a diff, will update it accordingly
 
-Try make the client experience overall much smoother and less jumpy/jittery than it is now
+ - Try make the client experience overall much smoother and less jumpy/jittery than it is now
 
-Display some sort of message when rendering while not connected to server
+ + Display some sort of message when rendering while not connected to server
     (like "Looking for server") (in window; this is already printed in console)
 
 Add simple AI to alien ships: (shouldn't need any server/client interaction)
@@ -77,8 +77,8 @@ Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * I think this should all be able to be completed within Alien.h and Alien.cpp
       (maybe some changes in Ship.[h|cpp] if needed)
 
-- Add a scoring system where you get points for destroying other ships
-    - display that score somewhere/somehow (might require adding SDL_TTF to the requirements)
++ Add a scoring system where you get points for destroying other ships
+    + display that score somewhere/somehow (might require adding SDL_TTF to the requirements)
 
 - Add a way for client to specify which team they want to join
 
@@ -86,6 +86,8 @@ Add simple AI to alien ships: (shouldn't need any server/client interaction)
     * right now it is random
     * player identity on the server is a combination of host and port
     * this will allow a player to quit, and then reconnect, and still be controlling the same ship
+
+ - figure out why asteroids aren't being rendered on the minimap sometimes
 
  - fix bug in camera system that can be seen in server spectator mode when getting close to
    edges sometimes.
@@ -98,7 +100,9 @@ Add simple AI to alien ships: (shouldn't need any server/client interaction)
 loss, or just display it once the client considers the connection lost, to let the player know
 that their actions aren't being reflected on the server.
 
-Update project portfolio page (add github link but also more info to the page itself)
+- Update project portfolio page (add github link but also more info to the page itself)
+
+- Make server's argument parsing better (don't interpret everything as true)
 
 Find and prevent/stop memory leaks
 

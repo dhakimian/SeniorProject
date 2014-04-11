@@ -74,6 +74,18 @@ void Laser::onCollide( Object* collided_with ) {
 #ifdef _SERVER_
         g_objects.push_back( new Explosion(xPos, yPos, xVel/10, yVel/10) );
 #endif
+        if( collided_with->get_hitpoints() <= 0 ) {
+            switch( collided_with->get_type() ) {
+                case T_SHIP:
+                case T_PLAYER:
+                case T_ALIEN:
+                    owner->add_score(10);
+                    break;
+                case T_ASTEROID:
+                    owner->add_score(1);
+                    break;
+            }
+        }
         dead = true;
     }
 }

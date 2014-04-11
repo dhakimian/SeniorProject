@@ -11,6 +11,8 @@ Planet::Planet(float xp, float yp, float ang)
     yVel = 0;
     rotVel = 0;
 
+    hitpoints = 1;
+
     uint tmp = -1;
     mass = (float)tmp;
     //Since tmp is unsigned, -1 turns into the largest possible value for an int

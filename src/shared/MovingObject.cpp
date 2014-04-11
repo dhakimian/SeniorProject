@@ -51,7 +51,7 @@ void MovingObject::update()
         }
     }
 
-    if( rotVel > 20 )
+    if( fabs(rotVel) > 20 )
         takeDamage(1);
 
     //Move the object left or right
@@ -150,7 +150,7 @@ void MovingObject::onCollide( Object* collided_with )
         float d = delta.get_length();
         Vec2D mtd = delta.multiply( ( (Collider.r + collided_with->get_collider().r) - d) / d );
 
-        float im1 = 1 / get_mass(); 
+        float im1 = 1 / get_mass();
         float im2 = 1 / collided_with->get_mass();
 
         Vec2D v;
@@ -174,7 +174,7 @@ void MovingObject::onCollide( Object* collided_with )
 
         //this.velocity = this.velocity.add(impulse.multiply(im1));
         //ball.velocity = ball.velocity.subtract(impulse.multiply(im2));
-        
+
         xVel += (impulse.get_x()*im1);
         yVel += (impulse.get_y()*im1);
 

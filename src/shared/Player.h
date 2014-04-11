@@ -37,6 +37,8 @@ class Player : public Ship
         //port number (SDL_Net IPaddress.port) of client controlling this ship
         Uint16 controller;
 
+        int score;
+
         //variables telling whether certain keys are pushed. Includes both wasd and updownleftright.
         bool upKey;
         bool downKey;

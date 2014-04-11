@@ -6,6 +6,7 @@ __Requirements__
 * SDL2
 * SDL2\_image
 * SDL2\_mixer
+* SDL2\_ttf
 * SDL2\_net
 * GNU autotools (autoconf, automake)
 
@@ -25,7 +26,7 @@ Then you can type either
 
 to start the server, or
 
-    ./bin/client [hostname/ip [port]]
+    ./bin/client [hostname_or_ip [port]]
 
 to start the client, which looks for a server at localhost on port 2000 by default.
 ( the []s mean the arg inside them is optional )

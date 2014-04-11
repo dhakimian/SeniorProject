@@ -253,13 +253,16 @@ struct Keystate
 struct Connection
 {
     IPaddress address;
-    int packets_recvd, prev_packets_recvd, consec_missed;
+    int packets_recvd, prev_packets_recvd, consec_missed, packets_sent;
+    float server_fps;
 
-    Connection( IPaddress addr, int pr, int ppr, int cm ) {
+    Connection( IPaddress addr, int pr, int ppr=0, int cm=0, int ps=0 ) {
         address = addr;
         packets_recvd = pr;
         prev_packets_recvd = ppr;
         consec_missed = cm;
+        packets_sent = ps;
+        server_fps = -1;
     }
 
 };
@@ -270,6 +273,14 @@ struct find_addr : std::unary_function<Connection, bool> {
     find_addr(IPaddress addr):addr(addr) { }
     bool operator()(Connection const& c) const {
         return (c.address.host == addr.host && c.address.port == addr.port );
+    }
+};
+
+struct find_port : std::unary_function<Connection, bool> {
+    IPaddress addr;
+    find_port(IPaddress addr):addr(addr) { }
+    bool operator()(Connection const& c) const {
+        return ( c.address.port == addr.port );
     }
 };
 

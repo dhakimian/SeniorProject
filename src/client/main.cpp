@@ -47,20 +47,22 @@
 
 using namespace std;
 
-//int sleep_time = ;
-
-bool g_show_minimap = true;
+bool g_show_overlay = true;
 
 //Whether client should update g_objects locally whenever it doesn't receive a new gamestate from server
 const bool g_LocalUpdates = false;
+
+bool connected = false;
+
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
-//Globally used font
+//The global fonts to use
 TTF_Font* gFont = NULL;
+TTF_Font* gFont2 = NULL;
 
 //The texture that everything adjacent will be rendered to before being rotated relative to the ship
 LTexture gTargetTexture;
@@ -109,10 +111,13 @@ Player* g_player = NULL;
 
 Mix_Music* g_music = NULL;
 
-TTF_Font* g_font = NULL;
 SDL_Color g_font_color = { 255, 0, 0, 255 };
 LTexture g_fps_text;
+LTexture g_score_text;
+LTexture g_message_text;
 stringstream g_ss_fps;
+stringstream g_ss_score;
+stringstream g_ss_msg;
 float g_fps;
 
 UDPsocket g_sd;       /* Socket descriptor */
@@ -263,15 +268,20 @@ bool loadMedia() {
     }
 
     gFont = TTF_OpenFont( "media/fonts/courier_new.ttf", 14 );
-    if( gFont == NULL )
+    gFont2 = TTF_OpenFont( "media/fonts/Arial.ttf", 30 );
+    if( gFont == NULL || gFont2 == NULL )
     {
-        printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+        printf( "Failed to load fonts! SDL_ttf Error: %s\n", TTF_GetError() );
         success = false;
     }
     else
     {
         g_fps_text.setRenderer(gRenderer);
         g_fps_text.setFont(gFont);
+        g_score_text.setRenderer(gRenderer);
+        g_score_text.setFont(gFont2);
+        g_message_text.setRenderer(gRenderer);
+        g_message_text.setFont(gFont2);
     }
 
 
@@ -464,6 +474,15 @@ void render_minimap() {
     gMinimap.render( 5, 5, NULL, -g_Angle_targ );
 }
 
+void render_score() {
+    g_ss_score.str( "" );
+    g_ss_score << "Score: " << g_player->get_score();
+    if( !  g_score_text.loadFromRenderedText( g_ss_score.str().c_str(), g_font_color ) ) {
+        printf( "Unable to render score texture!\n" );
+    }
+    g_score_text.render( ( SCREEN_WIDTH - 250 ), 10 );
+}
+
 void render_fps() {
     if( !g_fps_text.loadFromRenderedText( g_ss_fps.str().c_str(), g_font_color ) ) {
         printf( "Unable to render FPS texture!\n" );
@@ -471,14 +490,28 @@ void render_fps() {
     g_fps_text.render( ( SCREEN_WIDTH - 110 ), 10 );
 }
 
+void render_message() {
+    g_ss_msg.str( "" );
+    if( !connected )
+        g_ss_msg << "Looking for Server";
+    else if( (g_player != NULL && g_player->is_dead()) || (connected && g_player == NULL) )
+        g_ss_msg << "You died. You will respawn soon.";
+
+    if( g_ss_msg.str() != "" ) {
+        g_message_text.loadFromRenderedText( g_ss_msg.str().c_str(), g_font_color );
+        g_message_text.render_center( SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 );
+    }
+}
+
 void render_overlay() {
     if( g_player != NULL )
     {
         render_healthbar();
-        if( g_show_minimap )
-            render_minimap();
+        render_minimap();
+        render_score();
     }
     render_fps();
+    render_message();
 }
 
 void render() {
@@ -565,7 +598,8 @@ void render() {
     g_xPos_cam = fmod( (g_xPos_cam + g_xVel_cam + LEVEL_WIDTH), LEVEL_WIDTH );
     g_yPos_cam = fmod( (g_yPos_cam + g_yVel_cam + LEVEL_HEIGHT), LEVEL_HEIGHT );
 
-    render_overlay();
+    if( g_show_overlay )
+        render_overlay();
 }
 
 Keystate get_keystate(const Uint8* currentKeyStates) {
@@ -662,7 +696,7 @@ int main( int argc, char** argv ) {
 
         Uint16 myport;
 
-        IPaddress *address;
+        IPaddress* address;
         address=SDLNet_UDP_GetPeerAddress(g_sd, -1);
         if(!address) {
             fprintf(stderr, "SDLNet_UDP_GetPeerAddress: %s\n", SDLNet_GetError());
@@ -682,10 +716,10 @@ int main( int argc, char** argv ) {
 
             int cycle = 0;
 
+            int wait_time = 1;
+
             LTimer fps_timer;
             fps_timer.start();
-
-            bool connected = false;
 
             //count consecutive local updates to determine whether connection has been lost
             int consec_missed_updates = 0;
@@ -724,6 +758,7 @@ int main( int argc, char** argv ) {
                     SDLNet_FreePacket(p);
                 }
 
+                //if( connected && (cycle % wait_time) == 0 ) {
                 if( connected ) {
                     UDPpacket *kp;
                     if (!(kp = SDLNet_AllocPacket(128)))
@@ -739,6 +774,17 @@ int main( int argc, char** argv ) {
                     SDLNet_UDP_Send(g_sd, -1, kp);
                     SDLNet_FreePacket(kp);
                 }
+
+                //Calculate and correct fps
+                g_fps = cycle / ( fps_timer.getTicks() / 1000.f );
+                if( g_fps > 2000000 )
+                    g_fps = 0;
+
+                //Set text to be rendered
+                g_ss_fps.str( "" );
+                g_ss_fps << "FPS: " << g_fps;
+
+                //cout << g_fps << endl;
 
                 //get gamestate
                 UDPpacket** p_in;
@@ -765,11 +811,34 @@ int main( int argc, char** argv ) {
                     //if( num_recvd == prev_num_recvd * 2 )
                         //num_recvd /= 2;
 
+                    //cout<<"consecmissed: "<<consec_missed_updates<<endl;
                     consec_missed_updates = 0;
 
                     //cout<<"got packet vector"<<endl;
                     //cout<<"num_recvd: "<<num_recvd<<endl;
                     //g_objects.resize( num_recvd );
+
+                    //vector<Connection> connections;
+                    //connections.resize(4);
+                    //memcpy( &connections, p_in[0]->data, p_in[0]->len );
+                    //vector<Connection>::iterator it;
+                    //it = find_if( connections.begin(), connections.end(), find_port(*address) );
+                    Object obj;
+                    memcpy( &obj, p_in[0]->data, p_in[0]->len );
+                    float srvfps = obj.fps;
+                    wait_time = max(1, ((int)g_fps - (int)srvfps)/2);
+                    //if( srvfps > 5 && srvfps < 2000 ) {
+                    /*
+                        if( srvfps <= g_fps )
+                            wait_time += 1;
+                        else
+                            wait_time = max(1, wait_time - 1);
+                            */
+                    //}
+                    //cout<<srvfps<<" srv|loc "<<g_fps;
+                    //cout << endl;
+                    //cout<<" waittime: "<<wait_time<<endl;
+
                     for( int i=0; i<num_recvd; i++ ) {
                         //Object tmp = *(Object*)p_in[i]->data;
                         Object tmp;
@@ -888,7 +957,7 @@ int main( int argc, char** argv ) {
                                 break;
                                 //print current ship coords for debugging
                             case SDLK_TAB:
-                                g_show_minimap = !g_show_minimap;
+                                g_show_overlay = !g_show_overlay;
                                 break;
                             case SDLK_x:
                                 float xPos, yPos, Angle, xVel, yVel, rotVel; 
@@ -920,17 +989,6 @@ int main( int argc, char** argv ) {
                         }
                     }
                 }
-
-                //Calculate and correct fps
-                g_fps = cycle / ( fps_timer.getTicks() / 1000.f );
-                if( g_fps > 2000000 )
-                    g_fps = 0;
-
-                //Set text to be rendered
-                g_ss_fps.str( "" );
-                g_ss_fps << "FPS: " << g_fps;
-
-                //cout << g_fps << endl;
 
                 //handle keyboard state for things like rendering ship correctly based on keys pressed
                 //if( g_player != NULL )

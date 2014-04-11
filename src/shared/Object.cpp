@@ -20,6 +20,7 @@ Object::Object() {
     solid = true;
     team = -1;
     mass = 30;
+    score = 0;
 
     dead = false;
     persistent = false;
@@ -34,6 +35,8 @@ Object::Object() {
     frame_h = 0;
     frames_x = 0;
     frames_y = 0;
+
+    fps = -1;
 
     red = 255;
     green = 255;
@@ -150,6 +153,13 @@ int Object::get_hitpoints()
 
 float Object::get_mass()
 { return mass; }
+
+int Object::get_score()
+{ return score; }
+
+void Object::add_score( int amount ) {
+    score += amount;
+}
 
 bool Object::is_solid()
 { return solid; }

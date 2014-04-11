@@ -37,6 +37,7 @@ void Powerup::onCollide( Object* collided_with )
         std::cout<<"onC"<<std::endl;
         Ship* ship = (Ship*)collided_with;
         ship->weapons_upgrade();
+        ship->add_score(3);
         dead = true;
     }
     else if( collided_with->get_type() == T_LASER )
