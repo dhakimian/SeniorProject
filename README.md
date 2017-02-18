@@ -36,7 +36,7 @@ make it force quit or end task, or from the terminal started it in, you can pres
 then 'kill -9 %1' (ctrl-c doesn't seem to work when this happens). Yes, finding and fixing
 memory leaks is on the todo list... :P
 
-(this hasn't happened in a while for me, but I also haven't been testing with Rocke Everywhere recently either...)
+(this hasn't happened in a while for me, but I also haven't been testing with Rocks Everywhere recently either...)
 
 By default, the server doesn't render anything, but if you type anything (literally anything)
 after ./bin/server (with a space in between of course), it will start the server in a sort of
